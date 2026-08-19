@@ -541,18 +541,23 @@
       }
 
       .progress-track {
-        height: 5px;
-        background: #eceef2;
-        border-radius: 999px;
-        overflow: hidden;
+        display: grid;
+        grid-template-columns: repeat(var(--segments), minmax(0, 1fr));
+        gap: 3px;
+        height: 6px;
       }
 
-      .progress-fill {
+      .progress-segment {
         height: 100%;
-        width: 0%;
-        border-radius: inherit;
+        border-radius: 2px;
+        background: #e5e8ee;
+        box-shadow: inset 0 0 0 1px rgba(23, 32, 51, 0.035);
+        transition: background-color 180ms ease, box-shadow 180ms ease;
+      }
+
+      .progress-segment.filled {
         background: var(--purple-3);
-        transition: width 220ms ease;
+        box-shadow: none;
       }
 
       .vein-summary-count {
@@ -1088,14 +1093,14 @@
           <section class="inspector-section">
             <div class="section-kicker">肺静脉与脊部消融进度</div>
             <div class="vein-list" id="vein-list">
-              <div class="vein-summary"><span class="vein-summary-name">LSPV</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
-              <div class="vein-summary"><span class="vein-summary-name">LIPV</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
-              <div class="vein-summary"><span class="vein-summary-name">RSPV</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
-              <div class="vein-summary"><span class="vein-summary-name">RIPV</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
-              <div class="vein-summary"><span class="vein-summary-name">左前脊</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
-              <div class="vein-summary"><span class="vein-summary-name">左后脊</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
-              <div class="vein-summary"><span class="vein-summary-name">右后脊</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
-              <div class="vein-summary"><span class="vein-summary-name">右前脊</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
+              <div class="vein-summary"><span class="vein-summary-name">LSPV</span><span class="progress-track" style="--segments: 4"><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span></span><span class="vein-summary-count">0 次</span></div>
+              <div class="vein-summary"><span class="vein-summary-name">LIPV</span><span class="progress-track" style="--segments: 4"><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span></span><span class="vein-summary-count">0 次</span></div>
+              <div class="vein-summary"><span class="vein-summary-name">RSPV</span><span class="progress-track" style="--segments: 4"><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span></span><span class="vein-summary-count">0 次</span></div>
+              <div class="vein-summary"><span class="vein-summary-name">RIPV</span><span class="progress-track" style="--segments: 4"><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span></span><span class="vein-summary-count">0 次</span></div>
+              <div class="vein-summary"><span class="vein-summary-name">左前脊</span><span class="progress-track" style="--segments: 2"><span class="progress-segment"></span><span class="progress-segment"></span></span><span class="vein-summary-count">0 次</span></div>
+              <div class="vein-summary"><span class="vein-summary-name">左后脊</span><span class="progress-track" style="--segments: 2"><span class="progress-segment"></span><span class="progress-segment"></span></span><span class="vein-summary-count">0 次</span></div>
+              <div class="vein-summary"><span class="vein-summary-name">右后脊</span><span class="progress-track" style="--segments: 2"><span class="progress-segment"></span><span class="progress-segment"></span></span><span class="vein-summary-count">0 次</span></div>
+              <div class="vein-summary"><span class="vein-summary-name">右前脊</span><span class="progress-track" style="--segments: 2"><span class="progress-segment"></span><span class="progress-segment"></span></span><span class="vein-summary-count">0 次</span></div>
             </div>
           </section>
 
@@ -1712,6 +1717,17 @@
         updateUndoButton();
       }
 
+      function progressSegments(value, target) {
+        const filledCount = Math.min(
+          Math.max(Math.floor(Number(value) || 0), 0),
+          target,
+        );
+        return Array.from(
+          { length: target },
+          (_, index) => `<span class="progress-segment${index < filledCount ? " filled" : ""}"></span>`,
+        ).join("");
+      }
+
       function updateSummary() {
         const ringApplications = Object.values(applications).reduce(
           (sum, value) => sum + Number(value),
@@ -1750,13 +1766,12 @@
             (sum, key) => sum + Number(applications[key] || 0),
             0,
           );
-          const veinProgress = Math.min(veinTotal / VEIN_PROGRESS_TARGET, 1) * 100;
           const item = document.createElement("div");
           item.className = "vein-summary";
           item.innerHTML = `
             <span class="vein-summary-name">${vein.id}</span>
-            <span class="progress-track" aria-label="${vein.name}累计 ${veinTotal} 次；${VEIN_PROGRESS_TARGET} 次进度满格">
-              <span class="progress-fill" style="width: ${veinProgress}%"></span>
+            <span class="progress-track" style="--segments: ${VEIN_PROGRESS_TARGET}" role="progressbar" aria-valuemin="0" aria-valuemax="${VEIN_PROGRESS_TARGET}" aria-valuenow="${Math.min(veinTotal, VEIN_PROGRESS_TARGET)}" aria-label="${vein.name}累计 ${veinTotal} 次；${VEIN_PROGRESS_TARGET} 次进度满格">
+              ${progressSegments(veinTotal, VEIN_PROGRESS_TARGET)}
             </span>
             <span class="vein-summary-count">${veinTotal} 次</span>
           `;
@@ -1765,17 +1780,13 @@
 
         ridgeSites.forEach((site) => {
           const applicationCount = Number(ridgeApplications[site.id] || 0);
-          const ridgeProgress = Math.min(
-            applicationCount / RIDGE_TARGET_THRESHOLD,
-            1,
-          ) * 100;
           const summaryName = `${site.side === "left" ? "左" : "右"}${site.shortName}`;
           const ridgeItem = document.createElement("div");
           ridgeItem.className = "vein-summary";
           ridgeItem.innerHTML = `
             <span class="vein-summary-name">${summaryName}</span>
-            <span class="progress-track" aria-label="${site.ridgeName}累计 ${applicationCount} 次；${RIDGE_TARGET_THRESHOLD} 次进度满格">
-              <span class="progress-fill" style="width: ${ridgeProgress}%"></span>
+            <span class="progress-track" style="--segments: ${RIDGE_TARGET_THRESHOLD}" role="progressbar" aria-valuemin="0" aria-valuemax="${RIDGE_TARGET_THRESHOLD}" aria-valuenow="${Math.min(applicationCount, RIDGE_TARGET_THRESHOLD)}" aria-label="${site.ridgeName}累计 ${applicationCount} 次；${RIDGE_TARGET_THRESHOLD} 次进度满格">
+              ${progressSegments(applicationCount, RIDGE_TARGET_THRESHOLD)}
             </span>
             <span class="vein-summary-count">${applicationCount} 次</span>
           `;
