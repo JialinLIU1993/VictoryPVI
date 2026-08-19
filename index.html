@@ -372,6 +372,12 @@
         font-size: 10px;
         font-weight: 780;
         letter-spacing: 0.04em;
+        opacity: 1;
+        transition: opacity 170ms ease;
+      }
+
+      .ridge-label.hidden {
+        opacity: 0;
       }
 
       .ridge-count {
@@ -385,7 +391,6 @@
         opacity: 1;
       }
 
-      .ridge-label.on-dark,
       .ridge-count.on-dark {
         fill: white;
       }
@@ -1481,7 +1486,7 @@
             "text",
             {
               x: site.x,
-              y: site.y - 10,
+              y: site.y,
               class: "ridge-label",
               "data-ridge-label-for": site.id,
             },
@@ -1493,7 +1498,7 @@
             "text",
             {
               x: site.x,
-              y: site.y + 13,
+              y: site.y,
               class: "ridge-count",
               "data-ridge-count-for": site.id,
             },
@@ -1697,7 +1702,7 @@
           countText.classList.toggle("visible", count > 0);
           countText.classList.toggle("on-dark", level >= 2);
           const ridgeLabel = document.querySelector(`[data-ridge-label-for="${ridgeId}"]`);
-          ridgeLabel.classList.toggle("on-dark", level >= 2);
+          ridgeLabel.classList.toggle("hidden", count > 0);
         });
         updateSummary();
         updateSelection();
