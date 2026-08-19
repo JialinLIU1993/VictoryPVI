@@ -1,0 +1,2103 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f4f5f8" />
+    <title>VARIPULSE 消融质控记录</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #172033;
+        --muted: #6f7787;
+        --line: #dfe3eb;
+        --line-strong: #c8ceda;
+        --surface: #ffffff;
+        --canvas: #f3f4f7;
+        --purple-1: #d9c8f4;
+        --purple-2: #9b70d8;
+        --purple-3: #5a278f;
+        --purple-dark: #351053;
+        --shadow: 0 20px 55px rgba(31, 39, 58, 0.1);
+        font-family:
+          Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        min-height: 100vh;
+        min-height: 100dvh;
+        background: var(--canvas);
+        color: var(--ink);
+        overflow-x: hidden;
+        -webkit-text-size-adjust: 100%;
+      }
+
+      button {
+        font: inherit;
+        touch-action: manipulation;
+      }
+
+      .app-shell {
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: grid;
+        grid-template-rows: auto 1fr;
+      }
+
+      .topbar {
+        height: 72px;
+        padding: 0 28px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        background: rgba(255, 255, 255, 0.96);
+        border-bottom: 1px solid var(--line);
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        backdrop-filter: blur(16px);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        min-width: 0;
+      }
+
+      .brand-mark {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 7px solid var(--purple-3);
+        box-shadow: inset 0 0 0 2px white;
+        flex: 0 0 auto;
+      }
+
+      .brand-copy {
+        min-width: 0;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 17px;
+        line-height: 1.2;
+        letter-spacing: -0.01em;
+      }
+
+      .brand p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .save-state {
+        color: var(--muted);
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin-right: 4px;
+      }
+
+      .save-state::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #62a579;
+        box-shadow: 0 0 0 3px #e8f3ec;
+      }
+
+      .save-state[data-storage="memory"]::before {
+        background: #c78a2d;
+        box-shadow: 0 0 0 3px #f7eddc;
+      }
+
+      .button {
+        min-height: 36px;
+        padding: 0 14px;
+        border-radius: 8px;
+        border: 1px solid var(--line-strong);
+        background: white;
+        color: var(--ink);
+        cursor: pointer;
+        transition: 160ms ease;
+      }
+
+      .button:hover:not(:disabled) {
+        border-color: #9fa8b8;
+        background: #f8f9fb;
+      }
+
+      .button:active:not(:disabled) {
+        transform: translateY(1px);
+      }
+
+      .button:disabled {
+        opacity: 0.42;
+        cursor: not-allowed;
+      }
+
+      .button.primary {
+        border-color: var(--purple-3);
+        background: var(--purple-3);
+        color: white;
+      }
+
+      .button.primary:hover {
+        background: #4b1f7b;
+        border-color: #4b1f7b;
+      }
+
+      .workspace {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: minmax(600px, 1fr) 318px;
+      }
+
+      .stage {
+        padding: 26px 30px 30px;
+        min-width: 0;
+      }
+
+      .stage-header {
+        max-width: 1080px;
+        margin: 0 auto 18px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 24px;
+        animation: rise-in 420ms ease both;
+      }
+
+      .stage-title h2 {
+        margin: 0;
+        font-size: 22px;
+        line-height: 1.25;
+        letter-spacing: -0.02em;
+      }
+
+      .stage-title p {
+        margin: 7px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .legend {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        color: var(--muted);
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .legend-swatch {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        border: 1px solid rgba(50, 32, 76, 0.09);
+      }
+
+      .map-panel {
+        width: min(100%, 1080px);
+        margin: 0 auto;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        animation: rise-in 500ms 60ms ease both;
+      }
+
+      .map-toolbar {
+        min-height: 44px;
+        padding: 0 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        border-bottom: 1px solid var(--line);
+        background: #fbfbfc;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .layer-key {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .layer-key span {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+      }
+
+      .ring-icon {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 3px solid #aeb5c1;
+        border-radius: 50%;
+      }
+
+      .ring-icon.inner {
+        width: 10px;
+        height: 10px;
+        border-width: 2px;
+      }
+
+      .map-wrap {
+        position: relative;
+        padding: 8px 14px 14px;
+      }
+
+      #pv-map {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 980 / 650;
+        max-height: calc(100dvh - 210px);
+        min-height: 0;
+        display: block;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .anatomy-field {
+        fill: #f8f8fa;
+        stroke: #e1e4ea;
+        stroke-width: 2;
+      }
+
+      .atrium-line {
+        fill: none;
+        stroke: #e4e6ec;
+        stroke-width: 2;
+        stroke-dasharray: 4 7;
+      }
+
+      .pv-ring {
+        outline: none;
+      }
+
+      .pv-segment,
+      .ridge-segment {
+        fill: #f3f2f5;
+        stroke: white;
+        stroke-width: 2.4;
+        pointer-events: all;
+        cursor: pointer;
+        outline: none;
+        touch-action: manipulation;
+        transition:
+          fill 170ms ease,
+          filter 170ms ease,
+          opacity 170ms ease;
+      }
+
+      .pv-segment:hover,
+      .ridge-segment:hover {
+        filter: brightness(0.96);
+        stroke: #a893bd;
+        stroke-width: 3;
+      }
+
+      .pv-segment:focus-visible,
+      .ridge-segment:focus-visible {
+        stroke: #2d1a43;
+        stroke-width: 4;
+      }
+
+      .pv-segment.last-excluded {
+        stroke: #2e163f;
+        stroke-width: 3.4;
+        stroke-dasharray: 7 3;
+        filter: drop-shadow(0 2px 3px rgba(45, 20, 68, 0.18));
+      }
+
+      .ridge-segment.last-recorded {
+        stroke: #2e163f;
+        stroke-width: 3.4;
+        stroke-dasharray: 7 3;
+        filter: drop-shadow(0 2px 3px rgba(45, 20, 68, 0.18));
+      }
+
+      .pv-segment.level-1,
+      .ridge-segment.level-1 {
+        fill: var(--purple-1);
+      }
+
+      .pv-segment.level-2,
+      .ridge-segment.level-2 {
+        fill: var(--purple-2);
+      }
+
+      .pv-segment.level-3,
+      .ridge-segment.level-3 {
+        fill: var(--purple-3);
+      }
+
+      .ridge-position-label,
+      .ridge-count {
+        text-anchor: middle;
+        dominant-baseline: central;
+        pointer-events: none;
+      }
+
+      .ridge-position-label {
+        fill: #747c8b;
+        font-size: 9px;
+        font-weight: 760;
+      }
+
+      .ridge-count {
+        fill: #403a49;
+        font-size: 12px;
+        font-weight: 800;
+        opacity: 0;
+      }
+
+      .ridge-count.visible {
+        opacity: 1;
+      }
+
+      .ridge-position-label.on-dark,
+      .ridge-count.on-dark {
+        fill: white;
+      }
+
+      .segment-count {
+        font-size: 12px;
+        font-weight: 700;
+        text-anchor: middle;
+        dominant-baseline: central;
+        fill: #403a49;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 170ms ease;
+      }
+
+      .segment-count.visible {
+        opacity: 1;
+      }
+
+      .segment-count.on-dark {
+        fill: white;
+      }
+
+      .sector-index {
+        font-size: 9px;
+        font-weight: 750;
+        text-anchor: middle;
+        dominant-baseline: central;
+        fill: #747c8b;
+        opacity: 0.78;
+        pointer-events: none;
+      }
+
+      .sector-index.on-dark {
+        fill: white;
+        opacity: 0.76;
+      }
+
+      .vein-center {
+        fill: white;
+        stroke: #e2e5eb;
+        stroke-width: 1.5;
+      }
+
+      .vein-code {
+        font-size: 13px;
+        font-weight: 750;
+        letter-spacing: 0.03em;
+        fill: var(--ink);
+        text-anchor: middle;
+        dominant-baseline: central;
+        pointer-events: none;
+      }
+
+      .vein-cn {
+        font-size: 10px;
+        fill: #8b929f;
+        text-anchor: middle;
+        pointer-events: none;
+      }
+
+      .side-title {
+        font-size: 17px;
+        font-weight: 750;
+        fill: var(--ink);
+        text-anchor: middle;
+      }
+
+      .side-subtitle {
+        font-size: 11px;
+        fill: var(--muted);
+        text-anchor: middle;
+      }
+
+      .orientation-label {
+        font-size: 14px;
+        fill: #747c8b;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        dominant-baseline: middle;
+        pointer-events: none;
+      }
+
+      .atrium-label {
+        font-size: 18px;
+        fill: #aeb4bf;
+        font-weight: 760;
+        letter-spacing: 0.08em;
+        text-anchor: middle;
+        dominant-baseline: middle;
+        pointer-events: none;
+      }
+
+      .inspector {
+        background: var(--surface);
+        border-left: 1px solid var(--line);
+        padding: 25px 24px;
+        overflow-y: auto;
+      }
+
+      .summary-kicker,
+      .section-kicker {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .summary-number {
+        margin-top: 8px;
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+      }
+
+      .summary-number strong {
+        font-size: 42px;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+
+      .summary-number span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .quality-row {
+        margin-top: 20px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+      }
+
+      .quality-metric {
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
+      }
+
+      .quality-metric strong {
+        display: block;
+        font-size: 19px;
+      }
+
+      .quality-metric span {
+        display: block;
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .inspector-section {
+        margin-top: 30px;
+      }
+
+      .vein-list {
+        margin-top: 13px;
+        display: grid;
+        gap: 15px;
+      }
+
+      .vein-summary {
+        display: grid;
+        grid-template-columns: 46px 1fr auto;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .vein-summary-name {
+        font-size: 12px;
+        font-weight: 750;
+      }
+
+      .progress-track {
+        height: 5px;
+        background: #eceef2;
+        border-radius: 999px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: inherit;
+        background: var(--purple-3);
+        transition: width 220ms ease;
+      }
+
+      .vein-summary-count {
+        min-width: 34px;
+        color: var(--muted);
+        font-size: 11px;
+        text-align: right;
+      }
+
+      .selection {
+        margin-top: 13px;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        padding: 16px 0;
+      }
+
+      .selection-empty {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.6;
+      }
+
+      .selection-name {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 750;
+      }
+
+      .selection-meta {
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .selection-facts {
+        margin-top: 15px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .selection-fact {
+        padding-top: 10px;
+        border-top: 1px solid var(--line);
+      }
+
+      .selection-fact strong {
+        display: block;
+        font-size: 18px;
+      }
+
+      .selection-fact span {
+        display: block;
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 10px;
+      }
+
+      .stepper {
+        margin-top: 15px;
+        display: grid;
+        grid-template-columns: 40px 1fr 40px;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .stepper button {
+        width: 40px;
+        height: 38px;
+        border: 1px solid var(--line-strong);
+        background: white;
+        border-radius: 8px;
+        color: var(--ink);
+        font-size: 20px;
+        cursor: pointer;
+      }
+
+      .stepper button:hover:not(:disabled) {
+        border-color: var(--purple-2);
+        color: var(--purple-dark);
+      }
+
+      .stepper button:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+
+      .stepper-value {
+        text-align: center;
+        font-size: 22px;
+        font-weight: 780;
+      }
+
+      .help {
+        margin: 13px 0 0;
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.65;
+      }
+
+      .clinical-note {
+        margin-top: 28px;
+        padding-top: 14px;
+        border-top: 1px solid var(--line);
+        color: #8a919e;
+        font-size: 10px;
+        line-height: 1.6;
+      }
+
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 24px;
+        transform: translate(-50%, 16px);
+        padding: 10px 14px;
+        border-radius: 9px;
+        background: #222735;
+        color: white;
+        font-size: 12px;
+        opacity: 0;
+        pointer-events: none;
+        transition: 200ms ease;
+        z-index: 40;
+        box-shadow: 0 10px 28px rgba(25, 29, 41, 0.2);
+      }
+
+      .toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+
+      .mobile-pan-hint {
+        display: none;
+      }
+
+      .preview-only-note {
+        margin: 0;
+        padding: 9px 14px;
+        border-bottom: 1px solid #eadfca;
+        background: #fff9ed;
+        color: #75664d;
+        font-size: 11px;
+        line-height: 1.55;
+        text-align: center;
+      }
+
+      .preview-only-note[hidden] {
+        display: none !important;
+      }
+
+      @keyframes rise-in {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (min-width: 951px) and (max-width: 1180px) {
+        .topbar {
+          padding-right: 20px;
+          padding-left: 20px;
+        }
+
+        .workspace {
+          grid-template-columns: minmax(0, 1fr) 290px;
+        }
+
+        .stage {
+          padding: 22px 20px 26px;
+        }
+
+        .stage-header {
+          gap: 16px;
+        }
+
+        .inspector {
+          padding: 22px 18px;
+        }
+      }
+
+      @media (max-width: 950px) {
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+
+        .inspector {
+          border-left: 0;
+          border-top: 1px solid var(--line);
+          display: grid;
+          grid-template-columns:
+            minmax(170px, 0.8fr)
+            minmax(230px, 1.2fr)
+            minmax(210px, 1fr);
+          gap: 26px;
+        }
+
+        .inspector-section {
+          margin-top: 0;
+        }
+
+        .clinical-note {
+          grid-column: 1 / -1;
+          margin-top: 0;
+        }
+
+        #pv-map {
+          max-height: none;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .topbar {
+          height: auto;
+          min-height: 68px;
+          padding:
+            12px max(16px, env(safe-area-inset-right))
+            12px max(16px, env(safe-area-inset-left));
+        }
+
+        .brand p,
+        .save-state {
+          display: none;
+        }
+
+        .button {
+          min-height: 44px;
+        }
+
+        .stage {
+          padding: 20px 12px;
+        }
+
+        .stage-header {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .legend {
+          flex-wrap: wrap;
+          gap: 9px 13px;
+        }
+
+        .map-panel {
+          border-radius: 13px;
+        }
+
+        .map-toolbar {
+          align-items: flex-start;
+          flex-direction: column;
+          padding-top: 10px;
+          padding-bottom: 10px;
+        }
+
+        .mobile-pan-hint {
+          min-height: 30px;
+          padding: 0 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-bottom: 1px solid var(--line);
+          background: #f7f6fa;
+          color: var(--muted);
+          font-size: 11px;
+          letter-spacing: 0.02em;
+        }
+
+        .map-wrap {
+          padding: 8px 0 12px;
+          overflow-x: auto;
+          overflow-y: hidden;
+          overscroll-behavior-inline: contain;
+          scroll-behavior: smooth;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-color: #c7b7d9 transparent;
+          scrollbar-width: thin;
+        }
+
+        .map-wrap::-webkit-scrollbar {
+          height: 6px;
+        }
+
+        .map-wrap::-webkit-scrollbar-thumb {
+          border-radius: 999px;
+          background: #c7b7d9;
+        }
+
+        #pv-map {
+          width: 840px;
+          max-width: none;
+          min-height: 0;
+        }
+
+        .inspector {
+          padding: 22px 18px;
+          grid-template-columns: 1fr;
+        }
+
+        .inspector-section {
+          margin-top: 2px;
+        }
+
+        .toast {
+          bottom: max(18px, env(safe-area-inset-bottom));
+          max-width: calc(100vw - 32px);
+          text-align: center;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .topbar {
+          flex-wrap: wrap;
+          gap: 9px;
+        }
+
+        .brand,
+        .top-actions {
+          width: 100%;
+        }
+
+        .top-actions {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 8px;
+        }
+
+        .top-actions .button {
+          width: 100%;
+          padding-right: 8px;
+          padding-left: 8px;
+          font-size: 13px;
+        }
+
+        .brand-mark {
+          width: 30px;
+          height: 30px;
+          border-width: 6px;
+        }
+
+        .brand h1 {
+          font-size: 16px;
+        }
+
+        .stage {
+          padding: 16px 8px 20px;
+        }
+
+        .stage-header {
+          margin-bottom: 12px;
+        }
+
+        .stage-title h2 {
+          font-size: 20px;
+        }
+
+        .stage-title p {
+          font-size: 12px;
+          line-height: 1.6;
+        }
+
+        .map-toolbar {
+          gap: 10px;
+          padding-right: 12px;
+          padding-left: 12px;
+          line-height: 1.55;
+        }
+
+        .layer-key {
+          flex-wrap: wrap;
+          gap: 10px 14px;
+        }
+
+        .inspector {
+          padding:
+            20px max(16px, env(safe-area-inset-right))
+            max(24px, env(safe-area-inset-bottom))
+            max(16px, env(safe-area-inset-left));
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <div class="brand-copy">
+            <h1>VARIPULSE 消融质控记录</h1>
+            <p>肺静脉脉冲场消融 · 术中即时评估</p>
+          </div>
+        </div>
+        <div class="top-actions">
+          <span class="save-state" id="save-state">记录已自动保存</span>
+          <button class="button" id="undo-button" type="button" title="撤回上一步（⌘/Ctrl + Z）" disabled>撤回</button>
+          <button class="button" id="reset-button" type="button" disabled>清空记录</button>
+          <button class="button primary" id="export-button" type="button" disabled>导出记录</button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="stage" aria-labelledby="map-title">
+          <div class="stage-header">
+            <div class="stage-title">
+              <h2 id="map-title">肺静脉消融分布</h2>
+              <p>内环 1 次达标；外环 1 次达标：LSPV 2–4、LIPV 1–3、RSPV 5–7、RIPV 6–8；其余外环及脊部 2 次达标。</p>
+            </div>
+            <div class="legend" aria-label="消融次数色阶">
+              <span class="legend-item">
+                <i class="legend-swatch" style="background: #f3f2f5"></i>0 次
+              </span>
+              <span class="legend-item">
+                <i class="legend-swatch" style="background: var(--purple-1)"></i>未达标
+              </span>
+              <span class="legend-item">
+                <i class="legend-swatch" style="background: var(--purple-3)"></i>紫色达标
+              </span>
+            </div>
+          </div>
+
+          <div class="map-panel">
+            <div class="map-toolbar">
+              <div class="layer-key">
+                <span><i class="ring-icon"></i>外环 · 前庭</span>
+                <span><i class="ring-icon inner"></i>内环 · 口部</span>
+              </div>
+              <span>环扇区：点击区为 gap · 脊部：点击任一段，上下同步记录</span>
+            </div>
+            <div class="mobile-pan-hint" aria-hidden="true">← 左右滑动查看双侧肺静脉 →</div>
+            <p class="preview-only-note" id="preview-only-note">当前为文件预览模式：可查看图谱；消融点击记录请在支持 JavaScript 的浏览器中打开。</p>
+            <div class="map-wrap">
+              <svg
+                id="pv-map"
+                viewBox="0 0 980 650"
+                role="group"
+                aria-label="双侧四支肺静脉口部与前庭分区消融记录图"
+              >
+                <defs>
+                  <g id="preview-ring">
+                    <circle r="99" fill="none" stroke="#eceaf1" stroke-width="34"></circle>
+                    <circle r="61" fill="none" stroke="#eceaf1" stroke-width="34"></circle>
+                    <g fill="none" stroke="#ffffff" stroke-width="4">
+                      <path d="M 0 -44 L 0 -116"></path>
+                      <path d="M 31.1 -31.1 L 82 -82"></path>
+                      <path d="M 44 0 L 116 0"></path>
+                      <path d="M 31.1 31.1 L 82 82"></path>
+                      <path d="M 0 44 L 0 116"></path>
+                      <path d="M -31.1 31.1 L -82 82"></path>
+                      <path d="M -44 0 L -116 0"></path>
+                      <path d="M -31.1 -31.1 L -82 -82"></path>
+                    </g>
+                    <circle r="40" class="vein-center"></circle>
+                  </g>
+                </defs>
+                <g id="static-preview-fallback" aria-hidden="true">
+                  <path
+                    class="anatomy-field"
+                    d="M 424 178 C 445 151 535 151 556 178 C 574 204 567 247 561 286 C 556 320 571 352 566 408 C 561 457 539 482 490 490 C 441 482 419 457 414 408 C 409 352 424 320 419 286 C 413 247 406 204 424 178 Z"
+                  ></path>
+                  <path
+                    class="atrium-line"
+                    d="M 378 205 C 420 225 560 225 602 205 M 378 455 C 420 435 560 435 602 455"
+                  ></path>
+                  <text x="490" y="335" class="atrium-label">左房后壁</text>
+
+                  <text x="260" y="36" class="side-title">左侧肺静脉</text>
+                  <text x="260" y="56" class="side-subtitle">LEFT PULMONARY VEINS</text>
+                  <text x="720" y="36" class="side-title">右侧肺静脉</text>
+                  <text x="720" y="56" class="side-subtitle">RIGHT PULMONARY VEINS</text>
+
+                  <text x="154" y="330" class="orientation-label" text-anchor="middle">前脊</text>
+                  <text x="366" y="330" class="orientation-label" text-anchor="middle">后脊</text>
+                  <text x="614" y="330" class="orientation-label" text-anchor="middle">后脊</text>
+                  <text x="826" y="330" class="orientation-label" text-anchor="middle">前脊</text>
+
+                  <g fill="#eceaf1" stroke="#ffffff" stroke-width="2.4">
+                    <path d="M 128 276 L 166 286 L 180 320 L 134 320 Z"></path>
+                    <path d="M 134 340 L 180 340 L 166 374 L 128 384 Z"></path>
+                    <path d="M 354 286 L 392 276 L 386 320 L 340 320 Z"></path>
+                    <path d="M 340 340 L 386 340 L 392 384 L 354 374 Z"></path>
+                    <path d="M 588 276 L 626 286 L 640 320 L 594 320 Z"></path>
+                    <path d="M 594 340 L 640 340 L 626 374 L 588 384 Z"></path>
+                    <path d="M 814 286 L 852 276 L 846 320 L 800 320 Z"></path>
+                    <path d="M 800 340 L 846 340 L 852 384 L 814 374 Z"></path>
+                  </g>
+                  <g class="ridge-position-label">
+                    <text x="154" y="293">上</text><text x="154" y="353">下</text>
+                    <text x="366" y="293">上</text><text x="366" y="353">下</text>
+                    <text x="614" y="293">上</text><text x="614" y="353">下</text>
+                    <text x="826" y="293">上</text><text x="826" y="353">下</text>
+                  </g>
+
+                  <use href="#preview-ring" x="260" y="205"></use>
+                  <use href="#preview-ring" x="260" y="455"></use>
+                  <use href="#preview-ring" x="720" y="205"></use>
+                  <use href="#preview-ring" x="720" y="455"></use>
+
+                  <text x="260" y="202" class="vein-code">LSPV</text>
+                  <text x="260" y="221" class="vein-cn">左上肺</text>
+                  <text x="260" y="452" class="vein-code">LIPV</text>
+                  <text x="260" y="471" class="vein-cn">左下肺</text>
+                  <text x="720" y="202" class="vein-code">RSPV</text>
+                  <text x="720" y="221" class="vein-cn">右上肺</text>
+                  <text x="720" y="452" class="vein-code">RIPV</text>
+                  <text x="720" y="471" class="vein-cn">右下肺</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </section>
+
+        <aside class="inspector" aria-label="消融记录概览">
+          <section>
+            <div class="summary-kicker">总应用次数</div>
+            <div class="summary-number">
+              <strong id="total-count">0</strong><span>次</span>
+            </div>
+            <div class="quality-row">
+              <div class="quality-metric">
+                <strong id="coverage-count">0 / 72</strong>
+                <span>已覆盖扇区</span>
+              </div>
+              <div class="quality-metric">
+                <strong id="target-count">0</strong>
+                <span>紫色达标扇区</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="inspector-section">
+            <div class="section-kicker">肺静脉与脊部覆盖</div>
+            <div class="vein-list" id="vein-list">
+              <div class="vein-summary"><span class="vein-summary-name">LSPV</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
+              <div class="vein-summary"><span class="vein-summary-name">LIPV</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
+              <div class="vein-summary"><span class="vein-summary-name">RSPV</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
+              <div class="vein-summary"><span class="vein-summary-name">RIPV</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
+              <div class="vein-summary"><span class="vein-summary-name">左脊</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
+              <div class="vein-summary"><span class="vein-summary-name">右脊</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
+            </div>
+          </section>
+
+          <section class="inspector-section">
+            <div class="section-kicker">本次 1–10 gap</div>
+            <div class="selection" id="selection-panel">
+              <div class="selection-empty">点击环扇区标记 gap；点击脊部任一段，上下两段同步记录一次。</div>
+            </div>
+            <p class="help">虚线描边表示最近一次 gap 或脊部应用位置；误操作可点击“撤回”或按 ⌘/Ctrl + Z。</p>
+          </section>
+
+          <p class="clinical-note">本工具仅用于术中位置与次数记录辅助，不替代电生理系统数据、消融终点评估或临床判断。</p>
+        </aside>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+      const NS = "http://www.w3.org/2000/svg";
+      const STORAGE_KEY = "varipulse-ablation-map-v4";
+      const HISTORY_KEY = "varipulse-ablation-map-v4-history";
+      const LEGACY_STORAGE_KEY = "varipulse-ablation-map-v3";
+      const HISTORY_LIMIT = 100;
+      let storageAvailable = true;
+      const veins = [
+        { id: "LSPV", name: "左上肺静脉", short: "左上肺", x: 260, y: 205 },
+        { id: "LIPV", name: "左下肺静脉", short: "左下肺", x: 260, y: 455 },
+        { id: "RSPV", name: "右上肺静脉", short: "右上肺", x: 720, y: 205 },
+        { id: "RIPV", name: "右下肺静脉", short: "右下肺", x: 720, y: 455 },
+      ];
+      const layers = {
+        outer: { name: "前庭", innerR: 82, outerR: 116, countR: 92, indexR: 108 },
+        inner: { name: "口部", innerR: 44, outerR: 78, countR: 61 },
+      };
+      const singlePassOuterSectors = {
+        LSPV: new Set([2, 3, 4]),
+        LIPV: new Set([1, 2, 3]),
+        RSPV: new Set([5, 6, 7]),
+        RIPV: new Set([6, 7, 8]),
+      };
+      const RIDGE_TARGET_THRESHOLD = 2;
+      const ridgePositions = [
+        {
+          id: "anterior-upper",
+          side: "left",
+          groupId: "left-anterior",
+          ridgeName: "左侧前脊部",
+          positionName: "上段",
+          shortLabel: "上",
+          x: 154,
+          y: 300,
+          path: "M 128 276 L 166 286 L 180 320 L 134 320 Z",
+        },
+        {
+          id: "anterior-lower",
+          side: "left",
+          groupId: "left-anterior",
+          ridgeName: "左侧前脊部",
+          positionName: "下段",
+          shortLabel: "下",
+          x: 154,
+          y: 360,
+          path: "M 134 340 L 180 340 L 166 374 L 128 384 Z",
+        },
+        {
+          id: "posterior-upper",
+          side: "left",
+          groupId: "left-posterior",
+          ridgeName: "左侧后脊部",
+          positionName: "上段",
+          shortLabel: "上",
+          x: 366,
+          y: 300,
+          path: "M 354 286 L 392 276 L 386 320 L 340 320 Z",
+        },
+        {
+          id: "posterior-lower",
+          side: "left",
+          groupId: "left-posterior",
+          ridgeName: "左侧后脊部",
+          positionName: "下段",
+          shortLabel: "下",
+          x: 366,
+          y: 360,
+          path: "M 340 340 L 386 340 L 392 384 L 354 374 Z",
+        },
+        {
+          id: "right-posterior-upper",
+          side: "right",
+          groupId: "right-posterior",
+          ridgeName: "右侧后脊部",
+          positionName: "上段",
+          shortLabel: "上",
+          x: 614,
+          y: 300,
+          path: "M 588 276 L 626 286 L 640 320 L 594 320 Z",
+        },
+        {
+          id: "right-posterior-lower",
+          side: "right",
+          groupId: "right-posterior",
+          ridgeName: "右侧后脊部",
+          positionName: "下段",
+          shortLabel: "下",
+          x: 614,
+          y: 360,
+          path: "M 594 340 L 640 340 L 626 374 L 588 384 Z",
+        },
+        {
+          id: "right-anterior-upper",
+          side: "right",
+          groupId: "right-anterior",
+          ridgeName: "右侧前脊部",
+          positionName: "上段",
+          shortLabel: "上",
+          x: 826,
+          y: 300,
+          path: "M 814 286 L 852 276 L 846 320 L 800 320 Z",
+        },
+        {
+          id: "right-anterior-lower",
+          side: "right",
+          groupId: "right-anterior",
+          ridgeName: "右侧前脊部",
+          positionName: "下段",
+          shortLabel: "下",
+          x: 826,
+          y: 360,
+          path: "M 800 340 L 846 340 L 852 384 L 814 374 Z",
+        },
+      ];
+
+      const persistedState = loadState();
+      let counts = persistedState.counts;
+      let applications = persistedState.applications;
+      let ridgeApplications = persistedState.ridgeApplications;
+      let actionHistory = loadHistory();
+      let selectedKey = null;
+      let selectedSector = null;
+      let selectedRidgeId = null;
+      let toastTimer = null;
+
+      const svg = document.getElementById("pv-map");
+      const totalCountNode = document.getElementById("total-count");
+      const coverageCountNode = document.getElementById("coverage-count");
+      const targetCountNode = document.getElementById("target-count");
+      const selectionPanel = document.getElementById("selection-panel");
+      const veinList = document.getElementById("vein-list");
+      const saveState = document.getElementById("save-state");
+      const undoButton = document.getElementById("undo-button");
+      const resetButton = document.getElementById("reset-button");
+      const exportButton = document.getElementById("export-button");
+      const previewOnlyNote = document.getElementById("preview-only-note");
+      const toast = document.getElementById("toast");
+
+      resetButton.disabled = false;
+      exportButton.disabled = false;
+      previewOnlyNote.hidden = true;
+
+      function createSvgElement(tag, attributes = {}, parent = svg) {
+        const element = document.createElementNS(NS, tag);
+        Object.entries(attributes).forEach(([key, value]) => element.setAttribute(key, value));
+        parent.appendChild(element);
+        return element;
+      }
+
+      function polar(cx, cy, radius, angleDeg) {
+        const angle = ((angleDeg - 90) * Math.PI) / 180;
+        return {
+          x: cx + radius * Math.cos(angle),
+          y: cy + radius * Math.sin(angle),
+        };
+      }
+
+      function ringSegmentPath(cx, cy, innerR, outerR, startAngle, endAngle) {
+        const outerStart = polar(cx, cy, outerR, startAngle);
+        const outerEnd = polar(cx, cy, outerR, endAngle);
+        const innerEnd = polar(cx, cy, innerR, endAngle);
+        const innerStart = polar(cx, cy, innerR, startAngle);
+        return [
+          `M ${outerStart.x} ${outerStart.y}`,
+          `A ${outerR} ${outerR} 0 0 1 ${outerEnd.x} ${outerEnd.y}`,
+          `L ${innerEnd.x} ${innerEnd.y}`,
+          `A ${innerR} ${innerR} 0 0 0 ${innerStart.x} ${innerStart.y}`,
+          "Z",
+        ].join(" ");
+      }
+
+      function ringKey(veinId, layerId) {
+        return `${veinId}-${layerId}`;
+      }
+
+      function sectorKey(key, sector) {
+        return `${key}-${sector}`;
+      }
+
+      function ridgeCountKey(ridgeId) {
+        return `ridge-${ridgeId}`;
+      }
+
+      function getRidgePosition(ridgeId) {
+        return ridgePositions.find((position) => position.id === ridgeId);
+      }
+
+      function ridgeLevel(count) {
+        if (count >= RIDGE_TARGET_THRESHOLD) return 3;
+        if (count >= 1) return 1;
+        return 0;
+      }
+
+      function normalizeRidgeState(sourceCounts = {}, sourceApplications) {
+        const normalizedCounts = { ...sourceCounts };
+        const normalizedApplications = {};
+        const groupIds = [...new Set(ridgePositions.map((position) => position.groupId))];
+
+        groupIds.forEach((groupId) => {
+          const groupPositions = ridgePositions.filter(
+            (position) => position.groupId === groupId,
+          );
+          const storedApplicationCount = Number(sourceApplications?.[groupId]);
+          const applicationCount = Number.isFinite(storedApplicationCount)
+            ? Math.max(0, storedApplicationCount)
+            : groupPositions.reduce(
+                (sum, position) =>
+                  sum + Number(sourceCounts[ridgeCountKey(position.id)] || 0),
+                0,
+              );
+          if (applicationCount > 0) normalizedApplications[groupId] = applicationCount;
+          groupPositions.forEach((position) => {
+            const countKey = ridgeCountKey(position.id);
+            if (applicationCount > 0) normalizedCounts[countKey] = applicationCount;
+            else delete normalizedCounts[countKey];
+          });
+        });
+
+        return {
+          counts: normalizedCounts,
+          ridgeApplications: normalizedApplications,
+        };
+      }
+
+      function parseKey(key) {
+        const [veinId, layerId] = key.split("-");
+        return {
+          vein: veins.find((item) => item.id === veinId),
+          layerId,
+          layer: layers[layerId],
+        };
+      }
+
+      function loadState() {
+        try {
+          const stored = JSON.parse(safeStorageGet(STORAGE_KEY));
+          if (stored && typeof stored.counts === "object" && typeof stored.applications === "object") {
+            const ridgeState = normalizeRidgeState(
+              stored.counts,
+              stored.ridgeApplications,
+            );
+            return {
+              counts: ridgeState.counts,
+              applications: stored.applications,
+              ridgeApplications: ridgeState.ridgeApplications,
+            };
+          }
+
+          const legacy = JSON.parse(safeStorageGet(LEGACY_STORAGE_KEY));
+          if (legacy && typeof legacy === "object") {
+            const migratedCounts = {};
+            const migratedApplications = {};
+            Object.entries(legacy).forEach(([key, value]) => {
+              const count = Math.max(0, Number(value) || 0);
+              if (!count || !layers[key.split("-")[1]]) return;
+              migratedApplications[key] = count;
+              for (let sector = 1; sector <= 8; sector += 1) {
+                migratedCounts[sectorKey(key, sector)] = count;
+              }
+            });
+            return {
+              counts: migratedCounts,
+              applications: migratedApplications,
+              ridgeApplications: {},
+            };
+          }
+        } catch {
+          // Continue with an empty in-memory record.
+        }
+        return { counts: {}, applications: {}, ridgeApplications: {} };
+      }
+
+      function loadHistory() {
+        try {
+          const stored = JSON.parse(safeStorageGet(HISTORY_KEY));
+          if (!Array.isArray(stored)) return [];
+          return stored
+            .filter(
+              (entry) =>
+                entry &&
+                typeof entry.counts === "object" &&
+                typeof entry.applications === "object",
+            )
+            .slice(-HISTORY_LIMIT);
+        } catch {
+          return [];
+        }
+      }
+
+      function safeStorageGet(key) {
+        try {
+          return localStorage.getItem(key);
+        } catch {
+          storageAvailable = false;
+          return null;
+        }
+      }
+
+      function safeStorageSet(key, value) {
+        try {
+          localStorage.setItem(key, value);
+          return true;
+        } catch {
+          storageAvailable = false;
+          return false;
+        }
+      }
+
+      function saveCounts() {
+        const saved = safeStorageSet(
+          STORAGE_KEY,
+          JSON.stringify({ counts, applications, ridgeApplications }),
+        );
+        if (!saved) {
+          saveState.textContent = "记录已更新 · 当前页面内有效";
+          saveState.dataset.storage = "memory";
+          return;
+        }
+        delete saveState.dataset.storage;
+        saveState.textContent = "正在保存…";
+        window.clearTimeout(saveCounts.timer);
+        saveCounts.timer = window.setTimeout(() => {
+          saveState.textContent = "记录已自动保存";
+        }, 450);
+      }
+
+      function saveHistory() {
+        safeStorageSet(HISTORY_KEY, JSON.stringify(actionHistory));
+        updateUndoButton();
+      }
+
+      function pushHistory(
+        actionLabel,
+        restoreSelection = selectedKey,
+        restoreSector = selectedSector,
+        restoreRidgeId = selectedRidgeId,
+      ) {
+        actionHistory.push({
+          counts: { ...counts },
+          applications: { ...applications },
+          ridgeApplications: { ...ridgeApplications },
+          selectedKey: restoreSelection,
+          selectedSector: restoreSector,
+          selectedRidgeId: restoreRidgeId,
+          actionLabel,
+        });
+        if (actionHistory.length > HISTORY_LIMIT) actionHistory.shift();
+        saveHistory();
+      }
+
+      function updateUndoButton() {
+        undoButton.disabled = actionHistory.length === 0;
+        const latest = actionHistory[actionHistory.length - 1];
+        undoButton.title = latest
+          ? `撤回：${latest.actionLabel}（⌘/Ctrl + Z）`
+          : "暂无可撤回操作（⌘/Ctrl + Z）";
+      }
+
+      function drawAnatomy() {
+        createSvgElement("path", {
+          class: "anatomy-field",
+          d: "M 424 178 C 445 151 535 151 556 178 C 574 204 567 247 561 286 C 556 320 571 352 566 408 C 561 457 539 482 490 490 C 441 482 419 457 414 408 C 409 352 424 320 419 286 C 413 247 406 204 424 178 Z",
+        });
+        createSvgElement("path", {
+          class: "atrium-line",
+          d: "M 378 205 C 420 225 560 225 602 205 M 378 455 C 420 435 560 435 602 455",
+        });
+        const laWall = createSvgElement("text", {
+          x: 490,
+          y: 335,
+          class: "atrium-label",
+        });
+        laWall.textContent = "左房后壁";
+
+        const leftTitle = createSvgElement("text", { x: 260, y: 36, class: "side-title" });
+        leftTitle.textContent = "左侧肺静脉";
+        const leftSubtitle = createSvgElement("text", { x: 260, y: 56, class: "side-subtitle" });
+        leftSubtitle.textContent = "LEFT PULMONARY VEINS";
+        const rightTitle = createSvgElement("text", { x: 720, y: 36, class: "side-title" });
+        rightTitle.textContent = "右侧肺静脉";
+        const rightSubtitle = createSvgElement("text", { x: 720, y: 56, class: "side-subtitle" });
+        rightSubtitle.textContent = "RIGHT PULMONARY VEINS";
+
+        [
+          { x: 154, label: "前脊" },
+          { x: 366, label: "后脊" },
+          { x: 614, label: "后脊" },
+          { x: 826, label: "前脊" },
+        ].forEach(({ x, label }) => {
+          const orientation = createSvgElement("text", {
+            x,
+            y: 330,
+            class: "orientation-label",
+            "text-anchor": "middle",
+          });
+          orientation.textContent = label;
+        });
+      }
+
+      function drawRidges() {
+        const group = createSvgElement("g", {
+          class: "ridge-sites",
+          "aria-label": "双侧肺静脉前脊部与后脊部",
+        });
+
+        ridgePositions.forEach((position) => {
+          const countKey = ridgeCountKey(position.id);
+          const segment = createSvgElement(
+            "path",
+            {
+              d: position.path,
+              class: "ridge-segment",
+              tabindex: "0",
+              role: "button",
+              "data-ridge-id": position.id,
+              "aria-label": `${position.ridgeName}${position.positionName}，累计${counts[countKey] || 0}次，紫色阈值${RIDGE_TARGET_THRESHOLD}次；点击后上下两段同步记录一次`,
+            },
+            group,
+          );
+          segment.addEventListener("click", (event) => {
+            event.stopPropagation();
+            applyRidge(position.id);
+          });
+          segment.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              applyRidge(position.id);
+            }
+          });
+
+          const positionLabel = createSvgElement(
+            "text",
+            {
+              x: position.x,
+              y: position.y - 7,
+              class: "ridge-position-label",
+              "data-ridge-label-for": position.id,
+            },
+            group,
+          );
+          positionLabel.textContent = position.shortLabel;
+
+          const countText = createSvgElement(
+            "text",
+            {
+              x: position.x,
+              y: position.y + 9,
+              class: "ridge-count",
+              "data-ridge-count-for": position.id,
+            },
+            group,
+          );
+          countText.textContent = counts[countKey] || "";
+        });
+      }
+
+      function drawVein(vein) {
+        const group = createSvgElement("g", {
+          "data-vein": vein.id,
+          "aria-label": vein.name,
+        });
+
+        Object.entries(layers).forEach(([layerId, layer]) => {
+          const key = ringKey(vein.id, layerId);
+          const ringGroup = createSvgElement(
+            "g",
+            {
+              class: "pv-ring",
+              "data-key": key,
+              "aria-label": `${vein.name} ${layer.name}${layerId === "outer" ? "外环" : "内环"}`,
+            },
+            group,
+          );
+
+          for (let index = 0; index < 8; index += 1) {
+            const sector = index + 1;
+            const startAngle = index * 45 + 1.4;
+            const endAngle = (index + 1) * 45 - 1.4;
+            const path = createSvgElement(
+              "path",
+              {
+                d: ringSegmentPath(
+                  vein.x,
+                  vein.y,
+                  layer.innerR,
+                  layer.outerR,
+                  startAngle,
+                  endAngle,
+                ),
+                class: "pv-segment",
+                tabindex: "0",
+                role: "button",
+                "data-key": key,
+                "data-sector": sector,
+                "aria-label": `${vein.name} ${layer.name}${layerId === "outer" ? "外环" : "内环"} ${sector}区；点击设为 1–10 gap，本次不计该区`,
+              },
+              ringGroup,
+            );
+            path.addEventListener("click", (event) => {
+              event.stopPropagation();
+              applyRingExcluding(key, sector);
+            });
+            path.addEventListener("keydown", (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                applyRingExcluding(key, sector);
+              }
+            });
+
+            const countPoint = polar(
+              vein.x,
+              vein.y,
+              layer.countR,
+              index * 45 + 22.5,
+            );
+            const countText = createSvgElement(
+              "text",
+              {
+                x: countPoint.x,
+                y: countPoint.y,
+                class: "segment-count",
+                "data-count-for": sectorKey(key, sector),
+              },
+              ringGroup,
+            );
+            countText.textContent = counts[sectorKey(key, sector)] || "";
+
+            if (layer.indexR) {
+              const indexPoint = polar(
+                vein.x,
+                vein.y,
+                layer.indexR,
+                index * 45 + 22.5,
+              );
+              const indexText = createSvgElement(
+                "text",
+                {
+                  x: indexPoint.x,
+                  y: indexPoint.y,
+                  class: "sector-index",
+                  "data-index-for": sectorKey(key, sector),
+                },
+                ringGroup,
+              );
+              indexText.textContent = sector;
+            }
+          }
+        });
+
+        createSvgElement(
+          "circle",
+          { cx: vein.x, cy: vein.y, r: 40, class: "vein-center" },
+          group,
+        );
+        const code = createSvgElement(
+          "text",
+          { x: vein.x, y: vein.y - 3, class: "vein-code" },
+          group,
+        );
+        code.textContent = vein.id;
+        const name = createSvgElement(
+          "text",
+          { x: vein.x, y: vein.y + 16, class: "vein-cn" },
+          group,
+        );
+        name.textContent = vein.short;
+      }
+
+      function renderMap() {
+        svg.replaceChildren();
+        drawAnatomy();
+        veins.forEach(drawVein);
+        drawRidges();
+        updateAll();
+      }
+
+      function targetThreshold(key, sector) {
+        const parsed = parseKey(key);
+        if (parsed.layerId === "inner") return 1;
+        if (
+          parsed.layerId === "outer" &&
+          singlePassOuterSectors[parsed.vein.id]?.has(sector)
+        ) {
+          return 1;
+        }
+        return 2;
+      }
+
+      function levelForCount(count, key, sector) {
+        if (count >= targetThreshold(key, sector)) return 3;
+        if (count >= 1) return 1;
+        return 0;
+      }
+
+      function applyRingExcluding(key, excludedSector) {
+        const parsed = parseKey(key);
+        const ringName = `${parsed.vein.name}${parsed.layer.name}${parsed.layerId === "outer" ? "外环" : "内环"}`;
+        pushHistory(`${ringName}应用 1 次，${excludedSector} 区为 1–10 gap`);
+        applications[key] = (applications[key] || 0) + 1;
+        for (let sector = 1; sector <= 8; sector += 1) {
+          if (sector === excludedSector) continue;
+          const keyForSector = sectorKey(key, sector);
+          counts[keyForSector] = (counts[keyForSector] || 0) + 1;
+        }
+        selectedKey = key;
+        selectedSector = excludedSector;
+        selectedRidgeId = null;
+        saveCounts();
+        updateAll();
+      }
+
+      function applyRidge(ridgeId) {
+        const position = getRidgePosition(ridgeId);
+        if (!position) return;
+        const pairedPositions = ridgePositions.filter(
+          (item) => item.groupId === position.groupId,
+        );
+        pushHistory(`${position.ridgeName}应用 1 次，上下段同步记录`);
+        ridgeApplications[position.groupId] =
+          (ridgeApplications[position.groupId] || 0) + 1;
+        pairedPositions.forEach((item) => {
+          const countKey = ridgeCountKey(item.id);
+          counts[countKey] = (counts[countKey] || 0) + 1;
+        });
+        selectedKey = null;
+        selectedSector = null;
+        selectedRidgeId = ridgeId;
+        saveCounts();
+        updateAll();
+      }
+
+      function updateAll() {
+        document.querySelectorAll(".pv-segment").forEach((segment) => {
+          const key = segment.dataset.key;
+          const sector = Number(segment.dataset.sector);
+          const keyForSector = sectorKey(key, sector);
+          const count = counts[keyForSector] || 0;
+          const threshold = targetThreshold(key, sector);
+          const level = levelForCount(count, key, sector);
+          segment.classList.remove("level-1", "level-2", "level-3", "last-excluded");
+          if (level) segment.classList.add(`level-${level}`);
+          if (key === selectedKey && sector === selectedSector) {
+            segment.classList.add("last-excluded");
+          }
+          const parsed = parseKey(key);
+          segment.setAttribute(
+            "aria-label",
+            `${parsed.vein.name} ${parsed.layer.name}${parsed.layerId === "outer" ? "外环" : "内环"} ${sector}区，累计${count}次，紫色阈值${threshold}次；点击设为 1–10 gap，本次不计该区`,
+          );
+
+          const text = document.querySelector(`[data-count-for="${keyForSector}"]`);
+          text.textContent = count || "";
+          text.classList.toggle("visible", count > 0);
+          text.classList.toggle("on-dark", level >= 2);
+
+          const indexText = document.querySelector(
+            `[data-index-for="${keyForSector}"]`,
+          );
+          if (indexText) indexText.classList.toggle("on-dark", level >= 2);
+        });
+
+        document.querySelectorAll(".ridge-segment").forEach((segment) => {
+          const ridgeId = segment.dataset.ridgeId;
+          const position = getRidgePosition(ridgeId);
+          const count = counts[ridgeCountKey(ridgeId)] || 0;
+          const level = ridgeLevel(count);
+          segment.classList.remove("level-1", "level-2", "level-3", "last-recorded");
+          if (level) segment.classList.add(`level-${level}`);
+          const selectedPosition = getRidgePosition(selectedRidgeId);
+          if (selectedPosition?.groupId === position.groupId) {
+            segment.classList.add("last-recorded");
+          }
+          segment.setAttribute(
+            "aria-label",
+            `${position.ridgeName}${position.positionName}，累计${count}次，紫色阈值${RIDGE_TARGET_THRESHOLD}次；点击后上下两段同步记录一次`,
+          );
+
+          const countText = document.querySelector(`[data-ridge-count-for="${ridgeId}"]`);
+          countText.textContent = count || "";
+          countText.classList.toggle("visible", count > 0);
+          countText.classList.toggle("on-dark", level >= 2);
+
+          const positionLabel = document.querySelector(`[data-ridge-label-for="${ridgeId}"]`);
+          positionLabel.classList.toggle("on-dark", level >= 2);
+        });
+        updateSummary();
+        updateSelection();
+        updateUndoButton();
+      }
+
+      function updateSummary() {
+        const ringApplications = Object.values(applications).reduce(
+          (sum, value) => sum + Number(value),
+          0,
+        );
+        const ridgeApplicationTotal = Object.values(ridgeApplications).reduce(
+          (sum, value) => sum + Number(value),
+          0,
+        );
+        const total = ringApplications + ridgeApplicationTotal;
+        let covered = 0;
+        let targetMet = 0;
+        veins.forEach((vein) => {
+          Object.keys(layers).forEach((layerId) => {
+            const key = ringKey(vein.id, layerId);
+            for (let sector = 1; sector <= 8; sector += 1) {
+              const count = counts[sectorKey(key, sector)] || 0;
+              if (count > 0) covered += 1;
+              if (count >= targetThreshold(key, sector)) targetMet += 1;
+            }
+          });
+        });
+        ridgePositions.forEach((position) => {
+          const count = counts[ridgeCountKey(position.id)] || 0;
+          if (count > 0) covered += 1;
+          if (count >= RIDGE_TARGET_THRESHOLD) targetMet += 1;
+        });
+        totalCountNode.textContent = total;
+        coverageCountNode.textContent = `${covered} / ${64 + ridgePositions.length}`;
+        targetCountNode.textContent = targetMet;
+
+        veinList.replaceChildren();
+        veins.forEach((vein) => {
+          const ringKeys = Object.keys(layers).map((layerId) => ringKey(vein.id, layerId));
+          const veinTotal = ringKeys.reduce(
+            (sum, key) => sum + Number(applications[key] || 0),
+            0,
+          );
+          let veinCovered = 0;
+          ringKeys.forEach((key) => {
+            for (let sector = 1; sector <= 8; sector += 1) {
+              if ((counts[sectorKey(key, sector)] || 0) > 0) veinCovered += 1;
+            }
+          });
+          const item = document.createElement("div");
+          item.className = "vein-summary";
+          item.innerHTML = `
+            <span class="vein-summary-name">${vein.id}</span>
+            <span class="progress-track" aria-label="${vein.name}已覆盖 ${veinCovered} / 16 个扇区">
+              <span class="progress-fill" style="width: ${(veinCovered / 16) * 100}%"></span>
+            </span>
+            <span class="vein-summary-count">${veinTotal} 次</span>
+          `;
+          veinList.appendChild(item);
+        });
+
+        [
+          { side: "left", label: "左脊", ariaLabel: "左侧肺静脉脊部" },
+          { side: "right", label: "右脊", ariaLabel: "右侧肺静脉脊部" },
+        ].forEach((ridgeSide) => {
+          const sidePositions = ridgePositions.filter(
+            (position) => position.side === ridgeSide.side,
+          );
+          const sideCovered = sidePositions.filter(
+            (position) => (counts[ridgeCountKey(position.id)] || 0) > 0,
+          ).length;
+          const sideGroupIds = [...new Set(
+            sidePositions.map((position) => position.groupId),
+          )];
+          const sideApplications = sideGroupIds.reduce(
+            (sum, groupId) => sum + Number(ridgeApplications[groupId] || 0),
+            0,
+          );
+          const ridgeItem = document.createElement("div");
+          ridgeItem.className = "vein-summary";
+          ridgeItem.innerHTML = `
+            <span class="vein-summary-name">${ridgeSide.label}</span>
+            <span class="progress-track" aria-label="${ridgeSide.ariaLabel}已覆盖 ${sideCovered} / ${sidePositions.length} 个扇区">
+              <span class="progress-fill" style="width: ${(sideCovered / sidePositions.length) * 100}%"></span>
+            </span>
+            <span class="vein-summary-count">${sideApplications} 次</span>
+          `;
+          veinList.appendChild(ridgeItem);
+        });
+      }
+
+      function updateSelection() {
+        if (selectedRidgeId) {
+          const position = getRidgePosition(selectedRidgeId);
+          const applicationCount = ridgeApplications[position.groupId] || 0;
+          selectionPanel.innerHTML = `
+            <p class="selection-name">${position.ridgeName}</p>
+            <div class="selection-meta">点击${position.positionName} · 上下两段同步记录一次</div>
+            <div class="selection-facts">
+              <div class="selection-fact">
+                <strong>${applicationCount} 次</strong>
+                <span>本脊累计应用</span>
+              </div>
+              <div class="selection-fact">
+                <strong>${RIDGE_TARGET_THRESHOLD} 次</strong>
+                <span>紫色达标阈值</span>
+              </div>
+            </div>
+          `;
+          return;
+        }
+        if (!selectedKey || !selectedSector) {
+          selectionPanel.innerHTML = '<div class="selection-empty">点击环扇区标记 gap；点击脊部任一段，上下两段同步记录一次。</div>';
+          return;
+        }
+        const parsed = parseKey(selectedKey);
+        const ringApplications = applications[selectedKey] || 0;
+        const sectorCount = counts[sectorKey(selectedKey, selectedSector)] || 0;
+        selectionPanel.innerHTML = `
+          <p class="selection-name">${parsed.vein.name}</p>
+          <div class="selection-meta">${parsed.layer.name} · ${parsed.layerId === "outer" ? "外环" : "内环"} · ${selectedSector} 区为 1–10 gap（本次不计）</div>
+          <div class="selection-facts">
+            <div class="selection-fact">
+              <strong>${ringApplications} 次</strong>
+              <span>本环应用</span>
+            </div>
+            <div class="selection-fact">
+              <strong>${sectorCount} 次</strong>
+              <span>${selectedSector} 区累计覆盖</span>
+            </div>
+          </div>
+        `;
+      }
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => toast.classList.remove("show"), 1800);
+      }
+
+      function clearSelection() {
+        if (!selectedKey && !selectedSector && !selectedRidgeId) return;
+        selectedKey = null;
+        selectedSector = null;
+        selectedRidgeId = null;
+        if (typeof document.activeElement?.blur === "function") {
+          document.activeElement.blur();
+        }
+        updateAll();
+      }
+
+      function undoLastAction() {
+        const previous = actionHistory.pop();
+        if (!previous) {
+          showToast("暂无可撤回操作");
+          return;
+        }
+        const ridgeState = normalizeRidgeState(
+          previous.counts,
+          previous.ridgeApplications,
+        );
+        counts = ridgeState.counts;
+        applications = { ...previous.applications };
+        ridgeApplications = ridgeState.ridgeApplications;
+        selectedKey = previous.selectedKey || null;
+        selectedSector = previous.selectedSector || null;
+        selectedRidgeId = previous.selectedRidgeId || null;
+        saveHistory();
+        saveCounts();
+        updateAll();
+        showToast(`已撤回：${previous.actionLabel}`);
+      }
+
+      function resetRecord() {
+        const hasRidgeRecords = ridgePositions.some(
+          (position) => (counts[ridgeCountKey(position.id)] || 0) > 0,
+        );
+        if (!Object.keys(applications).length && !hasRidgeRecords) {
+          showToast("当前没有可清空的记录");
+          return;
+        }
+        const confirmed = window.confirm("确认清空全部肺静脉与脊部消融记录？清空后仍可使用“撤回”恢复。");
+        if (!confirmed) return;
+        pushHistory("清空全部记录", selectedKey, selectedSector);
+        counts = {};
+        applications = {};
+        ridgeApplications = {};
+        selectedKey = null;
+        selectedSector = null;
+        selectedRidgeId = null;
+        saveCounts();
+        updateAll();
+        showToast("记录已清空");
+      }
+
+      function exportRecord() {
+        const ridgeApplicationTotal = Object.values(ridgeApplications).reduce(
+          (sum, value) => sum + Number(value),
+          0,
+        );
+        const payload = {
+          title: "VARIPULSE 消融质控记录",
+          exportedAt: new Date().toISOString(),
+          totalApplications: Object.values(applications).reduce(
+            (sum, value) => sum + Number(value),
+            ridgeApplicationTotal,
+          ),
+          rings: Object.entries(applications).map(([key, applicationCount]) => {
+            const parsed = parseKey(key);
+            return {
+              pulmonaryVein: parsed.vein.id,
+              pulmonaryVeinName: parsed.vein.name,
+              layer: parsed.layerId,
+              layerName: parsed.layer.name,
+              applicationCount,
+              sectors: Array.from({ length: 8 }, (_, index) => {
+                const sector = index + 1;
+                const coverageCount = counts[sectorKey(key, sector)] || 0;
+                const threshold = targetThreshold(key, sector);
+                return {
+                  sector,
+                  coverageCount,
+                  gapApplications: applicationCount - coverageCount,
+                  purpleThreshold: threshold,
+                  meetsPurpleTarget: coverageCount >= threshold,
+                };
+              }),
+            };
+          }),
+          ridges: ridgePositions.map((position) => {
+            const coverageCount = counts[ridgeCountKey(position.id)] || 0;
+            const applicationCount = ridgeApplications[position.groupId] || 0;
+            return {
+              id: position.id,
+              side: position.side,
+              groupId: position.groupId,
+              ridgeName: position.ridgeName,
+              positionName: position.positionName,
+              applicationCount,
+              coverageCount,
+              purpleThreshold: RIDGE_TARGET_THRESHOLD,
+              meetsPurpleTarget: coverageCount >= RIDGE_TARGET_THRESHOLD,
+            };
+          }),
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = `VARIPULSE-record-${new Date().toISOString().slice(0, 10)}.json`;
+        anchor.click();
+        URL.revokeObjectURL(url);
+        showToast("记录已导出");
+      }
+
+      undoButton.addEventListener("click", undoLastAction);
+      resetButton.addEventListener("click", resetRecord);
+      exportButton.addEventListener("click", exportRecord);
+      svg.addEventListener("click", (event) => {
+        if (event.target.closest?.(".pv-segment, .ridge-segment")) return;
+        clearSelection();
+      });
+      document.addEventListener("keydown", (event) => {
+        if ((event.metaKey || event.ctrlKey) && !event.shiftKey && event.key.toLowerCase() === "z") {
+          event.preventDefault();
+          undoLastAction();
+        } else if (event.key === "Escape") {
+          clearSelection();
+        }
+      });
+
+      renderMap();
+    </script>
+  </body>
+</html>
