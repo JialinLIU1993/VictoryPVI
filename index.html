@@ -360,17 +360,10 @@
         fill: var(--purple-3);
       }
 
-      .ridge-position-label,
       .ridge-count {
         text-anchor: middle;
         dominant-baseline: central;
         pointer-events: none;
-      }
-
-      .ridge-position-label {
-        fill: #747c8b;
-        font-size: 9px;
-        font-weight: 760;
       }
 
       .ridge-count {
@@ -384,7 +377,6 @@
         opacity: 1;
       }
 
-      .ridge-position-label.on-dark,
       .ridge-count.on-dark {
         fill: white;
       }
@@ -406,21 +398,6 @@
 
       .segment-count.on-dark {
         fill: white;
-      }
-
-      .sector-index {
-        font-size: 9px;
-        font-weight: 750;
-        text-anchor: middle;
-        dominant-baseline: central;
-        fill: #747c8b;
-        opacity: 0.78;
-        pointer-events: none;
-      }
-
-      .sector-index.on-dark {
-        fill: white;
-        opacity: 0.76;
       }
 
       .vein-center {
@@ -1069,13 +1046,6 @@
                     <path d="M 814 286 L 852 276 L 846 320 L 800 320 Z"></path>
                     <path d="M 800 340 L 846 340 L 852 384 L 814 374 Z"></path>
                   </g>
-                  <g class="ridge-position-label">
-                    <text x="154" y="293">上</text><text x="154" y="353">下</text>
-                    <text x="366" y="293">上</text><text x="366" y="353">下</text>
-                    <text x="614" y="293">上</text><text x="614" y="353">下</text>
-                    <text x="826" y="293">上</text><text x="826" y="353">下</text>
-                  </g>
-
                   <use href="#preview-ring" x="260" y="205"></use>
                   <use href="#preview-ring" x="260" y="455"></use>
                   <use href="#preview-ring" x="720" y="205"></use>
@@ -1154,7 +1124,7 @@
         { id: "RIPV", name: "右下肺静脉", short: "右下肺", x: 720, y: 455 },
       ];
       const layers = {
-        outer: { name: "前庭", innerR: 82, outerR: 116, countR: 92, indexR: 108 },
+        outer: { name: "前庭", innerR: 82, outerR: 116, countR: 92 },
         inner: { name: "口部", innerR: 44, outerR: 78, countR: 61 },
       };
       const singlePassOuterSectors = {
@@ -1171,7 +1141,6 @@
           groupId: "left-anterior",
           ridgeName: "左侧前脊部",
           positionName: "上段",
-          shortLabel: "上",
           x: 154,
           y: 300,
           path: "M 128 276 L 166 286 L 180 320 L 134 320 Z",
@@ -1182,7 +1151,6 @@
           groupId: "left-anterior",
           ridgeName: "左侧前脊部",
           positionName: "下段",
-          shortLabel: "下",
           x: 154,
           y: 360,
           path: "M 134 340 L 180 340 L 166 374 L 128 384 Z",
@@ -1193,7 +1161,6 @@
           groupId: "left-posterior",
           ridgeName: "左侧后脊部",
           positionName: "上段",
-          shortLabel: "上",
           x: 366,
           y: 300,
           path: "M 354 286 L 392 276 L 386 320 L 340 320 Z",
@@ -1204,7 +1171,6 @@
           groupId: "left-posterior",
           ridgeName: "左侧后脊部",
           positionName: "下段",
-          shortLabel: "下",
           x: 366,
           y: 360,
           path: "M 340 340 L 386 340 L 392 384 L 354 374 Z",
@@ -1215,7 +1181,6 @@
           groupId: "right-posterior",
           ridgeName: "右侧后脊部",
           positionName: "上段",
-          shortLabel: "上",
           x: 614,
           y: 300,
           path: "M 588 276 L 626 286 L 640 320 L 594 320 Z",
@@ -1226,7 +1191,6 @@
           groupId: "right-posterior",
           ridgeName: "右侧后脊部",
           positionName: "下段",
-          shortLabel: "下",
           x: 614,
           y: 360,
           path: "M 594 340 L 640 340 L 626 374 L 588 384 Z",
@@ -1237,7 +1201,6 @@
           groupId: "right-anterior",
           ridgeName: "右侧前脊部",
           positionName: "上段",
-          shortLabel: "上",
           x: 826,
           y: 300,
           path: "M 814 286 L 852 276 L 846 320 L 800 320 Z",
@@ -1248,7 +1211,6 @@
           groupId: "right-anterior",
           ridgeName: "右侧前脊部",
           positionName: "下段",
-          shortLabel: "下",
           x: 826,
           y: 360,
           path: "M 800 340 L 846 340 L 852 384 L 814 374 Z",
@@ -1570,18 +1532,6 @@
             }
           });
 
-          const positionLabel = createSvgElement(
-            "text",
-            {
-              x: position.x,
-              y: position.y - 7,
-              class: "ridge-position-label",
-              "data-ridge-label-for": position.id,
-            },
-            group,
-          );
-          positionLabel.textContent = position.shortLabel;
-
           const countText = createSvgElement(
             "text",
             {
@@ -1666,26 +1616,6 @@
               ringGroup,
             );
             countText.textContent = counts[sectorKey(key, sector)] || "";
-
-            if (layer.indexR) {
-              const indexPoint = polar(
-                vein.x,
-                vein.y,
-                layer.indexR,
-                index * 45 + 22.5,
-              );
-              const indexText = createSvgElement(
-                "text",
-                {
-                  x: indexPoint.x,
-                  y: indexPoint.y,
-                  class: "sector-index",
-                  "data-index-for": sectorKey(key, sector),
-                },
-                ringGroup,
-              );
-              indexText.textContent = sector;
-            }
           }
         });
 
@@ -1794,11 +1724,6 @@
           text.textContent = count || "";
           text.classList.toggle("visible", count > 0);
           text.classList.toggle("on-dark", level >= 2);
-
-          const indexText = document.querySelector(
-            `[data-index-for="${keyForSector}"]`,
-          );
-          if (indexText) indexText.classList.toggle("on-dark", level >= 2);
         });
 
         document.querySelectorAll(".ridge-segment").forEach((segment) => {
@@ -1821,9 +1746,6 @@
           countText.textContent = count || "";
           countText.classList.toggle("visible", count > 0);
           countText.classList.toggle("on-dark", level >= 2);
-
-          const positionLabel = document.querySelector(`[data-ridge-label-for="${ridgeId}"]`);
-          positionLabel.classList.toggle("on-dark", level >= 2);
         });
         updateSummary();
         updateSelection();
