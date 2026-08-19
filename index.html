@@ -1086,14 +1086,16 @@
           </section>
 
           <section class="inspector-section">
-            <div class="section-kicker">肺静脉与脊部覆盖</div>
+            <div class="section-kicker">肺静脉与脊部消融进度</div>
             <div class="vein-list" id="vein-list">
               <div class="vein-summary"><span class="vein-summary-name">LSPV</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
               <div class="vein-summary"><span class="vein-summary-name">LIPV</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
               <div class="vein-summary"><span class="vein-summary-name">RSPV</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
               <div class="vein-summary"><span class="vein-summary-name">RIPV</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
-              <div class="vein-summary"><span class="vein-summary-name">左脊</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
-              <div class="vein-summary"><span class="vein-summary-name">右脊</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
+              <div class="vein-summary"><span class="vein-summary-name">左前脊</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
+              <div class="vein-summary"><span class="vein-summary-name">左后脊</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
+              <div class="vein-summary"><span class="vein-summary-name">右后脊</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
+              <div class="vein-summary"><span class="vein-summary-name">右前脊</span><span class="progress-track"><span class="progress-fill" style="width: 0%"></span></span><span class="vein-summary-count">0 次</span></div>
             </div>
           </section>
 
@@ -1135,6 +1137,7 @@
         RSPV: new Set([5, 6, 7]),
         RIPV: new Set([6, 7, 8]),
       };
+      const VEIN_PROGRESS_TARGET = 4;
       const RIDGE_TARGET_THRESHOLD = 2;
       const ridgeSites = [
         {
@@ -1747,46 +1750,34 @@
             (sum, key) => sum + Number(applications[key] || 0),
             0,
           );
-          let veinCovered = 0;
-          ringKeys.forEach((key) => {
-            for (let sector = 1; sector <= 8; sector += 1) {
-              if ((counts[sectorKey(key, sector)] || 0) > 0) veinCovered += 1;
-            }
-          });
+          const veinProgress = Math.min(veinTotal / VEIN_PROGRESS_TARGET, 1) * 100;
           const item = document.createElement("div");
           item.className = "vein-summary";
           item.innerHTML = `
             <span class="vein-summary-name">${vein.id}</span>
-            <span class="progress-track" aria-label="${vein.name}已覆盖 ${veinCovered} / 16 个扇区">
-              <span class="progress-fill" style="width: ${(veinCovered / 16) * 100}%"></span>
+            <span class="progress-track" aria-label="${vein.name}累计 ${veinTotal} 次；${VEIN_PROGRESS_TARGET} 次进度满格">
+              <span class="progress-fill" style="width: ${veinProgress}%"></span>
             </span>
             <span class="vein-summary-count">${veinTotal} 次</span>
           `;
           veinList.appendChild(item);
         });
 
-        [
-          { side: "left", label: "左脊", ariaLabel: "左侧肺静脉脊部" },
-          { side: "right", label: "右脊", ariaLabel: "右侧肺静脉脊部" },
-        ].forEach((ridgeSide) => {
-          const sideSites = ridgeSites.filter(
-            (site) => site.side === ridgeSide.side,
-          );
-          const sideCovered = sideSites.filter(
-            (site) => (counts[ridgeCountKey(site.id)] || 0) > 0,
-          ).length;
-          const sideApplications = sideSites.reduce(
-            (sum, site) => sum + Number(ridgeApplications[site.id] || 0),
-            0,
-          );
+        ridgeSites.forEach((site) => {
+          const applicationCount = Number(ridgeApplications[site.id] || 0);
+          const ridgeProgress = Math.min(
+            applicationCount / RIDGE_TARGET_THRESHOLD,
+            1,
+          ) * 100;
+          const summaryName = `${site.side === "left" ? "左" : "右"}${site.shortName}`;
           const ridgeItem = document.createElement("div");
           ridgeItem.className = "vein-summary";
           ridgeItem.innerHTML = `
-            <span class="vein-summary-name">${ridgeSide.label}</span>
-            <span class="progress-track" aria-label="${ridgeSide.ariaLabel}已覆盖 ${sideCovered} / ${sideSites.length} 个扇区">
-              <span class="progress-fill" style="width: ${(sideCovered / sideSites.length) * 100}%"></span>
+            <span class="vein-summary-name">${summaryName}</span>
+            <span class="progress-track" aria-label="${site.ridgeName}累计 ${applicationCount} 次；${RIDGE_TARGET_THRESHOLD} 次进度满格">
+              <span class="progress-fill" style="width: ${ridgeProgress}%"></span>
             </span>
-            <span class="vein-summary-count">${sideApplications} 次</span>
+            <span class="vein-summary-count">${applicationCount} 次</span>
           `;
           veinList.appendChild(ridgeItem);
         });
