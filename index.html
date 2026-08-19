@@ -360,10 +360,18 @@
         fill: var(--purple-3);
       }
 
+      .ridge-label,
       .ridge-count {
         text-anchor: middle;
         dominant-baseline: central;
         pointer-events: none;
+      }
+
+      .ridge-label {
+        fill: #747c8b;
+        font-size: 10px;
+        font-weight: 780;
+        letter-spacing: 0.04em;
       }
 
       .ridge-count {
@@ -377,6 +385,7 @@
         opacity: 1;
       }
 
+      .ridge-label.on-dark,
       .ridge-count.on-dark {
         fill: white;
       }
@@ -434,15 +443,6 @@
         font-size: 11px;
         fill: var(--muted);
         text-anchor: middle;
-      }
-
-      .orientation-label {
-        font-size: 14px;
-        fill: #747c8b;
-        font-weight: 800;
-        letter-spacing: 0.12em;
-        dominant-baseline: middle;
-        pointer-events: none;
       }
 
       .atrium-label {
@@ -987,7 +987,7 @@
                 <span><i class="ring-icon"></i>外环 · 前庭</span>
                 <span><i class="ring-icon inner"></i>内环 · 口部</span>
               </div>
-              <span>肺静脉：点击本次 1–10 gap 扇区 · 脊部：点击任一段，上下同步记录</span>
+              <span>肺静脉：点击本次 1–10 gap 扇区 · 脊部：点击扇区，整段记录一次</span>
             </div>
             <div class="mobile-pan-hint" aria-hidden="true">← 左右滑动查看双侧肺静脉 →</div>
             <p class="preview-only-note" id="preview-only-note">当前为文件预览模式：可查看图谱；消融点击记录请在支持 JavaScript 的浏览器中打开。</p>
@@ -1031,20 +1031,17 @@
                   <text x="720" y="36" class="side-title">右侧肺静脉</text>
                   <text x="720" y="56" class="side-subtitle">RIGHT PULMONARY VEINS</text>
 
-                  <text x="154" y="330" class="orientation-label" text-anchor="middle">前脊</text>
-                  <text x="366" y="330" class="orientation-label" text-anchor="middle">后脊</text>
-                  <text x="614" y="330" class="orientation-label" text-anchor="middle">后脊</text>
-                  <text x="826" y="330" class="orientation-label" text-anchor="middle">前脊</text>
-
                   <g fill="#eceaf1" stroke="#ffffff" stroke-width="2.4">
-                    <path d="M 128 276 L 166 286 L 180 320 L 134 320 Z"></path>
-                    <path d="M 134 340 L 180 340 L 166 374 L 128 384 Z"></path>
-                    <path d="M 354 286 L 392 276 L 386 320 L 340 320 Z"></path>
-                    <path d="M 340 340 L 386 340 L 392 384 L 354 374 Z"></path>
-                    <path d="M 588 276 L 626 286 L 640 320 L 594 320 Z"></path>
-                    <path d="M 594 340 L 640 340 L 626 374 L 588 384 Z"></path>
-                    <path d="M 814 286 L 852 276 L 846 320 L 800 320 Z"></path>
-                    <path d="M 800 340 L 846 340 L 852 384 L 814 374 Z"></path>
+                    <path d="M 128 276 L 166 286 L 180 320 L 180 340 L 166 374 L 128 384 L 134 340 L 134 320 Z"></path>
+                    <path d="M 354 286 L 392 276 L 386 320 L 386 340 L 392 384 L 354 374 L 340 340 L 340 320 Z"></path>
+                    <path d="M 588 276 L 626 286 L 640 320 L 640 340 L 626 374 L 588 384 L 594 340 L 594 320 Z"></path>
+                    <path d="M 814 286 L 852 276 L 846 320 L 846 340 L 852 384 L 814 374 L 800 340 L 800 320 Z"></path>
+                  </g>
+                  <g class="ridge-label">
+                    <text x="154" y="330">前脊</text>
+                    <text x="366" y="330">后脊</text>
+                    <text x="614" y="330">后脊</text>
+                    <text x="826" y="330">前脊</text>
                   </g>
                   <use href="#preview-ring" x="260" y="205"></use>
                   <use href="#preview-ring" x="260" y="455"></use>
@@ -1073,7 +1070,7 @@
             </div>
             <div class="quality-row">
               <div class="quality-metric">
-                <strong id="coverage-count">0 / 72</strong>
+                <strong id="coverage-count">0 / 68</strong>
                 <span>已覆盖扇区</span>
               </div>
               <div class="quality-metric">
@@ -1098,7 +1095,7 @@
           <section class="inspector-section">
             <div class="section-kicker">本次 1–10 gap</div>
             <div class="selection" id="selection-panel">
-              <div class="selection-empty">点击肺静脉环上本次 1–10 gap 所在扇区；点击脊部任一段，上下两段同步记录一次。</div>
+              <div class="selection-empty">点击肺静脉环上本次 1–10 gap 所在扇区；点击脊部扇区，整段记录一次。</div>
             </div>
             <p class="help">虚线描边表示最近一次 gap 或脊部应用位置；误操作可点击“撤回”或按 ⌘/Ctrl + Z。</p>
           </section>
@@ -1134,86 +1131,46 @@
         RIPV: new Set([6, 7, 8]),
       };
       const RIDGE_TARGET_THRESHOLD = 2;
-      const ridgePositions = [
+      const ridgeSites = [
         {
-          id: "anterior-upper",
+          id: "left-anterior",
           side: "left",
-          groupId: "left-anterior",
           ridgeName: "左侧前脊部",
-          positionName: "上段",
+          shortName: "前脊",
+          legacyIds: ["anterior-upper", "anterior-lower"],
           x: 154,
-          y: 300,
-          path: "M 128 276 L 166 286 L 180 320 L 134 320 Z",
+          y: 330,
+          path: "M 128 276 L 166 286 L 180 320 L 180 340 L 166 374 L 128 384 L 134 340 L 134 320 Z",
         },
         {
-          id: "anterior-lower",
+          id: "left-posterior",
           side: "left",
-          groupId: "left-anterior",
-          ridgeName: "左侧前脊部",
-          positionName: "下段",
-          x: 154,
-          y: 360,
-          path: "M 134 340 L 180 340 L 166 374 L 128 384 Z",
-        },
-        {
-          id: "posterior-upper",
-          side: "left",
-          groupId: "left-posterior",
           ridgeName: "左侧后脊部",
-          positionName: "上段",
+          shortName: "后脊",
+          legacyIds: ["posterior-upper", "posterior-lower"],
           x: 366,
-          y: 300,
-          path: "M 354 286 L 392 276 L 386 320 L 340 320 Z",
+          y: 330,
+          path: "M 354 286 L 392 276 L 386 320 L 386 340 L 392 384 L 354 374 L 340 340 L 340 320 Z",
         },
         {
-          id: "posterior-lower",
-          side: "left",
-          groupId: "left-posterior",
-          ridgeName: "左侧后脊部",
-          positionName: "下段",
-          x: 366,
-          y: 360,
-          path: "M 340 340 L 386 340 L 392 384 L 354 374 Z",
-        },
-        {
-          id: "right-posterior-upper",
+          id: "right-posterior",
           side: "right",
-          groupId: "right-posterior",
           ridgeName: "右侧后脊部",
-          positionName: "上段",
+          shortName: "后脊",
+          legacyIds: ["right-posterior-upper", "right-posterior-lower"],
           x: 614,
-          y: 300,
-          path: "M 588 276 L 626 286 L 640 320 L 594 320 Z",
+          y: 330,
+          path: "M 588 276 L 626 286 L 640 320 L 640 340 L 626 374 L 588 384 L 594 340 L 594 320 Z",
         },
         {
-          id: "right-posterior-lower",
+          id: "right-anterior",
           side: "right",
-          groupId: "right-posterior",
-          ridgeName: "右侧后脊部",
-          positionName: "下段",
-          x: 614,
-          y: 360,
-          path: "M 594 340 L 640 340 L 626 374 L 588 384 Z",
-        },
-        {
-          id: "right-anterior-upper",
-          side: "right",
-          groupId: "right-anterior",
           ridgeName: "右侧前脊部",
-          positionName: "上段",
+          shortName: "前脊",
+          legacyIds: ["right-anterior-upper", "right-anterior-lower"],
           x: 826,
-          y: 300,
-          path: "M 814 286 L 852 276 L 846 320 L 800 320 Z",
-        },
-        {
-          id: "right-anterior-lower",
-          side: "right",
-          groupId: "right-anterior",
-          ridgeName: "右侧前脊部",
-          positionName: "下段",
-          x: 826,
-          y: 360,
-          path: "M 800 340 L 846 340 L 852 384 L 814 374 Z",
+          y: 330,
+          path: "M 814 286 L 852 276 L 846 320 L 846 340 L 852 384 L 814 374 L 800 340 L 800 320 Z",
         },
       ];
 
@@ -1285,8 +1242,10 @@
         return `ridge-${ridgeId}`;
       }
 
-      function getRidgePosition(ridgeId) {
-        return ridgePositions.find((position) => position.id === ridgeId);
+      function getRidgeSite(ridgeId) {
+        return ridgeSites.find(
+          (site) => site.id === ridgeId || site.legacyIds.includes(ridgeId),
+        );
       }
 
       function ridgeLevel(count) {
@@ -1298,26 +1257,26 @@
       function normalizeRidgeState(sourceCounts = {}, sourceApplications) {
         const normalizedCounts = { ...sourceCounts };
         const normalizedApplications = {};
-        const groupIds = [...new Set(ridgePositions.map((position) => position.groupId))];
 
-        groupIds.forEach((groupId) => {
-          const groupPositions = ridgePositions.filter(
-            (position) => position.groupId === groupId,
+        ridgeSites.forEach((site) => {
+          const countKey = ridgeCountKey(site.id);
+          const storedApplicationCount = Number(sourceApplications?.[site.id]);
+          const legacyCounts = site.legacyIds.map(
+            (legacyId) => Number(sourceCounts[ridgeCountKey(legacyId)] || 0),
           );
-          const storedApplicationCount = Number(sourceApplications?.[groupId]);
           const applicationCount = Number.isFinite(storedApplicationCount)
             ? Math.max(0, storedApplicationCount)
-            : groupPositions.reduce(
-                (sum, position) =>
-                  sum + Number(sourceCounts[ridgeCountKey(position.id)] || 0),
-                0,
-              );
-          if (applicationCount > 0) normalizedApplications[groupId] = applicationCount;
-          groupPositions.forEach((position) => {
-            const countKey = ridgeCountKey(position.id);
-            if (applicationCount > 0) normalizedCounts[countKey] = applicationCount;
-            else delete normalizedCounts[countKey];
+            : Math.max(Number(sourceCounts[countKey] || 0), ...legacyCounts, 0);
+
+          site.legacyIds.forEach((legacyId) => {
+            delete normalizedCounts[ridgeCountKey(legacyId)];
           });
+          if (applicationCount > 0) {
+            normalizedApplications[site.id] = applicationCount;
+            normalizedCounts[countKey] = applicationCount;
+          } else {
+            delete normalizedCounts[countKey];
+          }
         });
 
         return {
@@ -1485,20 +1444,6 @@
         const rightSubtitle = createSvgElement("text", { x: 720, y: 56, class: "side-subtitle" });
         rightSubtitle.textContent = "RIGHT PULMONARY VEINS";
 
-        [
-          { x: 154, label: "前脊" },
-          { x: 366, label: "后脊" },
-          { x: 614, label: "后脊" },
-          { x: 826, label: "前脊" },
-        ].forEach(({ x, label }) => {
-          const orientation = createSvgElement("text", {
-            x,
-            y: 330,
-            class: "orientation-label",
-            "text-anchor": "middle",
-          });
-          orientation.textContent = label;
-        });
       }
 
       function drawRidges() {
@@ -1507,38 +1452,50 @@
           "aria-label": "双侧肺静脉前脊部与后脊部",
         });
 
-        ridgePositions.forEach((position) => {
-          const countKey = ridgeCountKey(position.id);
+        ridgeSites.forEach((site) => {
+          const countKey = ridgeCountKey(site.id);
           const segment = createSvgElement(
             "path",
             {
-              d: position.path,
+              d: site.path,
               class: "ridge-segment",
               tabindex: "0",
               role: "button",
-              "data-ridge-id": position.id,
-              "aria-label": `${position.ridgeName}${position.positionName}，累计${counts[countKey] || 0}次，紫色阈值${RIDGE_TARGET_THRESHOLD}次；点击后上下两段同步记录一次`,
+              "data-ridge-id": site.id,
+              "aria-label": `${site.ridgeName}，累计${counts[countKey] || 0}次，紫色阈值${RIDGE_TARGET_THRESHOLD}次；点击记录一次`,
             },
             group,
           );
           segment.addEventListener("click", (event) => {
             event.stopPropagation();
-            applyRidge(position.id);
+            applyRidge(site.id);
           });
           segment.addEventListener("keydown", (event) => {
             if (event.key === "Enter" || event.key === " ") {
               event.preventDefault();
-              applyRidge(position.id);
+              applyRidge(site.id);
             }
           });
+
+          const ridgeLabel = createSvgElement(
+            "text",
+            {
+              x: site.x,
+              y: site.y - 10,
+              class: "ridge-label",
+              "data-ridge-label-for": site.id,
+            },
+            group,
+          );
+          ridgeLabel.textContent = site.shortName;
 
           const countText = createSvgElement(
             "text",
             {
-              x: position.x,
-              y: position.y + 9,
+              x: site.x,
+              y: site.y + 13,
               class: "ridge-count",
-              "data-ridge-count-for": position.id,
+              "data-ridge-count-for": site.id,
             },
             group,
           );
@@ -1682,21 +1639,15 @@
       }
 
       function applyRidge(ridgeId) {
-        const position = getRidgePosition(ridgeId);
-        if (!position) return;
-        const pairedPositions = ridgePositions.filter(
-          (item) => item.groupId === position.groupId,
-        );
-        pushHistory(`${position.ridgeName}应用 1 次，上下段同步记录`);
-        ridgeApplications[position.groupId] =
-          (ridgeApplications[position.groupId] || 0) + 1;
-        pairedPositions.forEach((item) => {
-          const countKey = ridgeCountKey(item.id);
-          counts[countKey] = (counts[countKey] || 0) + 1;
-        });
+        const site = getRidgeSite(ridgeId);
+        if (!site) return;
+        pushHistory(`${site.ridgeName}应用 1 次`);
+        ridgeApplications[site.id] = (ridgeApplications[site.id] || 0) + 1;
+        const countKey = ridgeCountKey(site.id);
+        counts[countKey] = (counts[countKey] || 0) + 1;
         selectedKey = null;
         selectedSector = null;
-        selectedRidgeId = ridgeId;
+        selectedRidgeId = site.id;
         saveCounts();
         updateAll();
       }
@@ -1728,24 +1679,25 @@
 
         document.querySelectorAll(".ridge-segment").forEach((segment) => {
           const ridgeId = segment.dataset.ridgeId;
-          const position = getRidgePosition(ridgeId);
+          const site = getRidgeSite(ridgeId);
           const count = counts[ridgeCountKey(ridgeId)] || 0;
           const level = ridgeLevel(count);
           segment.classList.remove("level-1", "level-2", "level-3", "last-recorded");
           if (level) segment.classList.add(`level-${level}`);
-          const selectedPosition = getRidgePosition(selectedRidgeId);
-          if (selectedPosition?.groupId === position.groupId) {
+          if (selectedRidgeId === site.id) {
             segment.classList.add("last-recorded");
           }
           segment.setAttribute(
             "aria-label",
-            `${position.ridgeName}${position.positionName}，累计${count}次，紫色阈值${RIDGE_TARGET_THRESHOLD}次；点击后上下两段同步记录一次`,
+            `${site.ridgeName}，累计${count}次，紫色阈值${RIDGE_TARGET_THRESHOLD}次；点击记录一次`,
           );
 
           const countText = document.querySelector(`[data-ridge-count-for="${ridgeId}"]`);
           countText.textContent = count || "";
           countText.classList.toggle("visible", count > 0);
           countText.classList.toggle("on-dark", level >= 2);
+          const ridgeLabel = document.querySelector(`[data-ridge-label-for="${ridgeId}"]`);
+          ridgeLabel.classList.toggle("on-dark", level >= 2);
         });
         updateSummary();
         updateSelection();
@@ -1774,13 +1726,13 @@
             }
           });
         });
-        ridgePositions.forEach((position) => {
-          const count = counts[ridgeCountKey(position.id)] || 0;
+        ridgeSites.forEach((site) => {
+          const count = counts[ridgeCountKey(site.id)] || 0;
           if (count > 0) covered += 1;
           if (count >= RIDGE_TARGET_THRESHOLD) targetMet += 1;
         });
         totalCountNode.textContent = total;
-        coverageCountNode.textContent = `${covered} / ${64 + ridgePositions.length}`;
+        coverageCountNode.textContent = `${covered} / ${64 + ridgeSites.length}`;
         targetCountNode.textContent = targetMet;
 
         veinList.replaceChildren();
@@ -1812,25 +1764,22 @@
           { side: "left", label: "左脊", ariaLabel: "左侧肺静脉脊部" },
           { side: "right", label: "右脊", ariaLabel: "右侧肺静脉脊部" },
         ].forEach((ridgeSide) => {
-          const sidePositions = ridgePositions.filter(
-            (position) => position.side === ridgeSide.side,
+          const sideSites = ridgeSites.filter(
+            (site) => site.side === ridgeSide.side,
           );
-          const sideCovered = sidePositions.filter(
-            (position) => (counts[ridgeCountKey(position.id)] || 0) > 0,
+          const sideCovered = sideSites.filter(
+            (site) => (counts[ridgeCountKey(site.id)] || 0) > 0,
           ).length;
-          const sideGroupIds = [...new Set(
-            sidePositions.map((position) => position.groupId),
-          )];
-          const sideApplications = sideGroupIds.reduce(
-            (sum, groupId) => sum + Number(ridgeApplications[groupId] || 0),
+          const sideApplications = sideSites.reduce(
+            (sum, site) => sum + Number(ridgeApplications[site.id] || 0),
             0,
           );
           const ridgeItem = document.createElement("div");
           ridgeItem.className = "vein-summary";
           ridgeItem.innerHTML = `
             <span class="vein-summary-name">${ridgeSide.label}</span>
-            <span class="progress-track" aria-label="${ridgeSide.ariaLabel}已覆盖 ${sideCovered} / ${sidePositions.length} 个扇区">
-              <span class="progress-fill" style="width: ${(sideCovered / sidePositions.length) * 100}%"></span>
+            <span class="progress-track" aria-label="${ridgeSide.ariaLabel}已覆盖 ${sideCovered} / ${sideSites.length} 个扇区">
+              <span class="progress-fill" style="width: ${(sideCovered / sideSites.length) * 100}%"></span>
             </span>
             <span class="vein-summary-count">${sideApplications} 次</span>
           `;
@@ -1840,11 +1789,11 @@
 
       function updateSelection() {
         if (selectedRidgeId) {
-          const position = getRidgePosition(selectedRidgeId);
-          const applicationCount = ridgeApplications[position.groupId] || 0;
+          const site = getRidgeSite(selectedRidgeId);
+          const applicationCount = ridgeApplications[site.id] || 0;
           selectionPanel.innerHTML = `
-            <p class="selection-name">${position.ridgeName}</p>
-            <div class="selection-meta">点击${position.positionName} · 上下两段同步记录一次</div>
+            <p class="selection-name">${site.ridgeName}</p>
+            <div class="selection-meta">整段记录一次</div>
             <div class="selection-facts">
               <div class="selection-fact">
                 <strong>${applicationCount} 次</strong>
@@ -1859,7 +1808,7 @@
           return;
         }
         if (!selectedKey || !selectedSector) {
-          selectionPanel.innerHTML = '<div class="selection-empty">点击肺静脉环上本次 1–10 gap 所在扇区；点击脊部任一段，上下两段同步记录一次。</div>';
+          selectionPanel.innerHTML = '<div class="selection-empty">点击肺静脉环上本次 1–10 gap 所在扇区；点击脊部扇区，整段记录一次。</div>';
           return;
         }
         const parsed = parseKey(selectedKey);
@@ -1914,7 +1863,7 @@
         ridgeApplications = ridgeState.ridgeApplications;
         selectedKey = previous.selectedKey || null;
         selectedSector = previous.selectedSector || null;
-        selectedRidgeId = previous.selectedRidgeId || null;
+        selectedRidgeId = getRidgeSite(previous.selectedRidgeId)?.id || null;
         saveHistory();
         saveCounts();
         updateAll();
@@ -1922,8 +1871,8 @@
       }
 
       function resetRecord() {
-        const hasRidgeRecords = ridgePositions.some(
-          (position) => (counts[ridgeCountKey(position.id)] || 0) > 0,
+        const hasRidgeRecords = ridgeSites.some(
+          (site) => (counts[ridgeCountKey(site.id)] || 0) > 0,
         );
         if (!Object.keys(applications).length && !hasRidgeRecords) {
           showToast("当前没有可清空的记录");
@@ -1977,15 +1926,13 @@
               }),
             };
           }),
-          ridges: ridgePositions.map((position) => {
-            const coverageCount = counts[ridgeCountKey(position.id)] || 0;
-            const applicationCount = ridgeApplications[position.groupId] || 0;
+          ridges: ridgeSites.map((site) => {
+            const coverageCount = counts[ridgeCountKey(site.id)] || 0;
+            const applicationCount = ridgeApplications[site.id] || 0;
             return {
-              id: position.id,
-              side: position.side,
-              groupId: position.groupId,
-              ridgeName: position.ridgeName,
-              positionName: position.positionName,
+              id: site.id,
+              side: site.side,
+              ridgeName: site.ridgeName,
               applicationCount,
               coverageCount,
               purpleThreshold: RIDGE_TARGET_THRESHOLD,
