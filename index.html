@@ -989,7 +989,7 @@
           <div class="stage-header">
             <div class="stage-title">
               <h2 id="map-title">肺静脉消融分布</h2>
-              <p>内环 1 次达标；外环 1 次达标：LSPV 2–4、LIPV 1–3、RSPV 5–7、RIPV 6–8；其余外环及脊部 2 次达标。</p>
+              <p>点击本次消融的 1–10 gap 所在扇区，同环其余 7 区自动记录一次；前壁与脊部累计覆盖 ≥2 次达标，后壁累计覆盖 ≥1 次达标。</p>
             </div>
             <div class="legend" aria-label="消融次数色阶">
               <span class="legend-item">
@@ -1010,7 +1010,7 @@
                 <span><i class="ring-icon"></i>外环 · 前庭</span>
                 <span><i class="ring-icon inner"></i>内环 · 口部</span>
               </div>
-              <span>环扇区：点击区为 gap · 脊部：点击任一段，上下同步记录</span>
+              <span>肺静脉：点击本次 1–10 gap 扇区 · 脊部：点击任一段，上下同步记录</span>
             </div>
             <div class="mobile-pan-hint" aria-hidden="true">← 左右滑动查看双侧肺静脉 →</div>
             <p class="preview-only-note" id="preview-only-note">当前为文件预览模式：可查看图谱；消融点击记录请在支持 JavaScript 的浏览器中打开。</p>
@@ -1128,7 +1128,7 @@
           <section class="inspector-section">
             <div class="section-kicker">本次 1–10 gap</div>
             <div class="selection" id="selection-panel">
-              <div class="selection-empty">点击环扇区标记 gap；点击脊部任一段，上下两段同步记录一次。</div>
+              <div class="selection-empty">点击肺静脉环上本次 1–10 gap 所在扇区；点击脊部任一段，上下两段同步记录一次。</div>
             </div>
             <p class="help">虚线描边表示最近一次 gap 或脊部应用位置；误操作可点击“撤回”或按 ⌘/Ctrl + Z。</p>
           </section>
@@ -1937,7 +1937,7 @@
           return;
         }
         if (!selectedKey || !selectedSector) {
-          selectionPanel.innerHTML = '<div class="selection-empty">点击环扇区标记 gap；点击脊部任一段，上下两段同步记录一次。</div>';
+          selectionPanel.innerHTML = '<div class="selection-empty">点击肺静脉环上本次 1–10 gap 所在扇区；点击脊部任一段，上下两段同步记录一次。</div>';
           return;
         }
         const parsed = parseKey(selectedKey);
