@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f4f5f8" />
+    <link rel="icon" href="data:," />
     <title>VARIPULSE 消融质控记录</title>
     <style>
       :root {
@@ -39,8 +40,13 @@
         -webkit-text-size-adjust: 100%;
       }
 
-      button {
+      button,
+      input,
+      select {
         font: inherit;
+      }
+
+      button {
         touch-action: manipulation;
       }
 
@@ -242,6 +248,69 @@
         background: #fbfbfc;
         color: var(--muted);
         font-size: 12px;
+      }
+
+      .record-mode {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .record-mode-label {
+        white-space: nowrap;
+      }
+
+      .status-choice {
+        display: inline-grid;
+        grid-template-columns: 1fr 1fr;
+        padding: 2px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: white;
+      }
+
+      .status-choice label {
+        position: relative;
+        cursor: pointer;
+      }
+
+      .status-choice input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .status-choice span {
+        min-height: 28px;
+        padding: 0 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+        transition: 150ms ease;
+      }
+
+      .status-choice input:checked + span {
+        background: #eee7f7;
+        color: var(--purple-dark);
+      }
+
+      .status-choice input[value="incomplete"]:checked + span {
+        background: #fff1dc;
+        color: #81531b;
+      }
+
+      .status-choice input:focus-visible + span {
+        outline: 2px solid var(--purple-2);
+        outline-offset: 1px;
       }
 
       .layer-key {
@@ -567,6 +636,31 @@
         text-align: right;
       }
 
+      .endpoint-control {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: 46px 1fr;
+        align-items: center;
+        gap: 10px;
+        margin-top: -2px;
+      }
+
+      .endpoint-control span {
+        color: var(--muted);
+        font-size: 10px;
+      }
+
+      .endpoint-control select {
+        width: 100%;
+        min-height: 30px;
+        padding: 0 8px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: white;
+        color: var(--ink);
+        font-size: 11px;
+      }
+
       .selection {
         margin-top: 13px;
         border-top: 1px solid var(--line);
@@ -665,6 +759,159 @@
         color: #8a919e;
         font-size: 10px;
         line-height: 1.6;
+      }
+
+      .settings-dialog {
+        width: min(620px, calc(100vw - 32px));
+        max-height: min(760px, calc(100dvh - 32px));
+        padding: 0;
+        border: 0;
+        border-radius: 18px;
+        background: var(--surface);
+        color: var(--ink);
+        box-shadow: 0 30px 90px rgba(24, 20, 32, 0.28);
+      }
+
+      .settings-dialog::backdrop {
+        background: rgba(28, 29, 36, 0.48);
+        backdrop-filter: blur(3px);
+      }
+
+      .settings-card {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        max-height: inherit;
+      }
+
+      .settings-header,
+      .settings-footer {
+        padding: 18px 22px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .settings-header {
+        border-bottom: 1px solid var(--line);
+      }
+
+      .settings-header h2 {
+        margin: 0;
+        font-size: 19px;
+      }
+
+      .settings-header p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .dialog-close {
+        width: 36px;
+        height: 36px;
+        border: 0;
+        border-radius: 8px;
+        background: #f4f5f8;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 22px;
+        line-height: 1;
+      }
+
+      .settings-body {
+        padding: 20px 22px;
+        overflow-y: auto;
+      }
+
+      .protocol-note {
+        margin: 0 0 20px;
+        padding: 13px 14px;
+        border: 1px solid #e2d8ef;
+        border-radius: 10px;
+        background: #faf7fd;
+        color: #554762;
+        font-size: 12px;
+        line-height: 1.65;
+      }
+
+      .settings-section + .settings-section {
+        margin-top: 22px;
+        padding-top: 20px;
+        border-top: 1px solid var(--line);
+      }
+
+      .settings-section h3 {
+        margin: 0 0 12px;
+        font-size: 13px;
+      }
+
+      .settings-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+
+      .field {
+        display: grid;
+        gap: 7px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .field.full {
+        grid-column: 1 / -1;
+      }
+
+      .field input,
+      .field select {
+        width: 100%;
+        min-height: 40px;
+        padding: 0 11px;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        background: white;
+        color: var(--ink);
+      }
+
+      .field input:focus,
+      .field select:focus,
+      .endpoint-control select:focus {
+        border-color: var(--purple-2);
+        outline: 3px solid rgba(155, 112, 216, 0.16);
+      }
+
+      .toggle-field {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        color: var(--ink);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .toggle-field input {
+        width: 17px;
+        height: 17px;
+        margin: 1px 0 0;
+        accent-color: var(--purple-3);
+      }
+
+      .settings-help {
+        margin: 9px 0 0;
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1.6;
+      }
+
+      .settings-footer {
+        border-top: 1px solid var(--line);
+      }
+
+      .settings-footer-actions {
+        display: flex;
+        gap: 9px;
+        margin-left: auto;
       }
 
       .toast {
@@ -816,6 +1063,11 @@
           padding-bottom: 10px;
         }
 
+        .record-mode {
+          width: 100%;
+          justify-content: space-between;
+        }
+
         .mobile-pan-hint {
           min-height: 30px;
           padding: 0 14px;
@@ -884,7 +1136,7 @@
 
         .top-actions {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 8px;
         }
 
@@ -934,6 +1186,41 @@
           gap: 10px 14px;
         }
 
+        .record-mode {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .status-choice {
+          width: 100%;
+        }
+
+        .status-choice label,
+        .status-choice span {
+          width: 100%;
+        }
+
+        .settings-dialog {
+          width: calc(100vw - 20px);
+          max-height: calc(100dvh - 20px);
+          border-radius: 14px;
+        }
+
+        .settings-header,
+        .settings-footer,
+        .settings-body {
+          padding-right: 16px;
+          padding-left: 16px;
+        }
+
+        .settings-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .field.full {
+          grid-column: auto;
+        }
+
         .inspector {
           padding:
             20px max(16px, env(safe-area-inset-right))
@@ -965,6 +1252,7 @@
         </div>
         <div class="top-actions">
           <span class="save-state" id="save-state">记录已自动保存</span>
+          <button class="button" id="settings-button" type="button">术式设置</button>
           <button class="button" id="undo-button" type="button" title="撤回上一步（⌘/Ctrl + Z）" disabled>撤回</button>
           <button class="button" id="reset-button" type="button" disabled>清空记录</button>
           <button class="button primary" id="export-button" type="button" disabled>导出记录</button>
@@ -976,17 +1264,17 @@
           <div class="stage-header">
             <div class="stage-title">
               <h2 id="map-title">肺静脉消融分布</h2>
-              <p>点击本次消融的 1–10 gap 所在扇区，同环其余 7 区自动记录一次；前壁与脊部累计覆盖 ≥2 次达标，后壁累计覆盖 ≥1 次达标。</p>
+              <p id="protocol-summary">普通肺静脉：口部 2 个序列 + 前庭 2 个序列；每个完整序列包含 3 次能量应用。</p>
             </div>
             <div class="legend" aria-label="消融次数色阶">
               <span class="legend-item">
                 <i class="legend-swatch" style="background: #f3f2f5"></i>0 次
               </span>
               <span class="legend-item">
-                <i class="legend-swatch" style="background: var(--purple-1)"></i>未达标
+                <i class="legend-swatch" style="background: var(--purple-1)"></i>已有覆盖
               </span>
               <span class="legend-item">
-                <i class="legend-swatch" style="background: var(--purple-3)"></i>紫色达标
+                <i class="legend-swatch" style="background: var(--purple-3)"></i>达到显示阈值
               </span>
             </div>
           </div>
@@ -994,10 +1282,22 @@
           <div class="map-panel">
             <div class="map-toolbar">
               <div class="layer-key">
-                <span><i class="ring-icon"></i>外环 · 前庭</span>
-                <span><i class="ring-icon inner"></i>内环 · 口部</span>
+                <span><i class="ring-icon"></i>前庭 · 开放环</span>
+                <span><i class="ring-icon inner"></i>口部 · 收缩环</span>
               </div>
-              <span>肺静脉：点击本次 1–10 gap 扇区 · 脊部：点击扇区，整段记录一次</span>
+              <div class="record-mode" aria-label="本次消融序列完整性">
+                <span class="record-mode-label">点击本次 1–10 gap 所在扇区</span>
+                <div class="status-choice" role="radiogroup" aria-label="序列结果">
+                  <label>
+                    <input type="radio" name="sequence-status" value="complete" checked />
+                    <span>100% 完整</span>
+                  </label>
+                  <label>
+                    <input type="radio" name="sequence-status" value="incomplete" />
+                    <span>&lt;100% 未完整</span>
+                  </label>
+                </div>
+              </div>
             </div>
             <div class="mobile-pan-hint" aria-hidden="true">← 左右滑动查看双侧肺静脉 →</div>
             <p class="preview-only-note" id="preview-only-note">当前为文件预览模式：可查看图谱；消融点击记录请在支持 JavaScript 的浏览器中打开。</p>
@@ -1074,24 +1374,32 @@
 
         <aside class="inspector" aria-label="消融记录概览">
           <section>
-            <div class="summary-kicker">总应用次数</div>
+            <div class="summary-kicker">完整消融序列</div>
             <div class="summary-number">
-              <strong id="total-count">0</strong><span>次</span>
+              <strong id="total-count">0</strong><span>个序列</span>
             </div>
             <div class="quality-row">
               <div class="quality-metric">
-                <strong id="coverage-count">0 / 68</strong>
-                <span>已覆盖扇区</span>
+                <strong id="energy-count">0</strong>
+                <span>完整序列对应应用</span>
+              </div>
+              <div class="quality-metric">
+                <strong id="incomplete-count">0</strong>
+                <span>未完整序列</span>
+              </div>
+              <div class="quality-metric">
+                <strong id="coverage-count">0 / 64</strong>
+                <span>已覆盖位置</span>
               </div>
               <div class="quality-metric">
                 <strong id="target-count">0</strong>
-                <span>紫色达标扇区</span>
+                <span>达到显示阈值</span>
               </div>
             </div>
           </section>
 
           <section class="inspector-section">
-            <div class="section-kicker">肺静脉与脊部消融进度</div>
+            <div class="section-kicker">PVI 序列与终点</div>
             <div class="vein-list" id="vein-list">
               <div class="vein-summary"><span class="vein-summary-name">LSPV</span><span class="progress-track" style="--segments: 4"><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span></span><span class="vein-summary-count">0 次</span></div>
               <div class="vein-summary"><span class="vein-summary-name">LIPV</span><span class="progress-track" style="--segments: 4"><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span></span><span class="vein-summary-count">0 次</span></div>
@@ -1105,45 +1413,141 @@
           </section>
 
           <section class="inspector-section">
-            <div class="section-kicker">本次 1–10 gap</div>
+            <div class="section-kicker">最近一次序列</div>
             <div class="selection" id="selection-panel">
-              <div class="selection-empty">点击肺静脉环上本次 1–10 gap 所在扇区；点击脊部扇区，整段记录一次。</div>
+              <div class="selection-empty">先选择“100% 完整”或“未完整”，再点击本次 1–10 gap 所在扇区。</div>
             </div>
-            <p class="help">虚线描边表示最近一次 gap 或脊部应用位置；误操作可点击“撤回”或按 ⌘/Ctrl + Z。</p>
+            <p class="help">未完整序列会单独保留，但不计入覆盖与进度。虚线描边表示最近一次记录位置。</p>
           </section>
 
-          <p class="clinical-note">本工具仅用于术中位置与次数记录辅助，不替代电生理系统数据、消融终点评估或临床判断。</p>
+          <p class="clinical-note">本工具仅用于术中位置、序列完整性与次数记录辅助；显示阈值不是临床达标判定，不替代发生器、CARTO 数据、PVI 终点评估或临床判断。</p>
         </aside>
       </main>
     </div>
+
+    <dialog class="settings-dialog" id="settings-dialog" aria-labelledby="settings-title">
+      <form class="settings-card" id="settings-form">
+        <header class="settings-header">
+          <div>
+            <h2 id="settings-title">本台术式设置</h2>
+            <p>这些设置只改变记录与显示，不改变设备治疗参数。</p>
+          </div>
+          <button class="dialog-close" id="settings-close" type="button" aria-label="关闭设置">×</button>
+        </header>
+
+        <div class="settings-body">
+          <p class="protocol-note">
+            VARIPULSE 标准普通肺静脉方案为口部（收缩环）2 个完整序列 + 前庭（开放环）2 个完整序列；每个完整序列由发生器执行 3 次能量应用。共同肺静脉推荐总计 8 个完整序列，层间分配请按本院流程记录。
+          </p>
+
+          <section class="settings-section">
+            <h3>肺静脉解剖</h3>
+            <div class="settings-grid">
+              <label class="field full">
+                本台图谱
+                <select id="anatomy-mode">
+                  <option value="standard">标准四支肺静脉</option>
+                  <option value="left-common">左共同肺静脉</option>
+                  <option value="right-common">右共同肺静脉</option>
+                  <option value="bilateral-common">双侧共同肺静脉</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section class="settings-section">
+            <h3>计划序列</h3>
+            <div class="settings-grid">
+              <label class="field">
+                普通 PV · 口部/收缩环
+                <input id="inner-sequence-target" type="number" min="1" max="12" step="1" inputmode="numeric" required />
+              </label>
+              <label class="field">
+                普通 PV · 前庭/开放环
+                <input id="outer-sequence-target" type="number" min="1" max="12" step="1" inputmode="numeric" required />
+              </label>
+              <label class="field">
+                共同 PV · 总序列
+                <input id="common-sequence-target" type="number" min="1" max="16" step="1" inputmode="numeric" required />
+              </label>
+              <label class="field">
+                扇区显示阈值
+                <select id="coverage-threshold">
+                  <option value="1">累计覆盖 ≥1 次</option>
+                  <option value="2">累计覆盖 ≥2 次</option>
+                  <option value="3">累计覆盖 ≥3 次</option>
+                  <option value="4">累计覆盖 ≥4 次</option>
+                </select>
+              </label>
+            </div>
+            <p class="settings-help">“显示阈值”只控制图谱紫色深浅，不代表已达到 PVI 临床终点。</p>
+          </section>
+
+          <section class="settings-section">
+            <h3>补充靶区</h3>
+            <label class="toggle-field">
+              <input id="ridge-enabled" type="checkbox" />
+              <span>启用双侧前/后脊部的追加序列记录</span>
+            </label>
+            <div class="settings-grid" style="margin-top: 12px">
+              <label class="field">
+                脊部显示阈值
+                <input id="ridge-target" type="number" min="1" max="6" step="1" inputmode="numeric" required />
+              </label>
+            </div>
+            <p class="settings-help">脊部属于可选补充记录，不计入标准 PVI 计划序列；共同肺静脉一侧不显示独立脊部。</p>
+          </section>
+        </div>
+
+        <footer class="settings-footer">
+          <button class="button" id="settings-reset" type="button">恢复推荐值</button>
+          <div class="settings-footer-actions">
+            <button class="button" id="settings-cancel" type="button">取消</button>
+            <button class="button primary" type="submit">应用设置</button>
+          </div>
+        </footer>
+      </form>
+    </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script>
       const NS = "http://www.w3.org/2000/svg";
-      const STORAGE_KEY = "varipulse-ablation-map-v4";
-      const HISTORY_KEY = "varipulse-ablation-map-v4-history";
-      const LEGACY_STORAGE_KEY = "varipulse-ablation-map-v3";
+      const STORAGE_KEY = "varipulse-ablation-map-v5";
+      const HISTORY_KEY = "varipulse-ablation-map-v5-history";
+      const LEGACY_STORAGE_KEY = "varipulse-ablation-map-v4";
+      const LEGACY_HISTORY_KEY = "varipulse-ablation-map-v4-history";
+      const OLDEST_STORAGE_KEY = "varipulse-ablation-map-v3";
       const HISTORY_LIMIT = 100;
+      const APPLICATIONS_PER_SEQUENCE = 3;
       let storageAvailable = true;
-      const veins = [
-        { id: "LSPV", name: "左上肺静脉", short: "左上肺", x: 260, y: 205 },
-        { id: "LIPV", name: "左下肺静脉", short: "左下肺", x: 260, y: 455 },
-        { id: "RSPV", name: "右上肺静脉", short: "右上肺", x: 720, y: 205 },
-        { id: "RIPV", name: "右下肺静脉", short: "右下肺", x: 720, y: 455 },
-      ];
+      const VEIN_DEFINITIONS = {
+        LSPV: { id: "LSPV", name: "左上肺静脉", short: "左上肺", x: 260, y: 205, common: false },
+        LIPV: { id: "LIPV", name: "左下肺静脉", short: "左下肺", x: 260, y: 455, common: false },
+        RSPV: { id: "RSPV", name: "右上肺静脉", short: "右上肺", x: 720, y: 205, common: false },
+        RIPV: { id: "RIPV", name: "右下肺静脉", short: "右下肺", x: 720, y: 455, common: false },
+        LCPV: { id: "LCPV", name: "左共同肺静脉", short: "左共干", x: 260, y: 330, common: true },
+        RCPV: { id: "RCPV", name: "右共同肺静脉", short: "右共干", x: 720, y: 330, common: true },
+      };
       const layers = {
-        outer: { name: "前庭", innerR: 82, outerR: 116, countR: 92 },
-        inner: { name: "口部", innerR: 44, outerR: 78, countR: 61 },
+        outer: { name: "前庭", loopName: "开放环", innerR: 82, outerR: 116, countR: 92 },
+        inner: { name: "口部", loopName: "收缩环", innerR: 44, outerR: 78, countR: 61 },
       };
-      const singlePassOuterSectors = {
-        LSPV: new Set([2, 3, 4]),
-        LIPV: new Set([1, 2, 3]),
-        RSPV: new Set([5, 6, 7]),
-        RIPV: new Set([6, 7, 8]),
+      const DEFAULT_SETTINGS = {
+        anatomyMode: "standard",
+        innerSequenceTarget: 2,
+        outerSequenceTarget: 2,
+        commonSequenceTarget: 8,
+        coverageThreshold: 1,
+        ridgeEnabled: false,
+        ridgeTarget: 2,
       };
-      const VEIN_PROGRESS_TARGET = 4;
-      const RIDGE_TARGET_THRESHOLD = 2;
+      const ENDPOINT_OPTIONS = [
+        ["not-assessed", "未评估"],
+        ["entrance-block", "入口阻滞已证实"],
+        ["entrance-exit-block", "入口 + 出口阻滞已证实"],
+        ["not-isolated", "未隔离 / 需补充"],
+      ];
       const ridgeSites = [
         {
           id: "left-anterior",
@@ -1191,28 +1595,176 @@
       let counts = persistedState.counts;
       let applications = persistedState.applications;
       let ridgeApplications = persistedState.ridgeApplications;
+      let sequenceEvents = persistedState.sequenceEvents;
+      let endpoints = persistedState.endpoints;
+      let settings = persistedState.settings;
+      let migrationInfo = persistedState.migrationInfo;
+      let veins = getActiveVeins(settings.anatomyMode);
       let actionHistory = loadHistory();
       let selectedKey = null;
       let selectedSector = null;
       let selectedRidgeId = null;
+      let selectedEventStatus = null;
       let toastTimer = null;
 
       const svg = document.getElementById("pv-map");
       const totalCountNode = document.getElementById("total-count");
+      const energyCountNode = document.getElementById("energy-count");
+      const incompleteCountNode = document.getElementById("incomplete-count");
       const coverageCountNode = document.getElementById("coverage-count");
       const targetCountNode = document.getElementById("target-count");
+      const protocolSummary = document.getElementById("protocol-summary");
       const selectionPanel = document.getElementById("selection-panel");
       const veinList = document.getElementById("vein-list");
       const saveState = document.getElementById("save-state");
+      const settingsButton = document.getElementById("settings-button");
       const undoButton = document.getElementById("undo-button");
       const resetButton = document.getElementById("reset-button");
       const exportButton = document.getElementById("export-button");
       const previewOnlyNote = document.getElementById("preview-only-note");
       const toast = document.getElementById("toast");
+      const settingsDialog = document.getElementById("settings-dialog");
+      const settingsForm = document.getElementById("settings-form");
+      const settingsClose = document.getElementById("settings-close");
+      const settingsCancel = document.getElementById("settings-cancel");
+      const settingsReset = document.getElementById("settings-reset");
+      const anatomyModeInput = document.getElementById("anatomy-mode");
+      const innerTargetInput = document.getElementById("inner-sequence-target");
+      const outerTargetInput = document.getElementById("outer-sequence-target");
+      const commonTargetInput = document.getElementById("common-sequence-target");
+      const coverageThresholdInput = document.getElementById("coverage-threshold");
+      const ridgeEnabledInput = document.getElementById("ridge-enabled");
+      const ridgeTargetInput = document.getElementById("ridge-target");
 
       resetButton.disabled = false;
       exportButton.disabled = false;
-      previewOnlyNote.hidden = true;
+      updateMigrationNotice();
+
+      function clampInteger(value, minimum, maximum, fallback) {
+        const number = Number(value);
+        if (!Number.isFinite(number)) return fallback;
+        return Math.min(maximum, Math.max(minimum, Math.round(number)));
+      }
+
+      function sanitizeSettings(source = {}) {
+        const anatomyModes = new Set(["standard", "left-common", "right-common", "bilateral-common"]);
+        return {
+          anatomyMode: anatomyModes.has(source.anatomyMode)
+            ? source.anatomyMode
+            : DEFAULT_SETTINGS.anatomyMode,
+          innerSequenceTarget: clampInteger(
+            source.innerSequenceTarget,
+            1,
+            12,
+            DEFAULT_SETTINGS.innerSequenceTarget,
+          ),
+          outerSequenceTarget: clampInteger(
+            source.outerSequenceTarget,
+            1,
+            12,
+            DEFAULT_SETTINGS.outerSequenceTarget,
+          ),
+          commonSequenceTarget: clampInteger(
+            source.commonSequenceTarget,
+            1,
+            16,
+            DEFAULT_SETTINGS.commonSequenceTarget,
+          ),
+          coverageThreshold: clampInteger(
+            source.coverageThreshold,
+            1,
+            4,
+            DEFAULT_SETTINGS.coverageThreshold,
+          ),
+          ridgeEnabled: Boolean(source.ridgeEnabled),
+          ridgeTarget: clampInteger(
+            source.ridgeTarget,
+            1,
+            6,
+            DEFAULT_SETTINGS.ridgeTarget,
+          ),
+        };
+      }
+
+      function cloneSettings(source = settings) {
+        return sanitizeSettings({ ...source });
+      }
+
+      function getActiveVeins(anatomyMode) {
+        if (anatomyMode === "left-common") {
+          return [VEIN_DEFINITIONS.LCPV, VEIN_DEFINITIONS.RSPV, VEIN_DEFINITIONS.RIPV];
+        }
+        if (anatomyMode === "right-common") {
+          return [VEIN_DEFINITIONS.LSPV, VEIN_DEFINITIONS.LIPV, VEIN_DEFINITIONS.RCPV];
+        }
+        if (anatomyMode === "bilateral-common") {
+          return [VEIN_DEFINITIONS.LCPV, VEIN_DEFINITIONS.RCPV];
+        }
+        return [
+          VEIN_DEFINITIONS.LSPV,
+          VEIN_DEFINITIONS.LIPV,
+          VEIN_DEFINITIONS.RSPV,
+          VEIN_DEFINITIONS.RIPV,
+        ];
+      }
+
+      function getVeinTarget(vein) {
+        return vein.common
+          ? settings.commonSequenceTarget
+          : settings.innerSequenceTarget + settings.outerSequenceTarget;
+      }
+
+      function getVeinSequenceProgress(vein) {
+        const innerCount = Number(applications[ringKey(vein.id, "inner")] || 0);
+        const outerCount = Number(applications[ringKey(vein.id, "outer")] || 0);
+        const total = innerCount + outerCount;
+        const target = getVeinTarget(vein);
+
+        if (vein.common) {
+          return {
+            total,
+            target,
+            planProgress: Math.min(total, target),
+            countLabel: `${total}/${target}`,
+            ariaLabel: `${vein.name}累计 ${total} 个完整序列；总计划 ${target} 个`,
+          };
+        }
+
+        const planProgress =
+          Math.min(innerCount, settings.innerSequenceTarget) +
+          Math.min(outerCount, settings.outerSequenceTarget);
+        return {
+          total,
+          target,
+          planProgress,
+          countLabel: `口 ${innerCount}/${settings.innerSequenceTarget} · 前 ${outerCount}/${settings.outerSequenceTarget}`,
+          ariaLabel: `${vein.name}口部 ${innerCount}/${settings.innerSequenceTarget}，前庭 ${outerCount}/${settings.outerSequenceTarget}；累计 ${total} 个完整序列`,
+        };
+      }
+
+      function getActiveRidgeSites() {
+        if (!settings.ridgeEnabled) return [];
+        const hasLeftCommon = settings.anatomyMode === "left-common" || settings.anatomyMode === "bilateral-common";
+        const hasRightCommon = settings.anatomyMode === "right-common" || settings.anatomyMode === "bilateral-common";
+        return ridgeSites.filter(
+          (site) => !((site.side === "left" && hasLeftCommon) || (site.side === "right" && hasRightCommon)),
+        );
+      }
+
+      function currentSequenceStatus() {
+        return document.querySelector('input[name="sequence-status"]:checked')?.value === "incomplete"
+          ? "incomplete"
+          : "complete";
+      }
+
+      function incompleteSequenceCount(filter = {}) {
+        return sequenceEvents.filter((event) => {
+          if (event.status !== "incomplete") return false;
+          if (filter.key && event.key !== filter.key) return false;
+          if (filter.ridgeId && event.ridgeId !== filter.ridgeId) return false;
+          return true;
+        }).length;
+      }
 
       function createSvgElement(tag, attributes = {}, parent = svg) {
         const element = document.createElementNS(NS, tag);
@@ -1262,7 +1814,7 @@
       }
 
       function ridgeLevel(count) {
-        if (count >= RIDGE_TARGET_THRESHOLD) return 3;
+        if (count >= settings.ridgeTarget) return 3;
         if (count >= 1) return 1;
         return 0;
       }
@@ -1301,7 +1853,7 @@
       function parseKey(key) {
         const [veinId, layerId] = key.split("-");
         return {
-          vein: veins.find((item) => item.id === veinId),
+          vein: VEIN_DEFINITIONS[veinId],
           layerId,
           layer: layers[layerId],
         };
@@ -1319,14 +1871,55 @@
               counts: ridgeState.counts,
               applications: stored.applications,
               ridgeApplications: ridgeState.ridgeApplications,
+              sequenceEvents: Array.isArray(stored.sequenceEvents)
+                ? stored.sequenceEvents.filter(
+                    (event) =>
+                      event &&
+                      (event.type === "ring" || event.type === "ridge") &&
+                      (event.status === "complete" || event.status === "incomplete"),
+                  )
+                : [],
+              endpoints: stored.endpoints && typeof stored.endpoints === "object"
+                ? stored.endpoints
+                : {},
+              settings: sanitizeSettings(stored.settings),
+              migrationInfo: stored.metadata?.migrationInfo || null,
             };
           }
 
           const legacy = JSON.parse(safeStorageGet(LEGACY_STORAGE_KEY));
-          if (legacy && typeof legacy === "object") {
+          if (
+            legacy &&
+            typeof legacy.counts === "object" &&
+            typeof legacy.applications === "object"
+          ) {
+            const ridgeState = normalizeRidgeState(
+              legacy.counts,
+              legacy.ridgeApplications,
+            );
+            return {
+              counts: ridgeState.counts,
+              applications: legacy.applications,
+              ridgeApplications: ridgeState.ridgeApplications,
+              sequenceEvents: [],
+              endpoints: {},
+              settings: sanitizeSettings({
+                ...DEFAULT_SETTINGS,
+                ridgeEnabled: Object.keys(ridgeState.ridgeApplications).length > 0,
+              }),
+              migrationInfo: {
+                sourceSchemaVersion: 4,
+                countInterpretation: "legacy-click-as-complete-sequence",
+                note: "旧版记录已按“每次图谱点击 = 1 个完整序列”迁移；旧版未保存发生器级逐次能量应用数据。",
+              },
+            };
+          }
+
+          const oldest = JSON.parse(safeStorageGet(OLDEST_STORAGE_KEY));
+          if (oldest && typeof oldest === "object") {
             const migratedCounts = {};
             const migratedApplications = {};
-            Object.entries(legacy).forEach(([key, value]) => {
+            Object.entries(oldest).forEach(([key, value]) => {
               const count = Math.max(0, Number(value) || 0);
               if (!count || !layers[key.split("-")[1]]) return;
               migratedApplications[key] = count;
@@ -1338,17 +1931,35 @@
               counts: migratedCounts,
               applications: migratedApplications,
               ridgeApplications: {},
+              sequenceEvents: [],
+              endpoints: {},
+              settings: sanitizeSettings(DEFAULT_SETTINGS),
+              migrationInfo: {
+                sourceSchemaVersion: 3,
+                countInterpretation: "legacy-click-as-complete-sequence",
+                note: "旧版记录已按“每次图谱点击 = 1 个完整序列”迁移；旧版未保存发生器级逐次能量应用数据。",
+              },
             };
           }
         } catch {
           // Continue with an empty in-memory record.
         }
-        return { counts: {}, applications: {}, ridgeApplications: {} };
+        return {
+          counts: {},
+          applications: {},
+          ridgeApplications: {},
+          sequenceEvents: [],
+          endpoints: {},
+          settings: sanitizeSettings(DEFAULT_SETTINGS),
+          migrationInfo: null,
+        };
       }
 
       function loadHistory() {
         try {
-          const stored = JSON.parse(safeStorageGet(HISTORY_KEY));
+          const currentHistory = safeStorageGet(HISTORY_KEY);
+          const legacyHistory = currentHistory ? null : safeStorageGet(LEGACY_HISTORY_KEY);
+          const stored = JSON.parse(currentHistory || legacyHistory);
           if (!Array.isArray(stored)) return [];
           return stored
             .filter(
@@ -1357,6 +1968,16 @@
                 typeof entry.counts === "object" &&
                 typeof entry.applications === "object",
             )
+            .map((entry) => legacyHistory && !entry.migrationInfo
+              ? {
+                  ...entry,
+                  migrationInfo: {
+                    sourceSchemaVersion: 4,
+                    countInterpretation: "legacy-click-as-complete-sequence",
+                    note: "旧版记录已按“每次图谱点击 = 1 个完整序列”迁移；旧版未保存发生器级逐次能量应用数据。",
+                  },
+                }
+              : { ...entry })
             .slice(-HISTORY_LIMIT);
         } catch {
           return [];
@@ -1385,7 +2006,16 @@
       function saveCounts() {
         const saved = safeStorageSet(
           STORAGE_KEY,
-          JSON.stringify({ counts, applications, ridgeApplications }),
+          JSON.stringify({
+            schemaVersion: 5,
+            counts,
+            applications,
+            ridgeApplications,
+            sequenceEvents,
+            endpoints,
+            settings: cloneSettings(),
+            metadata: migrationInfo ? { migrationInfo } : {},
+          }),
         );
         if (!saved) {
           saveState.textContent = "记录已更新 · 当前页面内有效";
@@ -1415,9 +2045,14 @@
           counts: { ...counts },
           applications: { ...applications },
           ridgeApplications: { ...ridgeApplications },
+          sequenceEvents: sequenceEvents.map((event) => ({ ...event })),
+          endpoints: { ...endpoints },
+          settings: cloneSettings(),
+          migrationInfo: migrationInfo ? { ...migrationInfo } : null,
           selectedKey: restoreSelection,
           selectedSector: restoreSector,
           selectedRidgeId: restoreRidgeId,
+          selectedEventStatus,
           actionLabel,
         });
         if (actionHistory.length > HISTORY_LIMIT) actionHistory.shift();
@@ -1460,12 +2095,13 @@
       }
 
       function drawRidges() {
+        if (!settings.ridgeEnabled) return;
         const group = createSvgElement("g", {
           class: "ridge-sites",
           "aria-label": "双侧肺静脉前脊部与后脊部",
         });
 
-        ridgeSites.forEach((site) => {
+        getActiveRidgeSites().forEach((site) => {
           const countKey = ridgeCountKey(site.id);
           const segment = createSvgElement(
             "path",
@@ -1475,7 +2111,7 @@
               tabindex: "0",
               role: "button",
               "data-ridge-id": site.id,
-              "aria-label": `${site.ridgeName}，累计${counts[countKey] || 0}次，紫色阈值${RIDGE_TARGET_THRESHOLD}次；点击记录一次`,
+              "aria-label": `${site.ridgeName}，累计${counts[countKey] || 0}个完整序列，显示阈值${settings.ridgeTarget}次；点击记录一个序列`,
             },
             group,
           );
@@ -1529,7 +2165,7 @@
             {
               class: "pv-ring",
               "data-key": key,
-              "aria-label": `${vein.name} ${layer.name}${layerId === "outer" ? "外环" : "内环"}`,
+              "aria-label": `${vein.name} ${layer.name} ${layer.loopName}`,
             },
             group,
           );
@@ -1554,7 +2190,7 @@
                 role: "button",
                 "data-key": key,
                 "data-sector": sector,
-                "aria-label": `${vein.name} ${layer.name}${layerId === "outer" ? "外环" : "内环"} ${sector}区；点击设为 1–10 gap，本次不计该区`,
+                "aria-label": `${vein.name} ${layer.name} ${layer.loopName} ${sector}区；点击将该区记录为本次 1–10 gap`,
               },
               ringGroup,
             );
@@ -1610,22 +2246,24 @@
 
       function renderMap() {
         svg.replaceChildren();
+        const anatomyLabels = {
+          standard: "标准四支肺静脉",
+          "left-common": "左共同肺静脉与右侧两支肺静脉",
+          "right-common": "右共同肺静脉与左侧两支肺静脉",
+          "bilateral-common": "双侧共同肺静脉",
+        };
+        svg.setAttribute(
+          "aria-label",
+          `${anatomyLabels[settings.anatomyMode]}口部与前庭分区消融记录图`,
+        );
         drawAnatomy();
         veins.forEach(drawVein);
-        drawRidges();
+        if (settings.ridgeEnabled) drawRidges();
         updateAll();
       }
 
-      function targetThreshold(key, sector) {
-        const parsed = parseKey(key);
-        if (parsed.layerId === "inner") return 1;
-        if (
-          parsed.layerId === "outer" &&
-          singlePassOuterSectors[parsed.vein.id]?.has(sector)
-        ) {
-          return 1;
-        }
-        return 2;
+      function targetThreshold() {
+        return settings.coverageThreshold;
       }
 
       function levelForCount(count, key, sector) {
@@ -1636,33 +2274,73 @@
 
       function applyRingExcluding(key, excludedSector) {
         const parsed = parseKey(key);
-        const ringName = `${parsed.vein.name}${parsed.layer.name}${parsed.layerId === "outer" ? "外环" : "内环"}`;
-        pushHistory(`${ringName}应用 1 次，${excludedSector} 区为 1–10 gap`);
-        applications[key] = (applications[key] || 0) + 1;
-        for (let sector = 1; sector <= 8; sector += 1) {
-          if (sector === excludedSector) continue;
-          const keyForSector = sectorKey(key, sector);
-          counts[keyForSector] = (counts[keyForSector] || 0) + 1;
+        if (!parsed.vein || !parsed.layer) return;
+        const status = currentSequenceStatus();
+        const ringName = `${parsed.vein.name}${parsed.layer.name}（${parsed.layer.loopName}）`;
+        const previousCompleteEvent = [...sequenceEvents]
+          .reverse()
+          .find((event) => event.type === "ring" && event.status === "complete");
+        pushHistory(
+          `${ringName}${status === "complete" ? "完整" : "未完整"}序列，${excludedSector} 区为 1–10 gap`,
+        );
+
+        sequenceEvents.push({
+          type: "ring",
+          key,
+          excludedSector,
+          status,
+          recordedAt: new Date().toISOString(),
+        });
+        if (status === "complete") {
+          applications[key] = (applications[key] || 0) + 1;
+          for (let sector = 1; sector <= 8; sector += 1) {
+            if (sector === excludedSector) continue;
+            const keyForSector = sectorKey(key, sector);
+            counts[keyForSector] = (counts[keyForSector] || 0) + 1;
+          }
         }
         selectedKey = key;
         selectedSector = excludedSector;
         selectedRidgeId = null;
+        selectedEventStatus = status;
         saveCounts();
         updateAll();
+        if (status === "incomplete") {
+          showToast("已记为未完整，不计入覆盖；请在同一位置重复");
+        } else if (previousCompleteEvent?.key === key) {
+          showToast("已记录；请确认已重新定位并覆盖前次 gap");
+        } else {
+          showToast("已记录 1 个完整消融序列");
+        }
       }
 
       function applyRidge(ridgeId) {
         const site = getRidgeSite(ridgeId);
-        if (!site) return;
-        pushHistory(`${site.ridgeName}应用 1 次`);
-        ridgeApplications[site.id] = (ridgeApplications[site.id] || 0) + 1;
-        const countKey = ridgeCountKey(site.id);
-        counts[countKey] = (counts[countKey] || 0) + 1;
+        if (!site || !settings.ridgeEnabled) return;
+        const status = currentSequenceStatus();
+        pushHistory(`${site.ridgeName}${status === "complete" ? "完整" : "未完整"}序列`);
+        sequenceEvents.push({
+          type: "ridge",
+          ridgeId: site.id,
+          status,
+          recordedAt: new Date().toISOString(),
+        });
+        if (status === "complete") {
+          ridgeApplications[site.id] = (ridgeApplications[site.id] || 0) + 1;
+          const countKey = ridgeCountKey(site.id);
+          counts[countKey] = (counts[countKey] || 0) + 1;
+        }
         selectedKey = null;
         selectedSector = null;
         selectedRidgeId = site.id;
+        selectedEventStatus = status;
         saveCounts();
         updateAll();
+        showToast(
+          status === "complete"
+            ? "已记录 1 个完整补充序列"
+            : "已记为未完整，不计入覆盖；请在同一位置重复",
+        );
       }
 
       function updateAll() {
@@ -1681,7 +2359,7 @@
           const parsed = parseKey(key);
           segment.setAttribute(
             "aria-label",
-            `${parsed.vein.name} ${parsed.layer.name}${parsed.layerId === "outer" ? "外环" : "内环"} ${sector}区，累计${count}次，紫色阈值${threshold}次；点击设为 1–10 gap，本次不计该区`,
+            `${parsed.vein.name} ${parsed.layer.name} ${parsed.layer.loopName} ${sector}区，累计覆盖${count}次，显示阈值${threshold}次；点击将该区记录为本次 1–10 gap`,
           );
 
           const text = document.querySelector(`[data-count-for="${keyForSector}"]`);
@@ -1702,7 +2380,7 @@
           }
           segment.setAttribute(
             "aria-label",
-            `${site.ridgeName}，累计${count}次，紫色阈值${RIDGE_TARGET_THRESHOLD}次；点击记录一次`,
+            `${site.ridgeName}，累计${count}个完整序列，显示阈值${settings.ridgeTarget}次；点击记录一个序列`,
           );
 
           const countText = document.querySelector(`[data-ridge-count-for="${ridgeId}"]`);
@@ -1729,15 +2407,27 @@
       }
 
       function updateSummary() {
-        const ringApplications = Object.values(applications).reduce(
-          (sum, value) => sum + Number(value),
+        const activeRingKeys = new Set(
+          veins.flatMap((vein) =>
+            Object.keys(layers).map((layerId) => ringKey(vein.id, layerId)),
+          ),
+        );
+        const activeRidgeSites = getActiveRidgeSites();
+        const activeRidgeIds = new Set(activeRidgeSites.map((site) => site.id));
+        const ringApplications = [...activeRingKeys].reduce(
+          (sum, key) => sum + Number(applications[key] || 0),
           0,
         );
-        const ridgeApplicationTotal = Object.values(ridgeApplications).reduce(
-          (sum, value) => sum + Number(value),
+        const ridgeApplicationTotal = activeRidgeSites.reduce(
+          (sum, site) => sum + Number(ridgeApplications[site.id] || 0),
           0,
         );
         const total = ringApplications + ridgeApplicationTotal;
+        const incompleteTotal = sequenceEvents.filter((event) => {
+          if (event.status !== "incomplete") return false;
+          if (event.type === "ring") return activeRingKeys.has(event.key);
+          return event.type === "ridge" && activeRidgeIds.has(event.ridgeId);
+        }).length;
         let covered = 0;
         let targetMet = 0;
         veins.forEach((vein) => {
@@ -1750,87 +2440,145 @@
             }
           });
         });
-        ridgeSites.forEach((site) => {
-          const count = counts[ridgeCountKey(site.id)] || 0;
-          if (count > 0) covered += 1;
-          if (count >= RIDGE_TARGET_THRESHOLD) targetMet += 1;
-        });
+        if (activeRidgeSites.length) {
+          activeRidgeSites.forEach((site) => {
+            const count = counts[ridgeCountKey(site.id)] || 0;
+            if (count > 0) covered += 1;
+            if (count >= settings.ridgeTarget) targetMet += 1;
+          });
+        }
         totalCountNode.textContent = total;
-        coverageCountNode.textContent = `${covered} / ${64 + ridgeSites.length}`;
+        energyCountNode.textContent = total * APPLICATIONS_PER_SEQUENCE;
+        incompleteCountNode.textContent = incompleteTotal;
+        coverageCountNode.textContent = `${covered} / ${veins.length * 16 + activeRidgeSites.length}`;
         targetCountNode.textContent = targetMet;
+
+        const anatomyLabels = {
+          standard: "标准四支肺静脉",
+          "left-common": "左共同肺静脉",
+          "right-common": "右共同肺静脉",
+          "bilateral-common": "双侧共同肺静脉",
+        };
+        const planCopy = settings.anatomyMode === "standard"
+          ? `普通肺静脉：口部 ${settings.innerSequenceTarget} + 前庭 ${settings.outerSequenceTarget} 个序列`
+          : settings.anatomyMode === "bilateral-common"
+            ? `共同 PV 总目标 ${settings.commonSequenceTarget} 个序列`
+            : `普通 PV 口部 ${settings.innerSequenceTarget} + 前庭 ${settings.outerSequenceTarget}；共同 PV 总目标 ${settings.commonSequenceTarget} 个序列`;
+        const ridgeCopy = activeRidgeSites.length
+          ? "；已启用可用侧脊部追加记录"
+          : settings.ridgeEnabled
+            ? "；共同 PV 侧不显示独立脊部"
+            : "";
+        protocolSummary.textContent = `${anatomyLabels[settings.anatomyMode]} · ${planCopy}；每个完整序列包含 ${APPLICATIONS_PER_SEQUENCE} 次能量应用${ridgeCopy}。`;
 
         veinList.replaceChildren();
         veins.forEach((vein) => {
-          const ringKeys = Object.keys(layers).map((layerId) => ringKey(vein.id, layerId));
-          const veinTotal = ringKeys.reduce(
-            (sum, key) => sum + Number(applications[key] || 0),
-            0,
-          );
+          const progress = getVeinSequenceProgress(vein);
+          const visualTarget = Math.max(1, progress.target);
+          const veinIncomplete = sequenceEvents.filter(
+            (event) =>
+              event.type === "ring" &&
+              event.status === "incomplete" &&
+              event.key?.startsWith(`${vein.id}-`),
+          ).length;
+          const endpointOptions = ENDPOINT_OPTIONS.map(
+            ([value, label]) =>
+              `<option value="${value}"${(endpoints[vein.id] || "not-assessed") === value ? " selected" : ""}>${label}</option>`,
+          ).join("");
           const item = document.createElement("div");
           item.className = "vein-summary";
           item.innerHTML = `
             <span class="vein-summary-name">${vein.id}</span>
-            <span class="progress-track" style="--segments: ${VEIN_PROGRESS_TARGET}" role="progressbar" aria-valuemin="0" aria-valuemax="${VEIN_PROGRESS_TARGET}" aria-valuenow="${Math.min(veinTotal, VEIN_PROGRESS_TARGET)}" aria-label="${vein.name}累计 ${veinTotal} 次；${VEIN_PROGRESS_TARGET} 次进度满格">
-              ${progressSegments(veinTotal, VEIN_PROGRESS_TARGET)}
+            <span class="progress-track" style="--segments: ${visualTarget}" role="progressbar" aria-valuemin="0" aria-valuemax="${visualTarget}" aria-valuenow="${Math.min(progress.planProgress, visualTarget)}" aria-label="${progress.ariaLabel}">
+              ${progressSegments(progress.planProgress, visualTarget)}
             </span>
-            <span class="vein-summary-count">${veinTotal} 次</span>
+            <span class="vein-summary-count">${progress.countLabel}${veinIncomplete ? ` · ${veinIncomplete} 未完整` : ""}</span>
+            <label class="endpoint-control">
+              <span>PVI 终点</span>
+              <select data-endpoint-for="${vein.id}" aria-label="${vein.name} PVI 终点">${endpointOptions}</select>
+            </label>
           `;
           veinList.appendChild(item);
+          item.querySelector("select").addEventListener("change", (event) => {
+            pushHistory(`更新${vein.name} PVI 终点`);
+            endpoints[vein.id] = event.target.value;
+            saveCounts();
+            showToast(`${vein.name}终点已更新`);
+          });
         });
 
-        ridgeSites.forEach((site) => {
-          const applicationCount = Number(ridgeApplications[site.id] || 0);
-          const summaryName = `${site.side === "left" ? "左" : "右"}${site.shortName}`;
-          const ridgeItem = document.createElement("div");
-          ridgeItem.className = "vein-summary";
-          ridgeItem.innerHTML = `
-            <span class="vein-summary-name">${summaryName}</span>
-            <span class="progress-track" style="--segments: ${RIDGE_TARGET_THRESHOLD}" role="progressbar" aria-valuemin="0" aria-valuemax="${RIDGE_TARGET_THRESHOLD}" aria-valuenow="${Math.min(applicationCount, RIDGE_TARGET_THRESHOLD)}" aria-label="${site.ridgeName}累计 ${applicationCount} 次；${RIDGE_TARGET_THRESHOLD} 次进度满格">
-              ${progressSegments(applicationCount, RIDGE_TARGET_THRESHOLD)}
-            </span>
-            <span class="vein-summary-count">${applicationCount} 次</span>
-          `;
-          veinList.appendChild(ridgeItem);
-        });
+        if (activeRidgeSites.length) {
+          activeRidgeSites.forEach((site) => {
+            const applicationCount = Number(ridgeApplications[site.id] || 0);
+            const ridgeIncomplete = incompleteSequenceCount({ ridgeId: site.id });
+            const summaryName = `${site.side === "left" ? "左" : "右"}${site.shortName}`;
+            const ridgeItem = document.createElement("div");
+            ridgeItem.className = "vein-summary";
+            ridgeItem.innerHTML = `
+              <span class="vein-summary-name">${summaryName}</span>
+              <span class="progress-track" style="--segments: ${settings.ridgeTarget}" role="progressbar" aria-valuemin="0" aria-valuemax="${settings.ridgeTarget}" aria-valuenow="${Math.min(applicationCount, settings.ridgeTarget)}" aria-label="${site.ridgeName}累计 ${applicationCount} 个完整序列；显示阈值 ${settings.ridgeTarget} 个">
+                ${progressSegments(applicationCount, settings.ridgeTarget)}
+              </span>
+              <span class="vein-summary-count">${applicationCount}${ridgeIncomplete ? ` · ${ridgeIncomplete} 未完整` : ""}</span>
+            `;
+            veinList.appendChild(ridgeItem);
+          });
+        }
       }
 
       function updateSelection() {
         if (selectedRidgeId) {
           const site = getRidgeSite(selectedRidgeId);
+          if (!site || !getActiveRidgeSites().some((item) => item.id === site.id)) {
+            selectedRidgeId = null;
+            selectedEventStatus = null;
+            updateSelection();
+            return;
+          }
           const applicationCount = ridgeApplications[site.id] || 0;
+          const incompleteCount = incompleteSequenceCount({ ridgeId: site.id });
           selectionPanel.innerHTML = `
             <p class="selection-name">${site.ridgeName}</p>
-            <div class="selection-meta">整段记录一次</div>
+            <div class="selection-meta">最近记录：${selectedEventStatus === "incomplete" ? "未完整，不计入覆盖" : "100% 完整"}</div>
             <div class="selection-facts">
               <div class="selection-fact">
-                <strong>${applicationCount} 次</strong>
-                <span>本脊累计应用</span>
+                <strong>${applicationCount}</strong>
+                <span>完整补充序列</span>
               </div>
               <div class="selection-fact">
-                <strong>${RIDGE_TARGET_THRESHOLD} 次</strong>
-                <span>紫色达标阈值</span>
+                <strong>${incompleteCount}</strong>
+                <span>未完整序列</span>
               </div>
             </div>
           `;
           return;
         }
         if (!selectedKey || !selectedSector) {
-          selectionPanel.innerHTML = '<div class="selection-empty">点击肺静脉环上本次 1–10 gap 所在扇区；点击脊部扇区，整段记录一次。</div>';
+          selectionPanel.innerHTML = '<div class="selection-empty">先选择“100% 完整”或“未完整”，再点击本次 1–10 gap 所在扇区。完整序列计入覆盖，未完整序列仅作记录。</div>';
           return;
         }
         const parsed = parseKey(selectedKey);
+        if (!parsed.vein || !parsed.layer) {
+          clearSelection();
+          return;
+        }
         const ringApplications = applications[selectedKey] || 0;
+        const ringIncomplete = incompleteSequenceCount({ key: selectedKey });
         const sectorCount = counts[sectorKey(selectedKey, selectedSector)] || 0;
         selectionPanel.innerHTML = `
           <p class="selection-name">${parsed.vein.name}</p>
-          <div class="selection-meta">${parsed.layer.name} · ${parsed.layerId === "outer" ? "外环" : "内环"} · ${selectedSector} 区为 1–10 gap（本次不计）</div>
+          <div class="selection-meta">${parsed.layer.name} · ${parsed.layer.loopName} · ${selectedSector} 区为 1–10 gap · 最近记录${selectedEventStatus === "incomplete" ? "未完整" : "100% 完整"}</div>
           <div class="selection-facts">
             <div class="selection-fact">
-              <strong>${ringApplications} 次</strong>
-              <span>本环应用</span>
+              <strong>${ringApplications}</strong>
+              <span>本环完整序列</span>
             </div>
             <div class="selection-fact">
-              <strong>${sectorCount} 次</strong>
+              <strong>${ringIncomplete}</strong>
+              <span>本环未完整序列</span>
+            </div>
+            <div class="selection-fact">
+              <strong>${sectorCount}</strong>
               <span>${selectedSector} 区累计覆盖</span>
             </div>
           </div>
@@ -1844,11 +2592,19 @@
         toastTimer = window.setTimeout(() => toast.classList.remove("show"), 1800);
       }
 
+      function updateMigrationNotice() {
+        previewOnlyNote.hidden = !migrationInfo;
+        previewOnlyNote.textContent = migrationInfo
+          ? migrationInfo.note
+          : "当前为文件预览模式：可查看图谱；消融点击记录请在支持 JavaScript 的浏览器中打开。";
+      }
+
       function clearSelection() {
         if (!selectedKey && !selectedSector && !selectedRidgeId) return;
         selectedKey = null;
         selectedSector = null;
         selectedRidgeId = null;
+        selectedEventStatus = null;
         if (typeof document.activeElement?.blur === "function") {
           document.activeElement.blur();
         }
@@ -1868,57 +2624,268 @@
         counts = ridgeState.counts;
         applications = { ...previous.applications };
         ridgeApplications = ridgeState.ridgeApplications;
+        sequenceEvents = Array.isArray(previous.sequenceEvents)
+          ? previous.sequenceEvents.map((event) => ({ ...event }))
+          : [];
+        endpoints = previous.endpoints && typeof previous.endpoints === "object"
+          ? { ...previous.endpoints }
+          : {};
+        settings = sanitizeSettings(previous.settings || settings);
+        migrationInfo = Object.prototype.hasOwnProperty.call(previous, "migrationInfo")
+          ? previous.migrationInfo
+            ? { ...previous.migrationInfo }
+            : null
+          : migrationInfo;
+        veins = getActiveVeins(settings.anatomyMode);
         selectedKey = previous.selectedKey || null;
         selectedSector = previous.selectedSector || null;
         selectedRidgeId = getRidgeSite(previous.selectedRidgeId)?.id || null;
+        selectedEventStatus = previous.selectedEventStatus || null;
         saveHistory();
         saveCounts();
-        updateAll();
+        updateMigrationNotice();
+        renderMap();
         showToast(`已撤回：${previous.actionLabel}`);
       }
 
-      function resetRecord() {
-        const hasRidgeRecords = ridgeSites.some(
-          (site) => (counts[ridgeCountKey(site.id)] || 0) > 0,
+      function hasEndpointRecords() {
+        return Object.values(endpoints).some(
+          (value) => value && value !== "not-assessed",
         );
-        if (!Object.keys(applications).length && !hasRidgeRecords) {
-          showToast("当前没有可清空的记录");
-          return;
-        }
-        const confirmed = window.confirm("确认清空全部肺静脉与脊部消融记录？清空后仍可使用“撤回”恢复。");
-        if (!confirmed) return;
-        pushHistory("清空全部记录", selectedKey, selectedSector);
+      }
+
+      function hasRidgeRecords() {
+        return (
+          Object.values(ridgeApplications).some((value) => Number(value) > 0) ||
+          ridgeSites.some((site) => (counts[ridgeCountKey(site.id)] || 0) > 0) ||
+          sequenceEvents.some((event) => event.type === "ridge")
+        );
+      }
+
+      function hasAnyClinicalRecords() {
+        return (
+          Object.values(applications).some((value) => Number(value) > 0) ||
+          Object.values(counts).some((value) => Number(value) > 0) ||
+          sequenceEvents.length > 0 ||
+          hasEndpointRecords()
+        );
+      }
+
+      function clearClinicalRecordState() {
         counts = {};
         applications = {};
         ridgeApplications = {};
+        sequenceEvents = [];
+        endpoints = {};
+        migrationInfo = null;
         selectedKey = null;
         selectedSector = null;
         selectedRidgeId = null;
+        selectedEventStatus = null;
+        updateMigrationNotice();
+      }
+
+      function resetRecord() {
+        if (!hasAnyClinicalRecords()) {
+          showToast("当前没有可清空的记录");
+          return;
+        }
+        const confirmed = window.confirm("确认清空全部肺静脉、未完整序列与补充靶区记录？清空后仍可使用“撤回”恢复。");
+        if (!confirmed) return;
+        pushHistory("清空全部记录", selectedKey, selectedSector);
+        clearClinicalRecordState();
         saveCounts();
         updateAll();
         showToast("记录已清空");
       }
 
+      function populateSettingsForm(source = settings) {
+        const normalized = sanitizeSettings(source);
+        anatomyModeInput.value = normalized.anatomyMode;
+        innerTargetInput.value = normalized.innerSequenceTarget;
+        outerTargetInput.value = normalized.outerSequenceTarget;
+        commonTargetInput.value = normalized.commonSequenceTarget;
+        coverageThresholdInput.value = normalized.coverageThreshold;
+        ridgeEnabledInput.checked = normalized.ridgeEnabled;
+        ridgeTargetInput.value = normalized.ridgeTarget;
+        ridgeTargetInput.disabled = !normalized.ridgeEnabled;
+      }
+
+      function closeSettings() {
+        if (settingsDialog.open) settingsDialog.close();
+      }
+
+      function openSettings() {
+        populateSettingsForm();
+        if (typeof settingsDialog.showModal === "function") {
+          settingsDialog.showModal();
+        } else {
+          settingsDialog.setAttribute("open", "");
+        }
+      }
+
+      function settingsFromForm() {
+        return sanitizeSettings({
+          anatomyMode: anatomyModeInput.value,
+          innerSequenceTarget: innerTargetInput.value,
+          outerSequenceTarget: outerTargetInput.value,
+          commonSequenceTarget: commonTargetInput.value,
+          coverageThreshold: coverageThresholdInput.value,
+          ridgeEnabled: ridgeEnabledInput.checked,
+          ridgeTarget: ridgeTargetInput.value,
+        });
+      }
+
+      function applySettings(event) {
+        event.preventDefault();
+        if (!settingsForm.reportValidity()) return;
+        const nextSettings = settingsFromForm();
+        if (JSON.stringify(nextSettings) === JSON.stringify(settings)) {
+          closeSettings();
+          return;
+        }
+        const anatomyChanged = nextSettings.anatomyMode !== settings.anatomyMode;
+        const clearForAnatomyChange = anatomyChanged && hasAnyClinicalRecords();
+        if (
+          clearForAnatomyChange &&
+          !window.confirm("切换肺静脉解剖会清空当前消融序列、覆盖和 PVI 终点记录，以避免同一病例混入互斥解剖数据。继续切换？清空后可使用“撤回”恢复。")
+        ) {
+          return;
+        }
+        if (
+          !clearForAnatomyChange &&
+          settings.ridgeEnabled &&
+          !nextSettings.ridgeEnabled &&
+          hasRidgeRecords() &&
+          !window.confirm("关闭脊部追加记录会隐藏已有脊部记录；重新启用后仍可查看，导出也会保留。继续关闭？")
+        ) {
+          return;
+        }
+        pushHistory("更新本台术式设置");
+        if (clearForAnatomyChange) clearClinicalRecordState();
+        settings = nextSettings;
+        veins = getActiveVeins(settings.anatomyMode);
+        const activeVeinIds = new Set(veins.map((vein) => vein.id));
+        if (selectedKey && !activeVeinIds.has(parseKey(selectedKey).vein?.id)) {
+          selectedKey = null;
+          selectedSector = null;
+          selectedEventStatus = null;
+        }
+        if (!settings.ridgeEnabled) {
+          selectedRidgeId = null;
+          if (!selectedKey) selectedEventStatus = null;
+        }
+        saveCounts();
+        renderMap();
+        closeSettings();
+        showToast(clearForAnatomyChange ? "解剖已切换，原记录已清空（可撤回）" : "术式设置已应用");
+      }
+
       function exportRecord() {
-        const ridgeApplicationTotal = Object.values(ridgeApplications).reduce(
+        const exportTime = new Date();
+        const localDate = [
+          exportTime.getFullYear(),
+          String(exportTime.getMonth() + 1).padStart(2, "0"),
+          String(exportTime.getDate()).padStart(2, "0"),
+        ].join("-");
+        const storedRidgeSequenceTotal = Object.values(ridgeApplications).reduce(
           (sum, value) => sum + Number(value),
           0,
         );
+        const storedRingSequenceTotal = Object.values(applications).reduce(
+          (sum, value) => sum + Number(value),
+          0,
+        );
+        const activeRingKeys = new Set(
+          veins.flatMap((vein) =>
+            Object.keys(layers).map((layerId) => ringKey(vein.id, layerId)),
+          ),
+        );
+        const activeVeinIds = new Set(veins.map((vein) => vein.id));
+        const exportRingKeys = new Set([
+          ...activeRingKeys,
+          ...Object.keys(applications),
+          ...sequenceEvents
+            .filter((event) => event.type === "ring" && typeof event.key === "string")
+            .map((event) => event.key),
+        ]);
+        const activeRidgeSites = getActiveRidgeSites();
+        const activeRidgeIds = new Set(activeRidgeSites.map((site) => site.id));
+        const activeRingSequenceTotal = [...activeRingKeys].reduce(
+          (sum, key) => sum + Number(applications[key] || 0),
+          0,
+        );
+        const activeRidgeSequenceTotal = activeRidgeSites.reduce(
+          (sum, site) => sum + Number(ridgeApplications[site.id] || 0),
+          0,
+        );
+        const totalCompleteSequences = activeRingSequenceTotal + activeRidgeSequenceTotal;
+        const activeIncompleteSequences = sequenceEvents.filter((event) => {
+          if (event.status !== "incomplete") return false;
+          if (event.type === "ring") return activeRingKeys.has(event.key);
+          return event.type === "ridge" && activeRidgeIds.has(event.ridgeId);
+        }).length;
         const payload = {
           title: "VARIPULSE 消融质控记录",
-          exportedAt: new Date().toISOString(),
-          totalApplications: Object.values(applications).reduce(
-            (sum, value) => sum + Number(value),
-            ridgeApplicationTotal,
+          schemaVersion: 5,
+          exportedAt: exportTime.toISOString(),
+          settings: cloneSettings(),
+          migrationInfo: migrationInfo ? { ...migrationInfo } : null,
+          countingSemantics: {
+            completeSequenceDefinition: `${APPLICATIONS_PER_SEQUENCE} generator energy applications`,
+            energyApplicationCountsInclude: "complete-sequences-only",
+            incompleteSequencePartialEnergyApplicationsCaptured: false,
+          },
+          activePulmonaryVeins: veins.map((vein) => ({
+            id: vein.id,
+            name: vein.name,
+            common: vein.common,
+            planSequenceTarget: getVeinTarget(vein),
+          })),
+          pviEndpoints: Object.fromEntries(
+            veins.map((vein) => [vein.id, endpoints[vein.id] || "not-assessed"]),
           ),
-          rings: Object.entries(applications).map(([key, applicationCount]) => {
+          pviEndpointRecords: Object.values(VEIN_DEFINITIONS)
+            .filter(
+              (vein) =>
+                activeVeinIds.has(vein.id) ||
+                (endpoints[vein.id] && endpoints[vein.id] !== "not-assessed"),
+            )
+            .map((vein) => ({
+              pulmonaryVein: vein.id,
+              pulmonaryVeinName: vein.name,
+              activeInCurrentView: activeVeinIds.has(vein.id),
+              status: endpoints[vein.id] || "not-assessed",
+            })),
+          totalCompleteSequences,
+          energyApplicationsFromCompleteSequences: totalCompleteSequences * APPLICATIONS_PER_SEQUENCE,
+          totalIncompleteSequences: activeIncompleteSequences,
+          allStoredCompleteSequences: storedRingSequenceTotal + storedRidgeSequenceTotal,
+          allStoredEnergyApplicationsFromCompleteSequences:
+            (storedRingSequenceTotal + storedRidgeSequenceTotal) * APPLICATIONS_PER_SEQUENCE,
+          allStoredIncompleteSequences: incompleteSequenceCount(),
+          applicationsPerCompleteSequence: APPLICATIONS_PER_SEQUENCE,
+          rings: [...exportRingKeys].flatMap((key) => {
             const parsed = parseKey(key);
-            return {
+            if (!parsed.vein || !parsed.layer) return [];
+            const applicationCount = Number(applications[key] || 0);
+            return [{
               pulmonaryVein: parsed.vein.id,
               pulmonaryVeinName: parsed.vein.name,
+              commonPulmonaryVein: parsed.vein.common,
+              activeInCurrentView: activeRingKeys.has(key),
               layer: parsed.layerId,
               layerName: parsed.layer.name,
-              applicationCount,
+              loopName: parsed.layer.loopName,
+              completeSequenceCount: applicationCount,
+              energyApplicationsFromCompleteSequences:
+                applicationCount * APPLICATIONS_PER_SEQUENCE,
+              incompleteSequenceCount: incompleteSequenceCount({ key }),
+              layerPlanSequenceTarget: parsed.vein.common
+                ? null
+                : parsed.layerId === "inner"
+                  ? settings.innerSequenceTarget
+                  : settings.outerSequenceTarget,
               sectors: Array.from({ length: 8 }, (_, index) => {
                 const sector = index + 1;
                 const coverageCount = counts[sectorKey(key, sector)] || 0;
@@ -1926,12 +2893,12 @@
                 return {
                   sector,
                   coverageCount,
-                  gapApplications: applicationCount - coverageCount,
-                  purpleThreshold: threshold,
-                  meetsPurpleTarget: coverageCount >= threshold,
+                  gapSequenceCount: applicationCount - coverageCount,
+                  displayThreshold: threshold,
+                  meetsDisplayThreshold: coverageCount >= threshold,
                 };
               }),
-            };
+            }];
           }),
           ridges: ridgeSites.map((site) => {
             const coverageCount = counts[ridgeCountKey(site.id)] || 0;
@@ -1940,23 +2907,39 @@
               id: site.id,
               side: site.side,
               ridgeName: site.ridgeName,
-              applicationCount,
+              enabledInCurrentView: activeRidgeIds.has(site.id),
+              completeSequenceCount: applicationCount,
+              energyApplicationsFromCompleteSequences:
+                applicationCount * APPLICATIONS_PER_SEQUENCE,
+              incompleteSequenceCount: incompleteSequenceCount({ ridgeId: site.id }),
               coverageCount,
-              purpleThreshold: RIDGE_TARGET_THRESHOLD,
-              meetsPurpleTarget: coverageCount >= RIDGE_TARGET_THRESHOLD,
+              displayThreshold: settings.ridgeTarget,
+              meetsDisplayThreshold: coverageCount >= settings.ridgeTarget,
             };
           }),
+          sequenceEvents: sequenceEvents.map((event) => ({ ...event })),
         };
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement("a");
         anchor.href = url;
-        anchor.download = `VARIPULSE-record-${new Date().toISOString().slice(0, 10)}.json`;
+        anchor.download = `VARIPULSE-PFA-record-${localDate}.json`;
         anchor.click();
         URL.revokeObjectURL(url);
         showToast("记录已导出");
       }
 
+      settingsButton.addEventListener("click", openSettings);
+      settingsClose.addEventListener("click", closeSettings);
+      settingsCancel.addEventListener("click", closeSettings);
+      settingsReset.addEventListener("click", () => populateSettingsForm(DEFAULT_SETTINGS));
+      ridgeEnabledInput.addEventListener("change", () => {
+        ridgeTargetInput.disabled = !ridgeEnabledInput.checked;
+      });
+      settingsForm.addEventListener("submit", applySettings);
+      settingsDialog.addEventListener("click", (event) => {
+        if (event.target === settingsDialog) closeSettings();
+      });
       undoButton.addEventListener("click", undoLastAction);
       resetButton.addEventListener("click", resetRecord);
       exportButton.addEventListener("click", exportRecord);
@@ -1966,9 +2949,16 @@
       });
       document.addEventListener("keydown", (event) => {
         if ((event.metaKey || event.ctrlKey) && !event.shiftKey && event.key.toLowerCase() === "z") {
+          if (
+            settingsDialog.open ||
+            event.target.closest?.("input, select, textarea, [contenteditable='true']")
+          ) {
+            return;
+          }
           event.preventDefault();
           undoLastAction();
         } else if (event.key === "Escape") {
+          if (settingsDialog.open) return;
           clearSelection();
         }
       });
