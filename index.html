@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f4f5f8" />
-    <meta name="application-version" content="1.1.0" />
-    <meta name="application-iteration" content="2026-08-25T14:31:00+08:00" />
+    <meta name="application-version" content="1.2.0" />
+    <meta name="application-iteration" content="2026-08-25T14:49:00+08:00" />
     <link rel="icon" href="data:," />
     <title>VARIPULSE 消融质控记录</title>
     <style>
@@ -1143,7 +1143,8 @@
       }
 
       .field input,
-      .field select {
+      .field select,
+      .field textarea {
         width: 100%;
         min-height: 40px;
         padding: 0 11px;
@@ -1153,8 +1154,17 @@
         color: var(--ink);
       }
 
+      .field textarea {
+        min-height: 92px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        line-height: 1.55;
+        resize: vertical;
+      }
+
       .field input:focus,
       .field select:focus,
+      .field textarea:focus,
       .endpoint-control select:focus {
         border-color: var(--purple-2);
         outline: 3px solid rgba(155, 112, 216, 0.16);
@@ -1555,10 +1565,10 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>VARIPULSE 消融质控记录</h1>
-            <p class="app-meta" aria-label="软件版本 1.1.0，迭代时间 2026年8月25日 14点31分">
-              <span class="app-version">v1.1.0</span>
+            <p class="app-meta" aria-label="软件版本 1.2.0，迭代时间 2026年8月25日 14点49分">
+              <span class="app-version">v1.2.0</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
-              <time datetime="2026-08-25T14:31:00+08:00">迭代于 2026-08-25 14:31</time>
+              <time datetime="2026-08-25T14:49:00+08:00">迭代于 2026-08-25 14:49</time>
             </p>
           </div>
         </div>
@@ -1825,36 +1835,40 @@
       <form class="settings-card" id="patient-info-form" autocomplete="off">
         <header class="settings-header">
           <div>
-            <h2 id="patient-info-title">补充患者基础信息</h2>
+            <h2 id="patient-info-title">补充报告信息</h2>
           </div>
-          <button class="dialog-close" id="patient-info-close" type="button" aria-label="关闭患者信息窗口">×</button>
+          <button class="dialog-close" id="patient-info-close" type="button" aria-label="关闭报告信息窗口">×</button>
         </header>
 
         <div class="settings-body">
           <div class="settings-grid">
             <label class="field">
-              姓名
-              <input id="patient-name" name="patientName" type="text" maxlength="50" pattern=".*\S.*" required />
+              姓名（选填）
+              <input id="patient-name" name="patientName" type="text" maxlength="50" />
             </label>
             <label class="field">
-              性别
-              <select id="patient-sex" name="patientSex" required>
-                <option value="">请选择</option>
+              性别（选填）
+              <select id="patient-sex" name="patientSex">
+                <option value="">未填写</option>
                 <option value="男">男</option>
                 <option value="女">女</option>
                 <option value="未说明">未说明</option>
               </select>
             </label>
             <label class="field">
-              手术日期
-              <input id="patient-surgery-date" name="surgeryDate" type="date" required />
+              手术日期（选填）
+              <input id="patient-surgery-date" name="surgeryDate" type="date" />
             </label>
             <label class="field">
-              病案号
-              <input id="patient-record-number" name="recordNumber" type="text" maxlength="64" pattern=".*\S.*" required />
+              病案号（选填）
+              <input id="patient-record-number" name="recordNumber" type="text" maxlength="64" />
+            </label>
+            <label class="field full">
+              其它信息（选填）
+              <textarea id="patient-other-info" name="otherInfo" maxlength="1000" placeholder="可补充诊断、术式备注或其它需要写入报告的信息"></textarea>
             </label>
           </div>
-          <p class="patient-privacy-note">患者身份信息仅用于生成本次临床报告，不会保存到浏览器本地记录。</p>
+          <p class="patient-privacy-note">以上信息均为选填，仅用于生成本次临床报告，不会保存到浏览器本地记录。</p>
         </div>
 
         <footer class="settings-footer">
@@ -2021,6 +2035,7 @@
       const patientSexInput = document.getElementById("patient-sex");
       const patientSurgeryDateInput = document.getElementById("patient-surgery-date");
       const patientRecordNumberInput = document.getElementById("patient-record-number");
+      const patientOtherInfoInput = document.getElementById("patient-other-info");
 
       resetButton.disabled = false;
       exportButton.disabled = false;
@@ -3638,6 +3653,7 @@
           sex: patientSexInput.value,
           surgeryDate: patientSurgeryDateInput.value,
           recordNumber: patientRecordNumberInput.value.trim(),
+          otherInfo: patientOtherInfoInput.value.trim(),
         };
       }
 
@@ -3924,6 +3940,8 @@
       .patient-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 18px; }
       .patient-detail span { display: block; margin-bottom: 2px; color: #687183; font-size: 11px; }
       .patient-detail strong { display: block; overflow-wrap: anywhere; font-size: 14px; }
+      .patient-other { grid-column: 1 / -1; padding-top: 12px; border-top: 1px solid #e0e4eb; }
+      .patient-other strong { white-space: normal; }
       .summary { margin-top: 24px; padding: 20px 22px; border-left: 5px solid #b66a00; background: #fff7e8; }
       .summary.positive { border-color: #11745c; background: #edf8f4; }
       .summary strong { display: block; margin-bottom: 5px; font-size: 16px; }
@@ -3957,17 +3975,18 @@
         <div class="meta">
           <div>解剖类型：${escapeHtml(anatomyLabels[settings.anatomyMode])}</div>
           <div>报告生成：${escapeHtml(formattedTime)}</div>
-          <div>报告版本：v1.1.0</div>
+          <div>报告版本：v1.2.0</div>
         </div>
       </header>
 
       <section class="patient-info" aria-labelledby="patient-info-heading">
         <h2 id="patient-info-heading">患者基础信息</h2>
         <div class="patient-grid">
-          <div class="patient-detail"><span>姓名</span><strong>${escapeHtml(patientInfo.name)}</strong></div>
-          <div class="patient-detail"><span>性别</span><strong>${escapeHtml(patientInfo.sex)}</strong></div>
-          <div class="patient-detail"><span>手术日期</span><strong>${escapeHtml(patientInfo.surgeryDate)}</strong></div>
-          <div class="patient-detail"><span>病案号</span><strong>${escapeHtml(patientInfo.recordNumber)}</strong></div>
+          <div class="patient-detail"><span>姓名</span><strong>${escapeHtml(patientInfo.name || "未填写")}</strong></div>
+          <div class="patient-detail"><span>性别</span><strong>${escapeHtml(patientInfo.sex || "未填写")}</strong></div>
+          <div class="patient-detail"><span>手术日期</span><strong>${escapeHtml(patientInfo.surgeryDate || "未填写")}</strong></div>
+          <div class="patient-detail"><span>病案号</span><strong>${escapeHtml(patientInfo.recordNumber || "未填写")}</strong></div>
+          <div class="patient-detail patient-other"><span>其它信息</span><strong>${escapeHtml(patientInfo.otherInfo || "未填写").replace(/\r?\n/g, "<br />")}</strong></div>
         </div>
       </section>
 
