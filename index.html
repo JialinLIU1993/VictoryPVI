@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f4f5f8" />
+    <meta name="application-version" content="1.0.0" />
+    <meta name="application-iteration" content="2026-08-25T11:53:00+08:00" />
     <link rel="icon" href="data:," />
     <title>VARIPULSE 消融质控记录</title>
     <style>
@@ -102,6 +104,27 @@
         font-size: 17px;
         line-height: 1.2;
         letter-spacing: -0.01em;
+      }
+
+      .app-meta {
+        margin: 3px 0 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 10.5px;
+        line-height: 1.2;
+        white-space: nowrap;
+      }
+
+      .app-version {
+        color: var(--purple-3);
+        font-weight: 760;
+        letter-spacing: 0.02em;
+      }
+
+      .app-meta-separator {
+        color: var(--line-strong);
       }
 
       .top-actions {
@@ -1412,6 +1435,11 @@
           font-size: 16px;
         }
 
+        .app-meta {
+          gap: 5px;
+          font-size: 10px;
+        }
+
         .operation-status-bar {
           align-items: flex-start;
           flex-wrap: wrap;
@@ -1513,6 +1541,11 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>VARIPULSE 消融质控记录</h1>
+            <p class="app-meta" aria-label="应用版本 1.0.0，迭代时间 2026年8月25日 11点53分">
+              <span class="app-version">v1.0.0</span>
+              <span class="app-meta-separator" aria-hidden="true">·</span>
+              <time datetime="2026-08-25T11:53:00+08:00">迭代于 2026-08-25 11:53</time>
+            </p>
           </div>
         </div>
         <div class="top-actions">
