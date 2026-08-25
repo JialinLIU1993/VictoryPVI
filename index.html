@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f4f5f8" />
-    <meta name="application-version" content="1.0.0" />
-    <meta name="application-iteration" content="2026-08-25T11:53:00+08:00" />
+    <meta name="application-version" content="1.1.0" />
+    <meta name="application-iteration" content="2026-08-25T14:31:00+08:00" />
     <link rel="icon" href="data:," />
     <title>VARIPULSE 消融质控记录</title>
     <style>
@@ -1183,6 +1183,20 @@
         line-height: 1.6;
       }
 
+      .patient-info-dialog {
+        width: min(540px, calc(100vw - 32px));
+      }
+
+      .patient-privacy-note {
+        margin: 14px 0 0;
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: #f7f5fa;
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1.6;
+      }
+
       .settings-footer {
         border-top: 1px solid var(--line);
       }
@@ -1541,10 +1555,10 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>VARIPULSE 消融质控记录</h1>
-            <p class="app-meta" aria-label="应用版本 1.0.0，迭代时间 2026年8月25日 11点53分">
-              <span class="app-version">v1.0.0</span>
+            <p class="app-meta" aria-label="软件版本 1.1.0，迭代时间 2026年8月25日 14点31分">
+              <span class="app-version">v1.1.0</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
-              <time datetime="2026-08-25T11:53:00+08:00">迭代于 2026-08-25 11:53</time>
+              <time datetime="2026-08-25T14:31:00+08:00">迭代于 2026-08-25 14:31</time>
             </p>
           </div>
         </div>
@@ -1562,7 +1576,7 @@
           <div class="stage-header">
             <div class="stage-title">
               <h2 id="map-title">肺静脉消融分布</h2>
-              <p id="protocol-summary">标准四支 · 口部 2 / 前庭 2 · 每次消融 3 次应用</p>
+              <p id="protocol-summary">标准四支 · 口部 2 / 前庭 2 · 每次消融 3 次放电</p>
             </div>
             <div class="legend" aria-label="消融次数色阶">
               <span class="legend-item">
@@ -1801,7 +1815,52 @@
           <button class="button" id="settings-reset" type="button">恢复推荐值</button>
           <div class="settings-footer-actions">
             <button class="button" id="settings-cancel" type="button">取消</button>
-            <button class="button primary" type="submit">应用设置</button>
+            <button class="button primary" type="submit">保存设置</button>
+          </div>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog class="settings-dialog patient-info-dialog" id="patient-info-dialog" aria-labelledby="patient-info-title">
+      <form class="settings-card" id="patient-info-form" autocomplete="off">
+        <header class="settings-header">
+          <div>
+            <h2 id="patient-info-title">补充患者基础信息</h2>
+          </div>
+          <button class="dialog-close" id="patient-info-close" type="button" aria-label="关闭患者信息窗口">×</button>
+        </header>
+
+        <div class="settings-body">
+          <div class="settings-grid">
+            <label class="field">
+              姓名
+              <input id="patient-name" name="patientName" type="text" maxlength="50" pattern=".*\S.*" required />
+            </label>
+            <label class="field">
+              性别
+              <select id="patient-sex" name="patientSex" required>
+                <option value="">请选择</option>
+                <option value="男">男</option>
+                <option value="女">女</option>
+                <option value="未说明">未说明</option>
+              </select>
+            </label>
+            <label class="field">
+              手术日期
+              <input id="patient-surgery-date" name="surgeryDate" type="date" required />
+            </label>
+            <label class="field">
+              病案号
+              <input id="patient-record-number" name="recordNumber" type="text" maxlength="64" pattern=".*\S.*" required />
+            </label>
+          </div>
+          <p class="patient-privacy-note">患者身份信息仅用于生成本次临床报告，不会保存到浏览器本地记录。</p>
+        </div>
+
+        <footer class="settings-footer">
+          <div class="settings-footer-actions">
+            <button class="button" id="patient-info-cancel" type="button">取消</button>
+            <button class="button primary" type="submit">确认并导出</button>
           </div>
         </footer>
       </form>
@@ -1954,6 +2013,14 @@
       const coverageThresholdInput = document.getElementById("coverage-threshold");
       const ridgeEnabledInput = document.getElementById("ridge-enabled");
       const ridgeTargetInput = document.getElementById("ridge-target");
+      const patientInfoDialog = document.getElementById("patient-info-dialog");
+      const patientInfoForm = document.getElementById("patient-info-form");
+      const patientInfoClose = document.getElementById("patient-info-close");
+      const patientInfoCancel = document.getElementById("patient-info-cancel");
+      const patientNameInput = document.getElementById("patient-name");
+      const patientSexInput = document.getElementById("patient-sex");
+      const patientSurgeryDateInput = document.getElementById("patient-surgery-date");
+      const patientRecordNumberInput = document.getElementById("patient-record-number");
 
       resetButton.disabled = false;
       exportButton.disabled = false;
@@ -3362,7 +3429,7 @@
           : settings.ridgeEnabled
             ? " · 脊部记录开启"
             : "";
-        protocolSummary.textContent = `${anatomyLabels[settings.anatomyMode]} · ${planCopy} · 每次消融 ${APPLICATIONS_PER_SEQUENCE} 次应用${ridgeCopy}`;
+        protocolSummary.textContent = `${anatomyLabels[settings.anatomyMode]} · ${planCopy} · 每次消融 ${APPLICATIONS_PER_SEQUENCE} 次放电${ridgeCopy}`;
 
         veinList.replaceChildren();
         veins.forEach((vein) => {
@@ -3537,6 +3604,50 @@
         }
       }
 
+      function localDateInputValue(date = new Date()) {
+        return [
+          date.getFullYear(),
+          String(date.getMonth() + 1).padStart(2, "0"),
+          String(date.getDate()).padStart(2, "0"),
+        ].join("-");
+      }
+
+      function closePatientInfoDialog({ reset = true } = {}) {
+        if (patientInfoDialog.open) {
+          patientInfoDialog.close();
+        } else {
+          patientInfoDialog.removeAttribute("open");
+        }
+        if (reset) patientInfoForm.reset();
+      }
+
+      function openPatientInfoDialog() {
+        patientInfoForm.reset();
+        patientSurgeryDateInput.value = localDateInputValue();
+        if (typeof patientInfoDialog.showModal === "function") {
+          patientInfoDialog.showModal();
+        } else {
+          patientInfoDialog.setAttribute("open", "");
+        }
+        window.setTimeout(() => patientNameInput.focus(), 0);
+      }
+
+      function patientInfoFromForm() {
+        return {
+          name: patientNameInput.value.trim(),
+          sex: patientSexInput.value,
+          surgeryDate: patientSurgeryDateInput.value,
+          recordNumber: patientRecordNumberInput.value.trim(),
+        };
+      }
+
+      function confirmPatientInfoAndExport(event) {
+        event.preventDefault();
+        const patientInfo = patientInfoFromForm();
+        closePatientInfoDialog();
+        exportClinicalReport(patientInfo);
+      }
+
       function settingsFromForm() {
         return sanitizeSettings({
           anatomyMode: anatomyModeInput.value,
@@ -3589,7 +3700,7 @@
         saveCounts();
         renderMap();
         closeSettings();
-        showToast(clearForAnatomyChange ? "解剖已切换，原记录已清空（可撤回）" : "术式设置已应用");
+        showToast(clearForAnatomyChange ? "解剖已切换，原记录已清空（可撤回）" : "术式设置已保存");
       }
 
       function escapeHtml(value) {
@@ -3665,7 +3776,7 @@
         };
       }
 
-      function buildClinicalReport(exportTime) {
+      function buildClinicalReport(exportTime, patientInfo) {
         const assessments = veins.map(getVeinClinicalAssessment);
         const pviConfirmed = assessments.filter(
           ({ endpointStatus }) =>
@@ -3808,6 +3919,11 @@
       p { margin: 6px 0; }
       .subtitle, .meta, .note { color: #687183; }
       .meta { text-align: right; font-size: 13px; white-space: nowrap; }
+      .patient-info { margin-top: 20px; padding: 16px 18px; border: 1px solid #e0e4eb; background: #f8f9fb; }
+      .patient-info h2 { margin: 0 0 11px; font-size: 15px; }
+      .patient-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 18px; }
+      .patient-detail span { display: block; margin-bottom: 2px; color: #687183; font-size: 11px; }
+      .patient-detail strong { display: block; overflow-wrap: anywhere; font-size: 14px; }
       .summary { margin-top: 24px; padding: 20px 22px; border-left: 5px solid #b66a00; background: #fff7e8; }
       .summary.positive { border-color: #11745c; background: #edf8f4; }
       .summary strong { display: block; margin-bottom: 5px; font-size: 16px; }
@@ -3827,7 +3943,7 @@
       .action-list { margin: 8px 0 0; padding-left: 22px; }
       .note { margin-top: 30px; padding-top: 18px; border-top: 1px solid #dfe3ea; font-size: 12px; }
       .print-button { position: fixed; right: 24px; bottom: 24px; border: 0; border-radius: 8px; padding: 11px 16px; color: #fff; background: #5a278f; cursor: pointer; box-shadow: 0 8px 20px rgba(53, 16, 83, .24); }
-      @media (max-width: 760px) { main { width: 100%; margin: 0; padding: 28px 20px; } header { display: block; } .meta { margin-top: 12px; text-align: left; white-space: normal; } .metrics { grid-template-columns: 1fr; } table, thead, tbody, tr, th, td { display: block; } thead { display: none; } tbody tr { padding: 10px 0; border-bottom: 1px solid #dfe3ea; } th, td { padding: 5px 0; border: 0; } }
+      @media (max-width: 760px) { main { width: 100%; margin: 0; padding: 28px 20px; } header { display: block; } .meta { margin-top: 12px; text-align: left; white-space: normal; } .patient-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .metrics { grid-template-columns: 1fr; } table, thead, tbody, tr, th, td { display: block; } thead { display: none; } tbody tr { padding: 10px 0; border-bottom: 1px solid #dfe3ea; } th, td { padding: 5px 0; border: 0; } }
       @media print { @page { size: A4; margin: 14mm; } body { background: #fff; } main { width: 100%; margin: 0; padding: 0; box-shadow: none; } .print-button { display: none; } tr { break-inside: avoid; } }
     </style>
   </head>
@@ -3841,8 +3957,19 @@
         <div class="meta">
           <div>解剖类型：${escapeHtml(anatomyLabels[settings.anatomyMode])}</div>
           <div>报告生成：${escapeHtml(formattedTime)}</div>
+          <div>报告版本：v1.1.0</div>
         </div>
       </header>
+
+      <section class="patient-info" aria-labelledby="patient-info-heading">
+        <h2 id="patient-info-heading">患者基础信息</h2>
+        <div class="patient-grid">
+          <div class="patient-detail"><span>姓名</span><strong>${escapeHtml(patientInfo.name)}</strong></div>
+          <div class="patient-detail"><span>性别</span><strong>${escapeHtml(patientInfo.sex)}</strong></div>
+          <div class="patient-detail"><span>手术日期</span><strong>${escapeHtml(patientInfo.surgeryDate)}</strong></div>
+          <div class="patient-detail"><span>病案号</span><strong>${escapeHtml(patientInfo.recordNumber)}</strong></div>
+        </div>
+      </section>
 
       <section class="summary ${reportTone}">
         <strong>临床结论</strong>
@@ -3881,14 +4008,14 @@
 </html>`;
       }
 
-      function exportClinicalReport() {
+      function exportClinicalReport(patientInfo) {
         const exportTime = new Date();
         const localDate = [
           exportTime.getFullYear(),
           String(exportTime.getMonth() + 1).padStart(2, "0"),
           String(exportTime.getDate()).padStart(2, "0"),
         ].join("-");
-        const reportHtml = buildClinicalReport(exportTime);
+        const reportHtml = buildClinicalReport(exportTime, patientInfo);
         const blob = new Blob([reportHtml], { type: "text/html;charset=utf-8" });
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement("a");
@@ -3912,9 +4039,19 @@
       settingsDialog.addEventListener("click", (event) => {
         if (event.target === settingsDialog) closeSettings();
       });
+      patientInfoClose.addEventListener("click", () => closePatientInfoDialog());
+      patientInfoCancel.addEventListener("click", () => closePatientInfoDialog());
+      patientInfoForm.addEventListener("submit", confirmPatientInfoAndExport);
+      patientInfoDialog.addEventListener("click", (event) => {
+        if (event.target === patientInfoDialog) closePatientInfoDialog();
+      });
+      patientInfoDialog.addEventListener("cancel", (event) => {
+        event.preventDefault();
+        closePatientInfoDialog();
+      });
       undoButton.addEventListener("click", undoLastAction);
       resetButton.addEventListener("click", resetRecord);
-      exportButton.addEventListener("click", exportClinicalReport);
+      exportButton.addEventListener("click", openPatientInfoDialog);
       mapModeToggle.addEventListener("click", toggleMapEditMode);
       mapWrap.addEventListener("pointerenter", moveRemoveCursor);
       mapWrap.addEventListener("pointerover", moveRemoveCursor);
@@ -3930,6 +4067,7 @@
         if ((event.metaKey || event.ctrlKey) && !event.shiftKey && event.key.toLowerCase() === "z") {
           if (
             settingsDialog.open ||
+            patientInfoDialog.open ||
             event.target.closest?.("input, select, textarea, [contenteditable='true']")
           ) {
             return;
@@ -3937,7 +4075,7 @@
           event.preventDefault();
           undoLastAction();
         } else if (event.key === "Escape") {
-          if (settingsDialog.open) return;
+          if (settingsDialog.open || patientInfoDialog.open) return;
           clearSelection();
         }
       });
