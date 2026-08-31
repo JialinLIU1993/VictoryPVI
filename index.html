@@ -1197,6 +1197,44 @@
         width: min(540px, calc(100vw - 32px));
       }
 
+      .about-dialog {
+        width: min(560px, calc(100vw - 32px));
+      }
+
+      .about-dialog .settings-body {
+        display: grid;
+        gap: 18px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.75;
+      }
+
+      .about-section + .about-section {
+        padding-top: 18px;
+        border-top: 1px solid var(--line);
+      }
+
+      .about-section h3 {
+        margin: 0 0 7px;
+        color: var(--ink);
+        font-size: 13px;
+      }
+
+      .about-section p {
+        margin: 0;
+      }
+
+      .about-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 14px;
+      }
+
+      .about-links a {
+        color: var(--purple-3);
+        text-underline-offset: 3px;
+      }
+
       .patient-privacy-note {
         margin: 14px 0 0;
         padding: 10px 12px;
@@ -1565,8 +1603,10 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>VARIPULSE 消融质控记录</h1>
-            <p class="app-meta" aria-label="软件版本 1.3.0，迭代时间 2026年8月25日 14点55分">
+            <p class="app-meta" aria-label="软件版本 1.3.0，独立社区维护的非官方工具，迭代时间 2026年8月25日 14点55分">
               <span class="app-version">v1.3.0</span>
+              <span class="app-meta-separator" aria-hidden="true">·</span>
+              <span>社区维护 · 非官方</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
               <time datetime="2026-08-25T14:55:00+08:00">迭代于 2026-08-25 14:55</time>
             </p>
@@ -1574,6 +1614,7 @@
         </div>
         <div class="top-actions">
           <span class="save-state" id="save-state">记录已自动保存</span>
+          <button class="button" id="about-button" type="button">关于</button>
           <button class="button" id="settings-button" type="button">术式设置</button>
           <button class="button" id="undo-button" type="button" title="撤回上一步（⌘/Ctrl + Z）" disabled>撤回</button>
           <button class="button" id="reset-button" type="button" disabled>清空记录</button>
@@ -1747,7 +1788,7 @@
             </div>
           </section>
 
-          <p class="clinical-note">记录辅助，不替代 PVI 终点判断。</p>
+          <p class="clinical-note">社区维护的第三方非官方工具。记录辅助，不替代设备数据、PVI 终点评估或临床判断。</p>
         </aside>
       </main>
     </div>
@@ -1900,6 +1941,37 @@
       </form>
     </dialog>
 
+    <dialog class="settings-dialog about-dialog" id="about-dialog" aria-labelledby="about-title">
+      <article class="settings-card">
+        <header class="settings-header">
+          <div>
+            <h2 id="about-title">关于 VictoryPVI</h2>
+          </div>
+          <button class="dialog-close" id="about-close" type="button" aria-label="关闭关于窗口">×</button>
+        </header>
+
+        <div class="settings-body">
+          <section class="about-section">
+            <h3>项目身份</h3>
+            <p>VictoryPVI 是由独立社区贡献者维护的第三方辅助工具，不隶属于、不代表，也未获得任何设备厂商、软件平台或医疗机构的官方背书。</p>
+          </section>
+          <section class="about-section">
+            <h3>用途边界</h3>
+            <p>本工具仅用于记录与整理，不替代发生器或三维系统数据、肺静脉隔离终点评估、医疗器械说明书、机构规范或临床专业判断。</p>
+          </section>
+          <section class="about-section">
+            <h3>开源与署名</h3>
+            <p>项目以 GNU AGPL-3.0 发布，并使用 VictoryPVI Community 作为匿名社区署名。相关产品名称及商标权利归各自权利人所有。</p>
+            <p class="about-links">
+              <a href="./README.md">项目说明</a>
+              <a href="./LICENSE">开源许可证</a>
+              <a href="./NOTICE">来源声明</a>
+            </p>
+          </section>
+        </div>
+      </article>
+    </dialog>
+
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <div class="remove-cursor" id="remove-cursor" aria-hidden="true"></div>
 
@@ -2030,6 +2102,9 @@
       const saveState = document.getElementById("save-state");
       const lastOperationNode = document.getElementById("last-operation");
       const lastOperationTimeNode = document.getElementById("last-operation-time");
+      const aboutButton = document.getElementById("about-button");
+      const aboutDialog = document.getElementById("about-dialog");
+      const aboutClose = document.getElementById("about-close");
       const settingsButton = document.getElementById("settings-button");
       const undoButton = document.getElementById("undo-button");
       const resetButton = document.getElementById("reset-button");
@@ -4046,7 +4121,7 @@
         <ul class="action-list">${actionItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
       </section>
 
-      <p class="note">说明：本报告根据当前质控记录自动汇总，并以传入阻滞作为确认 PVI 的最低记录标准，传出阻滞作为补充证据。肺静脉隔离是否达成，应以术中电生理终点评估为准；消融分布与消融次数仅用于辅助判断，不能单独证明传导阻滞。</p>
+      <p class="note">说明：本报告由社区维护的第三方非官方工具根据当前质控记录自动汇总，并以传入阻滞作为确认 PVI 的最低记录标准，传出阻滞作为补充证据。肺静脉隔离是否达成，应以术中电生理终点评估为准；消融分布与消融次数仅用于辅助判断，不能单独证明传导阻滞。</p>
     </main>
     <button class="print-button" type="button" onclick="window.print()">打印 / 保存为 PDF</button>
   </body>
@@ -4073,6 +4148,11 @@
         showToast("临床报告已导出");
       }
 
+      aboutButton.addEventListener("click", () => aboutDialog.showModal());
+      aboutClose.addEventListener("click", () => aboutDialog.close());
+      aboutDialog.addEventListener("click", (event) => {
+        if (event.target === aboutDialog) aboutDialog.close();
+      });
       settingsButton.addEventListener("click", openSettings);
       settingsClose.addEventListener("click", closeSettings);
       settingsCancel.addEventListener("click", closeSettings);
@@ -4111,6 +4191,7 @@
       document.addEventListener("keydown", (event) => {
         if ((event.metaKey || event.ctrlKey) && !event.shiftKey && event.key.toLowerCase() === "z") {
           if (
+            aboutDialog.open ||
             settingsDialog.open ||
             patientInfoDialog.open ||
             event.target.closest?.("input, select, textarea, [contenteditable='true']")
@@ -4120,7 +4201,7 @@
           event.preventDefault();
           undoLastAction();
         } else if (event.key === "Escape") {
-          if (settingsDialog.open || patientInfoDialog.open) return;
+          if (aboutDialog.open || settingsDialog.open || patientInfoDialog.open) return;
           clearSelection();
         }
       });
