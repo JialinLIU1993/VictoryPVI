@@ -1876,7 +1876,7 @@
                 </select>
               </label>
             </div>
-            <p class="settings-help">达阈值后追加 1 次、2 次使用更深紫色；超过 2 次不再区分，仅用于显示。单根肺静脉的隔离计数条件需同时满足：前庭 8 个扇区均达到各自完成阈值，且口部与前庭总消融次数 ≥4；该计数条件不替代 PVI 电生理终点评估。</p>
+            <p class="settings-help">达阈值后追加 1 次、2 次使用更深紫色；超过 2 次不再区分，仅用于显示。单根肺静脉判定为消融完成需同时满足：前庭 8 个扇区均达到各自完成阈值，且口部与前庭总消融次数 ≥4；消融完成判定不替代 PVI 电生理终点评估。</p>
           </section>
 
           <section class="settings-section">
@@ -2384,18 +2384,18 @@
         const singleVeinCriteriaMet = !vein.common && outerSectorsComplete && minimumTotalMet;
         const commonVeinCriteriaMet = vein.common && coverageComplete &&
           totalApplications >= settings.commonSequenceTarget;
-        const complete = vein.common
+        const ablationComplete = vein.common
           ? commonVeinCriteriaMet
           : singleVeinCriteriaMet;
-        const criteriaSummary = vein.common
-          ? `${complete ? "计划已满足" : "计划待满足"} · 总数 ${totalApplications}/${settings.commonSequenceTarget}`
-          : `${complete ? "已满足" : "待满足"} · 前庭扇区 ${outerSectorsAtTarget}/8 · 总数 ${totalApplications}/≥${MIN_SINGLE_VEIN_TOTAL_APPLICATIONS}`;
+        const completionSummary = vein.common
+          ? `${ablationComplete ? "已完成" : "未完成"} · 全部扇区${coverageComplete ? "已满足" : "未满足"} · 总数 ${totalApplications}/${settings.commonSequenceTarget}`
+          : `${ablationComplete ? "已完成" : "未完成"} · 前庭扇区 ${outerSectorsAtTarget}/8 · 总数 ${totalApplications}/≥${MIN_SINGLE_VEIN_TOTAL_APPLICATIONS}`;
 
         return {
           hasAblation,
-          complete,
+          ablationComplete,
           coverageComplete,
-          criteriaSummary,
+          completionSummary,
           innerApplications,
           outerApplications,
           totalApplications,
@@ -3629,7 +3629,7 @@
           const progress = getVeinSequenceProgress(vein);
           const ablationStatus = getVeinAblationStatus(vein);
           const visualTarget = Math.max(1, progress.target);
-          const ablationComplete = ablationStatus.complete;
+          const ablationComplete = ablationStatus.ablationComplete;
           const ablationInProgress = ablationStatus.hasAblation && !ablationComplete;
           const veinGroup = document.querySelector(`[data-vein="${vein.id}"]`);
           veinGroup?.classList.toggle("plan-complete", ablationComplete);
@@ -3648,13 +3648,13 @@
           }`;
           item.innerHTML = `
             <span class="vein-summary-name">${vein.id}</span>
-            <span class="progress-track" style="--segments: ${visualTarget}" role="progressbar" aria-valuemin="0" aria-valuemax="${visualTarget}" aria-valuenow="${Math.min(progress.planProgress, visualTarget)}" aria-label="${progress.ariaLabel}">
+            <span class="progress-track" style="--segments: ${visualTarget}" role="progressbar" aria-valuemin="0" aria-valuemax="${visualTarget}" aria-valuenow="${Math.min(progress.planProgress, visualTarget)}" aria-label="${progress.ariaLabel}；${ablationStatus.completionSummary}">
               ${progressSegments(progress.planProgress, visualTarget)}
             </span>
             <span class="vein-summary-count">${progress.countLabel}</span>
             <div class="ablation-criteria">
-              <span>${vein.common ? "消融计划" : "隔离条件"}</span>
-              <strong class="${ablationComplete ? "is-met" : ablationStatus.hasAblation ? "is-pending" : "is-idle"}">${escapeHtml(ablationStatus.criteriaSummary)}</strong>
+              <span>消融完成</span>
+              <strong class="${ablationComplete ? "is-met" : ablationStatus.hasAblation ? "is-pending" : "is-idle"}">${escapeHtml(ablationStatus.completionSummary)}</strong>
             </div>
             <label class="endpoint-control">
               <span>PVI 终点</span>
@@ -3973,7 +3973,7 @@
           endpointStatus,
           endpointLabel: endpointClinicalLabel(endpointStatus),
           treatmentSummary,
-          criteriaSummary: `${vein.common ? "共同 PV" : "单支 PV"} · ${ablationStatus.criteriaSummary}`,
+          completionSummary: `${vein.common ? "共同 PV" : "单支 PV"} · ${ablationStatus.completionSummary}`,
           coverageSummary,
         };
       }
@@ -4001,8 +4001,8 @@
         const bidirectionalEndpoints = assessments.filter(
           ({ endpointStatus }) => endpointStatus === "bidirectional-block",
         );
-        const incompleteAblationCriteria = assessments.filter(
-          ({ ablationStatus }) => !ablationStatus.complete,
+        const incompleteAblation = assessments.filter(
+          ({ ablationStatus }) => !ablationStatus.ablationComplete,
         );
         const incompleteCoverage = assessments.filter(
           ({ ablationStatus }) => !ablationStatus.coverageComplete,
@@ -4023,9 +4023,9 @@
           "bilateral-common": "双侧共同肺静脉",
         };
         const allPviConfirmed = pviConfirmed.length === assessments.length;
-        const allAblationCriteriaMet = incompleteAblationCriteria.length === 0;
+        const allAblationComplete = incompleteAblation.length === 0;
         const allCoverageComplete = incompleteCoverage.length === 0;
-        const reportTone = allPviConfirmed && allAblationCriteriaMet && allCoverageComplete
+        const reportTone = allPviConfirmed && allAblationComplete && allCoverageComplete
           ? "positive"
           : "attention";
 
@@ -4048,9 +4048,9 @@
           endpointConclusion = "尚未记录传入阻滞，当前报告不能确认肺静脉隔离是否达成。";
         }
 
-        const ablationCriteriaConclusion = allAblationCriteriaMet
-          ? "全部目标肺静脉均已满足当前消融计数判定。"
-          : `${assessments.length - incompleteAblationCriteria.length}/${assessments.length} 支目标肺静脉满足当前消融计数判定；${incompleteAblationCriteria.map(({ vein }) => vein.name).join("、")}仍未满足。`;
+        const ablationCompletionConclusion = allAblationComplete
+          ? "全部目标肺静脉均已达到当前消融完成判定。"
+          : `${assessments.length - incompleteAblation.length}/${assessments.length} 支目标肺静脉达到当前消融完成判定；${incompleteAblation.map(({ vein }) => vein.name).join("、")}尚未完成。`;
 
         const coverageConclusion = allCoverageComplete
           ? "全部目标肺静脉的预设消融分布均已完成记录。"
@@ -4070,9 +4070,9 @@
             `补充或复核${exitOnlyEndpoints.map(({ vein }) => vein.name).join("、")}的传入阻滞，以确认 PVI 终点。`,
           );
         }
-        if (incompleteAblationCriteria.length) {
+        if (incompleteAblation.length) {
           actionItems.push(
-            `补足${incompleteAblationCriteria.map(({ vein }) => vein.name).join("、")}的消融计数；单根肺静脉需前庭 8 个扇区均达到各自完成阈值，且总消融次数不少于 ${MIN_SINGLE_VEIN_TOTAL_APPLICATIONS} 次。`,
+            `补足${incompleteAblation.map(({ vein }) => vein.name).join("、")}的消融完成条件；单根肺静脉需前庭 8 个扇区均达到各自完成阈值，且总消融次数不少于 ${MIN_SINGLE_VEIN_TOTAL_APPLICATIONS} 次。`,
           );
         }
         if (incompleteCoverage.length) {
@@ -4085,7 +4085,7 @@
         }
 
         const assessmentRows = assessments.map((assessment) => {
-          const criteriaClass = assessment.ablationStatus.complete ? "success" : "warning";
+          const completionClass = assessment.ablationStatus.ablationComplete ? "success" : "warning";
           const endpointClass = assessment.endpointStatus === "bidirectional-block" ||
             assessment.endpointStatus === "entrance-block"
             ? "success"
@@ -4097,7 +4097,7 @@
               <th scope="row">${escapeHtml(assessment.vein.name)} <span>${escapeHtml(assessment.vein.id)}</span></th>
               <td>${escapeHtml(assessment.treatmentSummary)}</td>
               <td>
-                <span class="status ${criteriaClass}">${escapeHtml(assessment.criteriaSummary)}</span>
+                <span class="status ${completionClass}">${escapeHtml(assessment.completionSummary)}</span>
                 <small class="coverage-detail">${escapeHtml(assessment.coverageSummary)}</small>
               </td>
               <td><span class="status ${endpointClass}">${escapeHtml(assessment.endpointLabel)}</span></td>
@@ -4112,7 +4112,7 @@
         };
         const overviewRows = assessments.map((assessment) => {
           const visualTarget = Math.max(1, assessment.progress.target);
-          const progressClass = assessment.ablationStatus.complete
+          const progressClass = assessment.ablationStatus.ablationComplete
             ? "complete"
             : assessment.ablationStatus.hasAblation
               ? "in-progress"
@@ -4135,7 +4135,7 @@
                 </span>
                 <b>${escapeHtml(assessment.progress.countLabel)}</b>
               </div>
-              <p>${escapeHtml(assessment.criteriaSummary)}</p>
+              <p>${escapeHtml(assessment.completionSummary)}</p>
             </div>`;
         }).join("");
 
@@ -4883,7 +4883,7 @@
           </div>
           <div>
             <p>${escapeHtml(endpointConclusion)}</p>
-            <p>${escapeHtml(ablationCriteriaConclusion)}</p>
+            <p>${escapeHtml(ablationCompletionConclusion)}</p>
             <p>${escapeHtml(coverageConclusion)}</p>
           </div>
         </section>
@@ -4893,7 +4893,7 @@
             <div class="section-label">逐支评估</div>
             <h2>各肺静脉临床摘要</h2>
             <table class="clinical-table">
-              <thead><tr><th>目标肺静脉</th><th>治疗记录</th><th>消融与覆盖判定</th><th>PVI 终点</th></tr></thead>
+              <thead><tr><th>目标肺静脉</th><th>治疗记录</th><th>消融完成与覆盖</th><th>PVI 终点</th></tr></thead>
               <tbody>${assessmentRows}</tbody>
             </table>
           </section>
@@ -4913,7 +4913,7 @@
           </div>
         </div>
 
-        <p class="report-note">说明：本报告由社区维护的第三方非官方工具根据当前质控记录自动汇总。单根肺静脉的隔离计数条件为前庭 8 个扇区均达到各自完成阈值，且口部与前庭总消融次数不少于 ${MIN_SINGLE_VEIN_TOTAL_APPLICATIONS} 次；该计数条件不等同于 PVI 电生理终点。报告以传入阻滞作为确认 PVI 的最低记录标准，传出阻滞作为补充证据。肺静脉隔离是否达成，应以术中电生理终点评估为准。</p>
+        <p class="report-note">说明：本报告由社区维护的第三方非官方工具根据当前质控记录自动汇总。单根肺静脉的消融完成判定为前庭 8 个扇区均达到各自完成阈值，且口部与前庭总消融次数不少于 ${MIN_SINGLE_VEIN_TOTAL_APPLICATIONS} 次；消融完成判定不等同于 PVI 电生理终点。报告以传入阻滞作为确认 PVI 的最低记录标准，传出阻滞作为补充证据。肺静脉隔离是否达成，应以术中电生理终点评估为准。</p>
         <footer class="report-footer">
           <span>本报告不替代设备原始数据、机构规范或医师临床判断</span>
           <span>临床摘要 · 2 / ${reportPageCount}</span>

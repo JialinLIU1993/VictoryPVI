@@ -28,11 +28,11 @@ const veins = [
 const assessmentFor = (vein) => ({
   vein,
   progress: { target: 4, total: 3, planProgress: [true, true, true, false], countLabel: "3 / 4" },
-  ablationStatus: { complete: false, coverageComplete: false, hasAblation: true },
+  ablationStatus: { ablationComplete: false, coverageComplete: false, hasAblation: true },
   endpointStatus: "entrance-block",
   endpointLabel: "PVI 已验证：传入阻滞（无肺静脉电位）",
   treatmentSummary: "口部 2/2 次消融；前庭 1/2 次消融",
-  criteriaSummary: "单支 PV · 待满足 · 前庭扇区 7/8 · 总数 3/≥4",
+  completionSummary: "单支 PV · 未完成 · 前庭扇区 7/8 · 总数 3/≥4",
   coverageSummary: "覆盖待复核：前庭 4区",
 });
 
@@ -89,8 +89,9 @@ assert.equal((longReport.match(/data-report-page/g) || []).length, 3);
 assert.match(shortReport, /width: 210mm/);
 assert.match(shortReport, /height: 297mm/);
 assert.match(shortReport, /测试患者&lt;script&gt;/);
-assert.match(shortReport, /单支 PV · 待满足 · 前庭扇区 7\/8 · 总数 3\/≥4/);
-assert.match(shortReport, /消融与覆盖判定/);
+assert.match(shortReport, /单支 PV · 未完成 · 前庭扇区 7\/8 · 总数 3\/≥4/);
+assert.match(shortReport, /消融完成与覆盖/);
+assert.match(shortReport, /0\/4 支目标肺静脉达到当前消融完成判定/);
 assert.doesNotMatch(shortReport, /window\.print|print-button|A4 landscape/);
 
 const exportSource = sourceBetween("function createReportRenderFrame", "aboutButton.addEventListener");

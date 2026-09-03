@@ -51,37 +51,37 @@ setApplications(singleVein, 2, 2);
 let status = context.getVeinAblationStatus(singleVein);
 assert.equal(status.totalApplications, 4);
 assert.equal(status.outerSectorsAtTarget, 0);
-assert.equal(status.complete, false, "Four total without all vestibular sectors must fail");
+assert.equal(status.ablationComplete, false, "Four total without all vestibular sectors must fail completion");
 
 setLayerSectorCoverage(singleVein, "outer", 7);
 status = context.getVeinAblationStatus(singleVein);
 assert.equal(status.outerSectorsAtTarget, 7);
 assert.equal(status.outerSectorsComplete, false);
-assert.equal(status.complete, false, "Seven of eight vestibular sectors must fail");
+assert.equal(status.ablationComplete, false, "Seven of eight vestibular sectors must fail completion");
 
 setLayerSectorCoverage(singleVein, "outer", 8);
 setApplications(singleVein, 1, 2);
 status = context.getVeinAblationStatus(singleVein);
 assert.equal(status.outerSectorsComplete, true);
 assert.equal(status.minimumTotalMet, false);
-assert.equal(status.complete, false, "All vestibular sectors without four total must fail");
+assert.equal(status.ablationComplete, false, "All vestibular sectors without four total must fail completion");
 
 setApplications(singleVein, 2, 2);
 status = context.getVeinAblationStatus(singleVein);
-assert.equal(status.complete, true, "All eight vestibular sectors plus four total must pass");
+assert.equal(status.ablationComplete, true, "All eight vestibular sectors plus four total must complete ablation");
 assert.equal(status.coverageComplete, false, "The remaining sector coverage stays a separate check");
-assert.match(status.criteriaSummary, /已满足 · 前庭扇区 8\/8 · 总数 4\/≥4/);
+assert.match(status.completionSummary, /已完成 · 前庭扇区 8\/8 · 总数 4\/≥4/);
 
 setApplications(singleVein, 3, 1);
-assert.equal(context.getVeinAblationStatus(singleVein).complete, true, "Vestibular application count alone is not the sector criterion");
+assert.equal(context.getVeinAblationStatus(singleVein).ablationComplete, true, "Vestibular application count alone is not the sector criterion");
 
 setApplications(commonVein, 4, 4);
-assert.equal(context.getVeinAblationStatus(commonVein).complete, false, "Common veins still require complete coverage");
+assert.equal(context.getVeinAblationStatus(commonVein).ablationComplete, false, "Common veins still require complete coverage");
 for (const layerId of Object.keys(layers)) {
   for (let sector = 1; sector <= 8; sector += 1) {
     counts[sectorKey(ringKey(commonVein.id, layerId), sector)] = 1;
   }
 }
-assert.equal(context.getVeinAblationStatus(commonVein).complete, true, "Common-vein behavior remains unchanged");
+assert.equal(context.getVeinAblationStatus(commonVein).ablationComplete, true, "Common-vein behavior remains unchanged");
 
 console.log("single-vein-isolation-smoke: ok");
