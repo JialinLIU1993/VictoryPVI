@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it using the metadata below."
 title: "VictoryPVI"
 type: software
-version: 1.3.0
-date-released: 2026-08-31
+version: 1.4.0
+date-released: 2026-09-03
 authors:
   - family-names: "Community"
     given-names: "VictoryPVI"
