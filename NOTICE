@@ -13,3 +13,6 @@ respective owners.
 Redistributions and modified versions must preserve this project-origin notice
 and provide users with a readily accessible About or Legal notice as described
 in ADDITIONAL_TERMS.md.
+
+PDF export includes html2canvas 1.4.1 and jsPDF 4.2.1 under the MIT License.
+Their license texts are available in the vendor directory.
