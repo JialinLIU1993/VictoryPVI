@@ -4,17 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f4f5f8" />
-    <meta name="application-version" content="1.9.0" />
-    <meta name="application-iteration" content="2026-09-04T21:46:54+08:00" />
+    <meta name="application-version" content="1.10.0" />
+    <meta name="application-iteration" content="2026-09-04T22:00:32+08:00" />
     <script id="app-release" type="application/json">
       {
-        "version": "1.9.0",
-        "iteration": "2026-09-04T21:46:54+08:00",
-        "summary": "修复镜像端扫码后未自动生成应答二维码，并区分双端操作提示。",
+        "version": "1.10.0",
+        "iteration": "2026-09-04T22:00:32+08:00",
+        "summary": "本地配对新增 6 位核对码，完整连接码改为备用显示。",
         "changes": [
-          "镜像端打开操作端二维码链接后自动加入，成功后立即生成并展示应答二维码。",
-          "同步界面增加操作端/镜像端角色徽标、专属颜色和明确的下一步说明，隐藏镜像端不需要的应答输入框。",
-          "补充扫码识别、应答生成和等待操作端扫描的状态提示，降低双向配对误操作。"
+          "本地操作端与镜像应答现在显示同一 6 位核对码，便于确认是同一次配对。",
+          "二维码仍承载完整本地连接信息；完整操作端码和应答码仅在无法扫码时从备用入口展开。",
+          "移动端优化短码模块和复制按钮，减少长代码对配对流程的干扰。"
         ]
       }
     </script>
@@ -1592,6 +1592,70 @@
         line-height: 1.65;
       }
 
+      .sync-short-code {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 11px;
+        padding: 9px 11px;
+        border: 1px dashed #d7c8e8;
+        border-radius: 10px;
+        background: #fbf9fe;
+      }
+
+      .sync-short-code[hidden] {
+        display: none;
+      }
+
+      .sync-short-code-copy {
+        min-width: 0;
+      }
+
+      .sync-short-code-label {
+        display: block;
+        color: var(--purple-3);
+        font-size: 10px;
+        font-weight: 760;
+        line-height: 1.25;
+      }
+
+      .sync-short-code-value {
+        display: block;
+        margin-top: 2px;
+        color: var(--purple-dark);
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        line-height: 1.1;
+      }
+
+      .sync-short-code-help {
+        margin: 3px 0 0;
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1.45;
+      }
+
+      .sync-short-code .button {
+        flex: 0 0 auto;
+        padding: 7px 9px;
+        font-size: 10px;
+      }
+
+      .sync-direct-setup[data-role="mirror"] .sync-short-code {
+        border-color: #c7e5d5;
+        background: #f7fcf9;
+      }
+
+      .sync-direct-setup[data-role="mirror"] .sync-short-code-label {
+        color: #1d765e;
+      }
+
+      .sync-direct-setup[data-role="mirror"] .sync-short-code-value {
+        color: #14634e;
+      }
+
       .sync-direct-manual,
       .sync-cloudflare-manual {
         margin-top: 13px;
@@ -2417,6 +2481,15 @@
           text-align: center;
         }
 
+        .sync-short-code {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .sync-short-code .button {
+          width: 100%;
+        }
+
         .sync-scan-header,
         .sync-scan-body {
           padding-right: 16px;
@@ -2453,12 +2526,12 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>VARIPULSE 消融质控记录</h1>
-            <p class="app-meta" id="app-meta" aria-label="软件版本 1.9.0，独立社区维护的非官方工具，迭代时间 2026年9月4日 21点46分">
-              <span class="app-version" id="app-version">v1.9.0</span>
+            <p class="app-meta" id="app-meta" aria-label="软件版本 1.10.0，独立社区维护的非官方工具，迭代时间 2026年9月4日 22点0分">
+              <span class="app-version" id="app-version">v1.10.0</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
               <span>社区维护 · 非官方</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
-              <time id="app-iteration" datetime="2026-09-04T21:46:54+08:00">迭代于 2026-09-04 21:46</time>
+              <time id="app-iteration" datetime="2026-09-04T22:00:32+08:00">迭代于 2026-09-04 22:00</time>
             </p>
           </div>
         </div>
@@ -2683,7 +2756,7 @@
               </div>
               <span class="sync-method-badge">不经过云端</span>
             </div>
-            <p class="settings-help">本地直连共 3 步：操作端生成二维码 → 镜像端扫码生成应答 → 操作端再扫一次应答二维码。连接后，消融状态会自动跟随。</p>
+            <p class="settings-help">本地直连共 3 步：操作端生成二维码 → 镜像端扫码生成应答 → 操作端再扫一次应答二维码。6 位短码仅用于核对，实际连接请使用二维码。</p>
             <div class="sync-action-row sync-method-actions">
               <button class="button primary" id="sync-direct-create" type="button">创建操作端二维码</button>
               <button class="button" id="sync-direct-show-join" type="button">扫码加入</button>
@@ -2818,16 +2891,24 @@
                   </div>
                 </div>
               </div>
+              <div class="sync-short-code" id="sync-direct-short-code-wrap" hidden>
+                <div class="sync-short-code-copy">
+                  <span class="sync-short-code-label" id="sync-direct-short-code-label">6 位短码（仅核对）</span>
+                  <strong class="sync-short-code-value" id="sync-direct-short-code">------</strong>
+                  <p class="sync-short-code-help">二维码仍是实际配对方式；请确认两台设备显示的短码一致。</p>
+                </div>
+                <button class="button" id="sync-direct-copy-short-code" type="button">复制短码</button>
+              </div>
               <div class="sync-direct-manual-toggle-row">
-                <button class="button" id="sync-direct-manual-toggle" type="button">显示手动代码</button>
+                <button class="button" id="sync-direct-manual-toggle" type="button">显示完整代码（备用）</button>
               </div>
               <div class="sync-direct-manual" id="sync-direct-manual" hidden>
                 <label class="field full" id="sync-direct-code-field">
-                  <span id="sync-direct-code-label">本地配对码（备用）</span>
+                  <span id="sync-direct-code-label">完整本地连接码（备用）</span>
                   <textarea class="sync-code" id="sync-direct-code" rows="3" readonly></textarea>
                 </label>
                 <div class="sync-action-row">
-                  <button class="button" id="sync-direct-copy" type="button">复制代码</button>
+                  <button class="button" id="sync-direct-copy" type="button">复制完整代码</button>
                 </div>
                 <label class="field full" id="sync-direct-answer-field" hidden>
                   镜像应答码（粘贴回操作端）
@@ -3069,11 +3150,11 @@
           <section class="about-section">
             <h3>当前版本</h3>
             <p>
-              <strong id="about-release-version">v1.9.0</strong>
+              <strong id="about-release-version">v1.10.0</strong>
               <span aria-hidden="true"> · </span>
-              <time id="about-release-iteration" datetime="2026-09-04T21:46:54+08:00">迭代于 2026-09-04 21:46</time>
+              <time id="about-release-iteration" datetime="2026-09-04T22:00:32+08:00">迭代于 2026-09-04 22:00</time>
             </p>
-            <p id="about-release-summary">更新内容：修复镜像端扫码后未自动生成应答二维码，并区分双端操作提示。</p>
+            <p id="about-release-summary">更新内容：本地配对新增 6 位核对码，完整连接码改为备用显示。</p>
           </section>
           <section class="about-section">
             <h3>项目身份</h3>
@@ -3120,9 +3201,9 @@
       const PDF_FONT_FAMILY = "NotoSansSC";
       const APP_RELEASE = Object.freeze((() => {
         const fallback = {
-          version: "1.9.0",
-          iteration: "2026-09-04T21:46:54+08:00",
-          summary: "修复镜像端扫码后未自动生成应答二维码，并区分双端操作提示。",
+          version: "1.10.0",
+          iteration: "2026-09-04T22:00:32+08:00",
+          summary: "本地配对新增 6 位核对码，完整连接码改为备用显示。",
           changes: [],
         };
         try {
@@ -3343,6 +3424,10 @@
       const syncDirectQrHelp = document.getElementById("sync-direct-qr-help");
       const syncDirectCopyLinkButton = document.getElementById("sync-direct-copy-link");
       const syncDirectScanAnswerButton = document.getElementById("sync-direct-scan-answer");
+      const syncDirectShortCodeWrap = document.getElementById("sync-direct-short-code-wrap");
+      const syncDirectShortCodeLabel = document.getElementById("sync-direct-short-code-label");
+      const syncDirectShortCode = document.getElementById("sync-direct-short-code");
+      const syncDirectCopyShortCodeButton = document.getElementById("sync-direct-copy-short-code");
       const syncDirectManualToggle = document.getElementById("sync-direct-manual-toggle");
       const syncPairingCodeField = document.getElementById("sync-pairing-code-field");
       const syncCloudflareManual = document.getElementById("sync-cloudflare-manual");
@@ -3587,6 +3672,17 @@
           : window.VictoryPVISyncClient.makePairingLink(code, pageUrl);
       }
 
+      function syncShortPairingCode(roomId) {
+        const value = String(roomId || "");
+        if (!value) return "";
+        let hash = 2166136261;
+        for (let index = 0; index < value.length; index += 1) {
+          hash ^= value.charCodeAt(index);
+          hash = Math.imul(hash, 16777619);
+        }
+        return String((hash >>> 0) % 1_000_000).padStart(6, "0");
+      }
+
       function renderSyncQr(container, value, label) {
         if (!container) return false;
         if (value && container.dataset.qrValue === value && container.querySelector("svg")) return true;
@@ -3800,8 +3896,8 @@
         }
         if (syncDirectQrHelp) {
           syncDirectQrHelp.textContent = syncRole === "host"
-            ? "镜像设备扫码后会生成应答二维码；操作端请扫描应答二维码完成直连。"
-            : "请将此应答二维码展示给操作端扫描；也可以复制代码手动发送。";
+            ? "镜像端扫码后会生成应答二维码；6 位短码仅用于核对，操作端仍需扫描应答二维码完成直连。"
+            : "请将此应答二维码展示给操作端扫描；6 位短码仅用于核对，不可单独完成连接。";
         }
         if (syncDirectScanAnswerButton) {
           syncDirectScanAnswerButton.hidden = syncRole !== "host"
@@ -3930,6 +4026,7 @@
           const hasOffer = Boolean(syncSettings.localOfferCode);
           const hasAnswer = Boolean(syncSettings.localAnswerCode);
           const connected = syncConnectionState === "connected" || syncConnectionState === "synced";
+          const shortCode = syncShortPairingCode(syncSettings.roomId);
           if (syncDirectSetup) syncDirectSetup.dataset.role = isHost ? "host" : "mirror";
           if (syncDirectRoleBadge) syncDirectRoleBadge.textContent = isHost ? "操作端" : "镜像端";
           if (syncDirectRoleNote) syncDirectRoleNote.textContent = isHost ? "主控设备" : "只读跟随设备";
@@ -3964,16 +4061,22 @@
                   : "镜像端正在处理操作端二维码，生成应答二维码后会显示在这里。";
           }
           if (syncDirectCodeLabel) syncDirectCodeLabel.textContent = isHost
-            ? "本地操作端代码（备用）"
-            : "本地镜像应答码（备用，可手动发回）";
+            ? "完整操作端连接码（备用）"
+            : "完整镜像应答码（备用，可手动发回）";
           if (syncDirectCode) syncDirectCode.value = directCode;
           if (syncDirectCodeField) syncDirectCodeField.hidden = !directCode;
           if (syncDirectAnswerField) syncDirectAnswerField.hidden = !isHost || connected;
           if (syncDirectAnswerActions) syncDirectAnswerActions.hidden = !isHost || connected;
           if (syncDirectManual) syncDirectManual.hidden = !syncDirectManualVisible || !directCode;
+          if (syncDirectShortCodeWrap) syncDirectShortCodeWrap.hidden = !shortCode || connected;
+          if (syncDirectShortCodeLabel) syncDirectShortCodeLabel.textContent = isHost
+            ? "操作端 6 位核对码"
+            : "镜像应答 6 位核对码";
+          if (syncDirectShortCode) syncDirectShortCode.textContent = shortCode || "------";
           updateSyncDirectFlow({ isHost, active: true, hasOffer, hasAnswer, connected });
         } else {
           if (syncDirectQrLayout) syncDirectQrLayout.hidden = true;
+          if (syncDirectShortCodeWrap) syncDirectShortCodeWrap.hidden = true;
           if (syncDirectManual) syncDirectManual.hidden = true;
           updateSyncDirectFlow({ isHost: false, active: false, hasOffer: false, hasAnswer: false, connected: false });
         }
@@ -3986,8 +4089,8 @@
         if (syncDirectManual) syncDirectManual.hidden = !directSessionActive || !syncDirectManualVisible;
         if (syncCloudflareManual) syncCloudflareManual.hidden = !cloudflareCode || !syncCloudflareManualVisible;
         if (syncDirectManualToggle) syncDirectManualToggle.textContent = syncDirectManualVisible
-          ? "隐藏手动代码"
-          : syncRole === "mirror" ? "显示应答代码" : "显示手动代码";
+          ? "隐藏完整代码"
+          : syncRole === "mirror" ? "显示完整应答码（备用）" : "显示完整代码（备用）";
         if (syncCloudflareManualToggle) syncCloudflareManualToggle.textContent = syncCloudflareManualVisible ? "隐藏手动代码" : "显示手动代码";
         if (syncPushNowButton) syncPushNowButton.hidden = syncRole !== "host";
         settingsButton.disabled = syncRole === "mirror";
@@ -4225,7 +4328,7 @@
           syncRole = "mirror";
           syncTransport = "webrtc-local";
           syncRevision = 0;
-          syncDirectManualVisible = true;
+          syncDirectManualVisible = false;
           persistSyncSettings(syncSettings);
           updateSyncUi();
           showToast("第 2 步完成：已识别操作端二维码，应答二维码已生成，请让操作端扫描");
@@ -8177,11 +8280,21 @@
         if (!code) return;
         try {
           await navigator.clipboard.writeText(code);
-          showToast(syncRole === "mirror" ? "应答代码已复制" : "本地配对代码已复制");
+          showToast(syncRole === "mirror" ? "完整应答代码已复制" : "完整操作端代码已复制");
         } catch {
           syncDirectCode.focus();
           syncDirectCode.select();
-          showToast(syncRole === "mirror" ? "已选中应答代码，请手动复制" : "已选中本地配对代码，请手动复制");
+          showToast(syncRole === "mirror" ? "已选中完整应答代码，请手动复制" : "已选中完整操作端代码，请手动复制");
+        }
+      });
+      syncDirectCopyShortCodeButton.addEventListener("click", async () => {
+        const code = syncDirectShortCode?.textContent.trim() || "";
+        if (!/^\d{6}$/.test(code)) return;
+        try {
+          await navigator.clipboard.writeText(code);
+          showToast("6 位核对码已复制");
+        } catch {
+          showToast(`6 位核对码：${code}`);
         }
       });
       syncDirectApplyAnswerButton.addEventListener("click", applyLocalDirectAnswer);
