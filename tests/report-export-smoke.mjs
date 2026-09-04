@@ -56,6 +56,7 @@ assert.match(indexHtml, /id="sync-direct-scan-answer"/);
 assert.match(indexHtml, /id="sync-direct-flow-step-3"/);
 assert.match(indexHtml, /id="sync-direct-short-code-wrap"/);
 assert.match(indexHtml, /6 位短码仅用于核对/);
+assert.match(indexHtml, /iOS and in-app browsers zoom focused controls below 16px\.[\s\S]*?\.sync-code \{\s*font-size: 16px;/);
 assert.match(appScript, /function renderSyncQr/);
 assert.match(appScript, /function syncShortPairingCode/);
 assert.match(appScript, /% 1_000_000\)\.padStart\(6, "0"\)/);
