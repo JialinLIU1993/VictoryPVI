@@ -52,11 +52,15 @@ assert.match(appScript, /VictoryPVISyncClient/);
 assert.match(indexHtml, /vendor\/qrcode-generator\.js/);
 assert.match(indexHtml, /vendor\/jsqr\.js/);
 assert.match(indexHtml, /id="sync-direct-qr"/);
+assert.match(indexHtml, /id="sync-direct-scan-answer"/);
+assert.match(indexHtml, /id="sync-direct-flow-step-3"/);
 assert.match(appScript, /function renderSyncQr/);
 assert.match(appScript, /function startSyncQrScanner/);
-assert.doesNotMatch(indexHtml, /id="sync-direct-scan-answer"/);
-assert.doesNotMatch(appScript, /扫描应答二维码/);
-assert.doesNotMatch(appScript, /local-answer/);
+assert.match(appScript, /target === "local-answer"/);
+assert.match(appScript, /第 1 步完成：操作端二维码已生成/);
+assert.match(appScript, /第 2 步完成：已识别操作端二维码/);
+assert.match(appScript, /第 3 步完成：已识别应答二维码/);
+assert.match(appScript, /配对完成：本地直连已建立/);
 assert.match(appScript, /endpointSelect\.disabled = syncRole === "mirror"/);
 assert.doesNotMatch(appScript, /function pdfDrawClinicalBanner|function pdfDrawAssessmentTable|function pdfDrawPageTwo/);
 
