@@ -4,17 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f4f5f8" />
-    <meta name="application-version" content="1.5.1" />
-    <meta name="application-iteration" content="2026-09-04T11:23:06+08:00" />
+    <meta name="application-version" content="1.5.2" />
+    <meta name="application-iteration" content="2026-09-04T11:26:49+08:00" />
     <script id="app-release" type="application/json">
       {
-        "version": "1.5.1",
-        "iteration": "2026-09-04T11:23:06+08:00",
-        "summary": "兼容 iOS 微信内置浏览器的 HTTPS 备用同步。",
+        "version": "1.5.2",
+        "iteration": "2026-09-04T11:26:49+08:00",
+        "summary": "完善 HTTPS 备用同步的失败重试。",
         "changes": [
-          "WebSocket 连接失败时自动切换 HTTPS 轮询与加密快照推送，配对设备无需刷新。",
-          "Cloudflare Worker 增加加密快照的 HTTPS 读写接口，保持端到端加密。",
-          "保留断线重连与最新状态去重，减少重复渲染。"
+          "轮询通道在网络恢复后自动重试待发送快照，避免临时失败后等待下一次操作。",
+          "继续兼容 iOS 微信内置浏览器，保持 WebSocket 优先与 HTTPS 自动切换。"
         ]
       }
     </script>
@@ -1869,12 +1868,12 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>VARIPULSE 消融质控记录</h1>
-            <p class="app-meta" id="app-meta" aria-label="软件版本 1.5.1，独立社区维护的非官方工具，迭代时间 2026年9月4日 11点23分">
-              <span class="app-version" id="app-version">v1.5.1</span>
+            <p class="app-meta" id="app-meta" aria-label="软件版本 1.5.2，独立社区维护的非官方工具，迭代时间 2026年9月4日 11点26分">
+              <span class="app-version" id="app-version">v1.5.2</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
               <span>社区维护 · 非官方</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
-              <time id="app-iteration" datetime="2026-09-04T11:23:06+08:00">迭代于 2026-09-04 11:23</time>
+              <time id="app-iteration" datetime="2026-09-04T11:26:49+08:00">迭代于 2026-09-04 11:26</time>
             </p>
           </div>
         </div>
@@ -2296,11 +2295,11 @@
           <section class="about-section">
             <h3>当前版本</h3>
             <p>
-              <strong id="about-release-version">v1.5.1</strong>
+              <strong id="about-release-version">v1.5.2</strong>
               <span aria-hidden="true"> · </span>
-              <time id="about-release-iteration" datetime="2026-09-04T11:23:06+08:00">迭代于 2026-09-04 11:23</time>
+              <time id="about-release-iteration" datetime="2026-09-04T11:26:49+08:00">迭代于 2026-09-04 11:26</time>
             </p>
-            <p id="about-release-summary">更新内容：兼容 iOS 微信内置浏览器的 HTTPS 备用同步。</p>
+            <p id="about-release-summary">更新内容：完善 HTTPS 备用同步的失败重试。</p>
           </section>
           <section class="about-section">
             <h3>项目身份</h3>
@@ -2345,9 +2344,9 @@
       const PDF_FONT_FAMILY = "NotoSansSC";
       const APP_RELEASE = Object.freeze((() => {
         const fallback = {
-          version: "1.5.1",
-          iteration: "2026-09-04T11:23:06+08:00",
-          summary: "兼容 iOS 微信内置浏览器的 HTTPS 备用同步。",
+          version: "1.5.2",
+          iteration: "2026-09-04T11:26:49+08:00",
+          summary: "完善 HTTPS 备用同步的失败重试。",
           changes: [],
         };
         try {

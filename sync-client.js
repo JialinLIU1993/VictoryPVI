@@ -379,6 +379,7 @@
           transport: "https-poll",
           peerCount: Array.isArray(body.peers) ? body.peers.length : 0,
         });
+        if (this.connection?.role === "host" && this.pendingSnapshot) this.flushSnapshot();
       } catch (error) {
         this.onStatus({ state: "offline", role: this.connection?.role, transport: "https-poll" });
         if (reportError || !this.pollErrorShown) {
