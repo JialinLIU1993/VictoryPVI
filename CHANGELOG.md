@@ -1,5 +1,11 @@
 # 更新记录
 
+## v1.6.0 · 2026-09-04 11:41（UTC+8）
+
+- 新增无需 Cloudflare 的本地直连同步。
+- 两台设备连接同一 Wi‑Fi 或手机热点后，可通过 WebRTC offer/answer 配对并自动同步消融状态。
+- 本地直连继续使用 AES-GCM 加密，不依赖网页蓝牙、Cloudflare、STUN 或额外服务器。
+- 保留 Cloudflare 云端同步和 iOS 微信 HTTPS 备用通道，可按网络环境选择。
 ## v1.5.2 · 2026-09-04 11:26（UTC+8）
 
 - 完善 HTTPS 备用同步的失败重试。

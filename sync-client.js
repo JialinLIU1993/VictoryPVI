@@ -1,9 +1,9 @@
 /*
  * VictoryPVI real-time sync client.
  *
- * The browser owns the room key. The Cloudflare Worker only receives the
- * access token and already-encrypted snapshots, so the sync service never
- * needs to parse the clinical record payload.
+ * The browser owns the room key. Cloudflare (when selected) only receives the
+ * access token and already-encrypted snapshots; local WebRTC mode sends the
+ * same encrypted envelopes directly between paired devices.
  */
 (function installVictoryPVISyncClient(global) {
   "use strict";
@@ -12,8 +12,11 @@
   const textDecoder = new TextDecoder();
   const CLIENT_FORMAT = "victorypvi-sync-link";
   const CLIENT_VERSION = 1;
+  const LOCAL_CLIENT_FORMAT = "victorypvi-local-sync-link";
+  const LOCAL_CLIENT_VERSION = 1;
   const SNAPSHOT_MAX_BYTES = 1_500_000;
   const HTTPS_POLL_INTERVAL_MS = 3_000;
+  const LOCAL_ICE_GATHER_TIMEOUT_MS = 10_000;
 
   function requireCrypto() {
     if (!global.crypto?.subtle || typeof global.crypto.getRandomValues !== "function") {
@@ -154,6 +157,86 @@
     };
   }
 
+  function encodeLocalPairingPayload(payload) {
+    return `VPVI-LAN1.${bytesToBase64Url(textEncoder.encode(JSON.stringify(payload)))}`;
+  }
+
+  function decodeLocalPairingPayload(value, expectedType = "") {
+    let raw = String(value || "").trim();
+    if (!raw) throw new Error("请输入本地配对码");
+    if (raw.includes("#")) {
+      try {
+        raw = new URL(raw).hash.replace(/^#/, "");
+      } catch {
+        raw = raw.slice(raw.indexOf("#") + 1);
+      }
+    }
+    try {
+      raw = decodeURIComponent(raw).replace(/^local=/, "");
+    } catch {
+      throw new Error("本地配对码无法解析或已损坏");
+    }
+    if (!raw.startsWith("VPVI-LAN1.")) throw new Error("这不是本地直连配对码");
+    let payload;
+    try {
+      payload = JSON.parse(textDecoder.decode(base64UrlToBytes(raw.slice("VPVI-LAN1.".length))));
+    } catch {
+      throw new Error("本地配对码无法解析或已损坏");
+    }
+    if (
+      payload?.format !== LOCAL_CLIENT_FORMAT ||
+      payload.version !== LOCAL_CLIENT_VERSION ||
+      !["offer", "answer"].includes(payload.type) ||
+      (expectedType && payload.type !== expectedType) ||
+      typeof payload.roomId !== "string" ||
+      typeof payload.roomKey !== "string" ||
+      typeof payload.sdp !== "string"
+    ) {
+      throw new Error("本地配对码版本不兼容");
+    }
+    if (!/^[A-Za-z0-9_-]{16,80}$/.test(payload.roomId)) throw new Error("本地配对码中的同步空间无效");
+    if (base64UrlToBytes(payload.roomKey).length !== 32) throw new Error("本地配对码中的同步密钥无效");
+    if (payload.sdp.length < 20 || payload.sdp.length > 100_000 || !payload.sdp.includes("v=0")) {
+      throw new Error("本地配对码中的连接信息无效");
+    }
+    return {
+      format: LOCAL_CLIENT_FORMAT,
+      version: LOCAL_CLIENT_VERSION,
+      type: payload.type,
+      roomId: payload.roomId,
+      roomKey: payload.roomKey,
+      sdp: payload.sdp,
+    };
+  }
+
+  function requireLocalPeerConnection() {
+    const PeerConnection = global.RTCPeerConnection || global.webkitRTCPeerConnection;
+    if (typeof PeerConnection !== "function") {
+      throw new Error("当前微信浏览器不支持本地直连，请改用 iOS Safari 或 Cloudflare 同步");
+    }
+    return PeerConnection;
+  }
+
+  function waitForIceGathering(peerConnection) {
+    if (peerConnection.iceGatheringState === "complete") return Promise.resolve();
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        global.clearTimeout(timeout);
+        peerConnection.removeEventListener?.("icegatheringstatechange", checkState);
+        resolve();
+      };
+      const checkState = () => {
+        if (peerConnection.iceGatheringState === "complete") finish();
+      };
+      const timeout = global.setTimeout(finish, LOCAL_ICE_GATHER_TIMEOUT_MS);
+      peerConnection.addEventListener?.("icegatheringstatechange", checkState);
+      checkState();
+    });
+  }
+
   class VictoryPVISyncClient {
     constructor({ onSnapshot, onStatus, onError, onPresence } = {}) {
       this.onSnapshot = typeof onSnapshot === "function" ? onSnapshot : () => {};
@@ -173,6 +256,10 @@
       this.pollInFlight = false;
       this.pollErrorShown = false;
       this.lastReceivedRevision = 0;
+      this.localPeer = null;
+      this.dataChannel = null;
+      this.localPairingCode = "";
+      this.localOfferPayload = null;
     }
 
     static parsePairingCode(value) {
@@ -190,6 +277,27 @@
       });
     }
 
+    static parseLocalPairingCode(value, expectedType = "") {
+      return decodeLocalPairingPayload(value, expectedType);
+    }
+
+    static makeLocalPairingCode(details) {
+      const type = details.type === "answer" ? "answer" : "offer";
+      if (!/^[A-Za-z0-9_-]{16,80}$/.test(String(details.roomId || ""))) {
+        throw new Error("本地同步空间无效");
+      }
+      if (base64UrlToBytes(details.roomKey).length !== 32) throw new Error("本地同步密钥无效");
+      if (typeof details.sdp !== "string" || !details.sdp.includes("v=0")) throw new Error("本地连接信息无效");
+      return encodeLocalPairingPayload({
+        format: LOCAL_CLIENT_FORMAT,
+        version: LOCAL_CLIENT_VERSION,
+        type,
+        roomId: details.roomId,
+        roomKey: details.roomKey,
+        sdp: details.sdp,
+      });
+    }
+
     static makePairingLink(code, pageUrl = global.location?.href || "") {
       try {
         const url = new URL(pageUrl);
@@ -202,11 +310,15 @@
 
     get isConnected() {
       if (this.transport === "poll") return Boolean(this.connection) && !this.manualDisconnect;
+      if (this.transport === "webrtc-local") {
+        return this.dataChannel?.readyState === "open" && Boolean(this.connection) && !this.manualDisconnect;
+      }
       return this.socket?.readyState === global.WebSocket?.OPEN;
     }
 
     get pairingCode() {
       if (!this.connection) return "";
+      if (this.connection.mode === "local") return this.localPairingCode;
       return encodePairingPayload({
         format: CLIENT_FORMAT,
         version: CLIENT_VERSION,
@@ -239,6 +351,150 @@
       const details = { workerUrl: normalizedWorkerUrl, roomId, accessToken, roomKey };
       await this.connect({ ...details, role: "host" });
       return details;
+    }
+
+    prepareLocalConnection({ role, roomId, roomKey, deviceId, deviceName }) {
+      this.stopPolling();
+      this.disconnect({ silent: true });
+      this.socket = null;
+      this.pendingSnapshot = null;
+      this.sendQueue = Promise.resolve();
+      this.roomKey = null;
+      this.connection = {
+        mode: "local",
+        workerUrl: "",
+        roomId: String(roomId || ""),
+        accessToken: "",
+        roomKey: String(roomKey || ""),
+        role: role === "host" ? "host" : "mirror",
+        deviceId: String(deviceId || randomId()).slice(0, 80),
+        deviceName: String(deviceName || "未命名设备").slice(0, 80),
+      };
+      this.manualDisconnect = false;
+      this.reconnectAttempts = 0;
+      this.transport = "webrtc-local";
+      this.lastReceivedRevision = 0;
+      this.localPairingCode = "";
+      this.localOfferPayload = null;
+      return importRoomKey(this.connection.roomKey).then((roomKeyObject) => {
+        this.roomKey = roomKeyObject;
+        return this.connection;
+      });
+    }
+
+    makeLocalPeerConnection() {
+      const PeerConnection = requireLocalPeerConnection();
+      const peerConnection = new PeerConnection({ iceServers: [] });
+      this.localPeer = peerConnection;
+      peerConnection.addEventListener?.("datachannel", (event) => {
+        if (event.channel) this.attachLocalDataChannel(event.channel);
+      });
+      peerConnection.addEventListener?.("connectionstatechange", () => {
+        const state = peerConnection.connectionState;
+        if (["failed", "disconnected"].includes(state) && !this.manualDisconnect) {
+          this.onStatus({ state: "offline", role: this.connection?.role, transport: "webrtc-local" });
+        }
+      });
+      return peerConnection;
+    }
+
+    attachLocalDataChannel(channel) {
+      this.dataChannel = channel;
+      try {
+        channel.binaryType = "arraybuffer";
+      } catch {
+        // Some older WebRTC implementations expose a read-only binaryType.
+      }
+      channel.addEventListener?.("open", () => {
+        if (this.dataChannel !== channel || this.manualDisconnect) return;
+        this.reconnectAttempts = 0;
+        this.onStatus({ state: "connected", role: this.connection?.role, transport: "webrtc-local", peerCount: 1 });
+        try {
+          channel.send(JSON.stringify({ type: "hello", cursor: 0 }));
+        } catch {
+          // The data channel may close between the state check and send.
+        }
+        this.flushSnapshot();
+      });
+      channel.addEventListener?.("message", (event) => this.handleMessage(event.data));
+      channel.addEventListener?.("error", () => {
+        if (!this.manualDisconnect) this.onStatus({ state: "error", role: this.connection?.role, transport: "webrtc-local" });
+      });
+      channel.addEventListener?.("close", () => {
+        if (this.dataChannel !== channel) return;
+        this.dataChannel = null;
+        if (!this.manualDisconnect) this.onStatus({ state: "offline", role: this.connection?.role, transport: "webrtc-local" });
+      });
+      return channel;
+    }
+
+    async createLocalOffer({ deviceId = randomId(), deviceName = "操作设备" } = {}) {
+      const roomId = randomId();
+      const roomKey = bytesToBase64Url(randomBytes(32));
+      await this.prepareLocalConnection({ role: "host", roomId, roomKey, deviceId, deviceName });
+      this.onStatus({ state: "connecting", role: "host", transport: "webrtc-local" });
+      const peerConnection = this.makeLocalPeerConnection();
+      const dataChannel = peerConnection.createDataChannel("victorypvi-sync", { ordered: true });
+      this.attachLocalDataChannel(dataChannel);
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+      await waitForIceGathering(peerConnection);
+      const description = peerConnection.localDescription;
+      if (!description?.sdp) throw new Error("无法生成本地配对信息");
+      const payload = {
+        format: LOCAL_CLIENT_FORMAT,
+        version: LOCAL_CLIENT_VERSION,
+        type: "offer",
+        roomId,
+        roomKey,
+        sdp: description.sdp,
+      };
+      this.localOfferPayload = payload;
+      this.localPairingCode = encodeLocalPairingPayload(payload);
+      return { roomId, roomKey, offerCode: this.localPairingCode };
+    }
+
+    async joinLocalOffer(offerCode, { deviceId = randomId(), deviceName = "镜像设备" } = {}) {
+      const offer = decodeLocalPairingPayload(offerCode, "offer");
+      await this.prepareLocalConnection({
+        role: "mirror",
+        roomId: offer.roomId,
+        roomKey: offer.roomKey,
+        deviceId,
+        deviceName,
+      });
+      this.onStatus({ state: "connecting", role: "mirror", transport: "webrtc-local" });
+      const peerConnection = this.makeLocalPeerConnection();
+      await peerConnection.setRemoteDescription({ type: "offer", sdp: offer.sdp });
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+      await waitForIceGathering(peerConnection);
+      const description = peerConnection.localDescription;
+      if (!description?.sdp) throw new Error("无法生成本地应答信息");
+      const payload = {
+        format: LOCAL_CLIENT_FORMAT,
+        version: LOCAL_CLIENT_VERSION,
+        type: "answer",
+        roomId: offer.roomId,
+        roomKey: offer.roomKey,
+        sdp: description.sdp,
+      };
+      this.localOfferPayload = offer;
+      this.localPairingCode = encodeLocalPairingPayload(payload);
+      return { roomId: offer.roomId, roomKey: offer.roomKey, answerCode: this.localPairingCode };
+    }
+
+    async applyLocalAnswer(answerCode) {
+      if (!this.connection || this.connection.mode !== "local" || this.connection.role !== "host" || !this.localPeer) {
+        throw new Error("请先在操作端创建本地配对");
+      }
+      const answer = decodeLocalPairingPayload(answerCode, "answer");
+      if (answer.roomId !== this.connection.roomId || answer.roomKey !== this.connection.roomKey) {
+        throw new Error("应答码与当前操作端配对不匹配");
+      }
+      await this.localPeer.setRemoteDescription({ type: "answer", sdp: answer.sdp });
+      this.onStatus({ state: "connecting", role: "host", transport: "webrtc-local" });
+      return true;
     }
 
     async connect({ workerUrl, roomId, accessToken, roomKey, role = "mirror", deviceId = randomId(), deviceName = "未命名设备" }) {
@@ -408,7 +664,13 @@
         return;
       }
       if (message.type === "ack") {
-        this.onStatus({ state: "synced", role: this.connection?.role, revision: message.revision, peerCount: message.peerCount });
+        this.onStatus({
+          state: "synced",
+          role: this.connection?.role,
+          revision: message.revision,
+          peerCount: message.peerCount,
+          transport: this.transport === "webrtc-local" ? "webrtc-local" : undefined,
+        });
         return;
       }
       if (message.type === "error") {
@@ -446,6 +708,10 @@
         this.flushHttpSnapshot();
         return;
       }
+      if (this.transport === "webrtc-local") {
+        this.flushLocalSnapshot();
+        return;
+      }
       if (!this.isConnected) return;
       this.sendQueue = this.sendQueue.then(async () => {
         if (!this.pendingSnapshot || !this.isConnected || !this.connection) return;
@@ -462,6 +728,40 @@
           updatedAt: new Date().toISOString(),
           ...encrypted,
         }));
+      }).catch((error) => this.onError(error));
+    }
+
+    flushLocalSnapshot() {
+      if (!this.pendingSnapshot || !this.isConnected || !this.connection || this.connection.role !== "host") return;
+      this.sendQueue = this.sendQueue.then(async () => {
+        if (!this.pendingSnapshot || !this.isConnected || !this.connection || this.transport !== "webrtc-local") return;
+        const next = this.pendingSnapshot;
+        this.pendingSnapshot = null;
+        try {
+          const encrypted = await encryptJson(this.roomKey, next.payload);
+          if (!this.isConnected) {
+            this.pendingSnapshot = next;
+            return;
+          }
+          this.dataChannel.send(JSON.stringify({
+            type: "snapshot",
+            revision: next.revision,
+            updatedAt: new Date().toISOString(),
+            ...encrypted,
+          }));
+          this.onStatus({
+            state: "synced",
+            role: this.connection?.role,
+            revision: next.revision,
+            peerCount: 1,
+            transport: "webrtc-local",
+          });
+        } catch (error) {
+          if (!this.pendingSnapshot || this.pendingSnapshot.revision < next.revision) {
+            this.pendingSnapshot = next;
+          }
+          this.onError(error);
+        }
       }).catch((error) => this.onError(error));
     }
 
@@ -533,7 +833,22 @@
       }
       const socket = this.socket;
       this.socket = null;
-      if (socket && socket.readyState < global.WebSocket.CLOSING) socket.close(1000, "client disconnect");
+      const closingState = global.WebSocket?.CLOSING ?? 2;
+      if (socket && socket.readyState < closingState) socket.close(1000, "client disconnect");
+      const dataChannel = this.dataChannel;
+      this.dataChannel = null;
+      try {
+        if (dataChannel && dataChannel.readyState !== "closed") dataChannel.close();
+      } catch {
+        // The data channel may already be closed.
+      }
+      const localPeer = this.localPeer;
+      this.localPeer = null;
+      try {
+        localPeer?.close();
+      } catch {
+        // The peer connection may already be closed.
+      }
       if (!silent) this.onStatus({ state: "disconnected", role: this.connection?.role, transport: this.transport });
     }
   }

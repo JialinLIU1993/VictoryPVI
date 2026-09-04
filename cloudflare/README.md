@@ -4,6 +4,8 @@
 
 页面默认优先使用 WebSocket；如果 iOS 微信内置浏览器限制 WebSocket，客户端会自动切换为 HTTPS 轮询和加密快照推送，不依赖浏览器打印或本地后台服务。
 
+如果用户所在网络访问 Cloudflare 困难，可在 VictoryPVI“设备同步”中选择“本地直连”：两台设备加入同一 Wi‑Fi 或手机热点，通过 WebRTC DataChannel 直接传输，不经过本 Worker。该模式只支持当前浏览器提供 WebRTC 的设备，且页面刷新后需要重新配对。
+
 ## 部署
 
 在已安装 Node.js 的设备上执行：

@@ -4,16 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f4f5f8" />
-    <meta name="application-version" content="1.5.2" />
-    <meta name="application-iteration" content="2026-09-04T11:26:49+08:00" />
+    <meta name="application-version" content="1.6.0" />
+    <meta name="application-iteration" content="2026-09-04T11:41:09+08:00" />
     <script id="app-release" type="application/json">
       {
-        "version": "1.5.2",
-        "iteration": "2026-09-04T11:26:49+08:00",
-        "summary": "完善 HTTPS 备用同步的失败重试。",
+        "version": "1.6.0",
+        "iteration": "2026-09-04T11:41:09+08:00",
+        "summary": "新增无需 Cloudflare 的本地直连同步。",
         "changes": [
-          "轮询通道在网络恢复后自动重试待发送快照，避免临时失败后等待下一次操作。",
-          "继续兼容 iOS 微信内置浏览器，保持 WebSocket 优先与 HTTPS 自动切换。"
+          "两台设备连接同一 Wi‑Fi 或手机热点后，可通过 WebRTC offer/answer 配对并自动同步消融状态。",
+          "本地直连继续使用 AES-GCM 加密，不依赖网页蓝牙、Cloudflare、STUN 或额外服务器。",
+          "保留 Cloudflare 云端同步和 iOS 微信 HTTPS 备用通道，可按网络环境选择。"
         ]
       }
     </script>
@@ -1223,6 +1224,18 @@
         gap: 8px;
       }
 
+      .sync-direct-setup {
+        display: grid;
+        gap: 8px;
+        padding: 11px 12px;
+        border-radius: 10px;
+        background: #f7f5fa;
+      }
+
+      .sync-direct-setup[hidden] {
+        display: none;
+      }
+
       .sync-code-wrap[hidden],
       .sync-join-wrap[hidden] {
         display: none;
@@ -1868,12 +1881,12 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>VARIPULSE 消融质控记录</h1>
-            <p class="app-meta" id="app-meta" aria-label="软件版本 1.5.2，独立社区维护的非官方工具，迭代时间 2026年9月4日 11点26分">
-              <span class="app-version" id="app-version">v1.5.2</span>
+            <p class="app-meta" id="app-meta" aria-label="软件版本 1.6.0，独立社区维护的非官方工具，迭代时间 2026年9月4日 11点41分">
+              <span class="app-version" id="app-version">v1.6.0</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
               <span>社区维护 · 非官方</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
-              <time id="app-iteration" datetime="2026-09-04T11:26:49+08:00">迭代于 2026-09-04 11:26</time>
+              <time id="app-iteration" datetime="2026-09-04T11:41:09+08:00">迭代于 2026-09-04 11:41</time>
             </p>
           </div>
         </div>
@@ -2080,8 +2093,26 @@
             <p class="sync-detail" id="sync-dialog-detail">当前记录只保存在本机。配对后，操作端的状态变化会自动同步到镜像设备。</p>
           </section>
 
-          <section class="sync-section">
-            <h3>Cloudflare Worker</h3>
+          <section class="sync-section" id="sync-direct-local-section">
+            <h3>本地直连（中国大陆推荐）</h3>
+            <p class="settings-help">两台设备连接同一 Wi‑Fi 或手机热点，数据通过设备间直连传输，不经过 Cloudflare。iOS 微信不提供稳定的网页蓝牙能力，因此采用 WebRTC 本地直连。</p>
+            <div class="sync-action-row">
+              <button class="button primary" id="sync-direct-create" type="button">创建本地操作端</button>
+              <button class="button" id="sync-direct-show-join" type="button">加入本地配对</button>
+            </div>
+            <div class="sync-join-wrap" id="sync-direct-join-wrap" hidden>
+              <label class="field full" style="margin-top: 12px">
+                操作端本地配对码
+                <textarea class="sync-code" id="sync-direct-offer-input" rows="3" placeholder="粘贴操作端生成的 VPVI-LAN1 配对码"></textarea>
+              </label>
+              <div class="sync-action-row" style="margin-top: 9px">
+                <button class="button primary" id="sync-direct-join" type="button">生成镜像应答码</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="sync-section" id="sync-cloudflare-section">
+            <h3>Cloudflare 云端同步</h3>
             <label class="field full">
               同步服务地址
               <input id="sync-worker-url" type="url" inputmode="url" placeholder="https://victorypvi-sync.你的账户.workers.dev" autocomplete="url" />
@@ -2090,7 +2121,7 @@
           </section>
 
           <section class="sync-section" id="sync-local-panel">
-            <h3>建立配对</h3>
+            <h3>Cloudflare 建立配对</h3>
             <div class="sync-action-row">
               <button class="button primary" id="sync-create-room" type="button">创建操作端配对</button>
               <button class="button" id="sync-show-join" type="button">加入已有配对</button>
@@ -2108,6 +2139,23 @@
 
           <section class="sync-section sync-code-wrap" id="sync-paired-panel" hidden>
             <h3 id="sync-paired-heading">当前配对</h3>
+            <div class="sync-direct-setup" id="sync-direct-setup" hidden>
+              <p class="sync-detail" id="sync-direct-instruction"></p>
+              <label class="field full" id="sync-direct-code-field">
+                <span id="sync-direct-code-label">本地配对码</span>
+                <textarea class="sync-code" id="sync-direct-code" rows="3" readonly></textarea>
+              </label>
+              <div class="sync-action-row">
+                <button class="button" id="sync-direct-copy" type="button">复制本地配对码</button>
+              </div>
+              <label class="field full" id="sync-direct-answer-field" hidden>
+                镜像应答码（粘贴回操作端）
+                <textarea class="sync-code" id="sync-direct-answer" rows="3" placeholder="粘贴镜像设备返回的 VPVI-LAN1 应答码"></textarea>
+              </label>
+              <div class="sync-action-row" id="sync-direct-answer-actions" hidden>
+                <button class="button primary" id="sync-direct-apply-answer" type="button">完成本地配对</button>
+              </div>
+            </div>
             <div class="sync-device-list" id="sync-device-list"></div>
             <p class="sync-detail" id="sync-last-synced">尚未收到同步状态</p>
             <label class="field full" id="sync-pairing-code-field">
@@ -2295,11 +2343,11 @@
           <section class="about-section">
             <h3>当前版本</h3>
             <p>
-              <strong id="about-release-version">v1.5.2</strong>
+              <strong id="about-release-version">v1.6.0</strong>
               <span aria-hidden="true"> · </span>
-              <time id="about-release-iteration" datetime="2026-09-04T11:26:49+08:00">迭代于 2026-09-04 11:26</time>
+              <time id="about-release-iteration" datetime="2026-09-04T11:41:09+08:00">迭代于 2026-09-04 11:41</time>
             </p>
-            <p id="about-release-summary">更新内容：完善 HTTPS 备用同步的失败重试。</p>
+            <p id="about-release-summary">更新内容：新增无需 Cloudflare 的本地直连同步。</p>
           </section>
           <section class="about-section">
             <h3>项目身份</h3>
@@ -2344,9 +2392,9 @@
       const PDF_FONT_FAMILY = "NotoSansSC";
       const APP_RELEASE = Object.freeze((() => {
         const fallback = {
-          version: "1.5.2",
-          iteration: "2026-09-04T11:26:49+08:00",
-          summary: "完善 HTTPS 备用同步的失败重试。",
+          version: "1.6.0",
+          iteration: "2026-09-04T11:41:09+08:00",
+          summary: "新增无需 Cloudflare 的本地直连同步。",
           changes: [],
         };
         try {
@@ -2506,6 +2554,13 @@
       const syncDialog = document.getElementById("sync-dialog");
       const syncClose = document.getElementById("sync-close");
       const syncCancel = document.getElementById("sync-cancel");
+      const syncDirectLocalSection = document.getElementById("sync-direct-local-section");
+      const syncDirectCreateButton = document.getElementById("sync-direct-create");
+      const syncDirectShowJoinButton = document.getElementById("sync-direct-show-join");
+      const syncDirectJoinWrap = document.getElementById("sync-direct-join-wrap");
+      const syncDirectOfferInput = document.getElementById("sync-direct-offer-input");
+      const syncDirectJoinButton = document.getElementById("sync-direct-join");
+      const syncCloudflareSection = document.getElementById("sync-cloudflare-section");
       const syncWorkerUrlInput = document.getElementById("sync-worker-url");
       const syncCreateRoomButton = document.getElementById("sync-create-room");
       const syncShowJoinButton = document.getElementById("sync-show-join");
@@ -2515,6 +2570,17 @@
       const syncLocalPanel = document.getElementById("sync-local-panel");
       const syncPairedPanel = document.getElementById("sync-paired-panel");
       const syncPairedHeading = document.getElementById("sync-paired-heading");
+      const syncDirectSetup = document.getElementById("sync-direct-setup");
+      const syncDirectInstruction = document.getElementById("sync-direct-instruction");
+      const syncDirectCodeField = document.getElementById("sync-direct-code-field");
+      const syncDirectCodeLabel = document.getElementById("sync-direct-code-label");
+      const syncDirectCode = document.getElementById("sync-direct-code");
+      const syncDirectCopyButton = document.getElementById("sync-direct-copy");
+      const syncDirectAnswerField = document.getElementById("sync-direct-answer-field");
+      const syncDirectAnswer = document.getElementById("sync-direct-answer");
+      const syncDirectAnswerActions = document.getElementById("sync-direct-answer-actions");
+      const syncDirectApplyAnswerButton = document.getElementById("sync-direct-apply-answer");
+      const syncPairingCodeField = document.getElementById("sync-pairing-code-field");
       const syncDialogDot = document.getElementById("sync-dialog-dot");
       const syncDialogStatus = document.getElementById("sync-dialog-status");
       const syncDialogDetail = document.getElementById("sync-dialog-detail");
@@ -2600,10 +2666,13 @@
 
       function loadSyncSettings() {
         const fallback = {
+          mode: "cloudflare",
           workerUrl: "",
           roomId: "",
           accessToken: "",
           roomKey: "",
+          localOfferCode: "",
+          localAnswerCode: "",
           role: "local",
           deviceId: createSyncDeviceId(),
           deviceName: "VictoryPVI 设备",
@@ -2612,15 +2681,19 @@
         };
         try {
           const stored = JSON.parse(safeStorageGet(SYNC_SETTINGS_KEY) || "{}");
+          const mode = stored.mode === "local" ? "local" : "cloudflare";
           const role = stored.role === "host" || stored.role === "mirror" ? stored.role : "local";
           return {
             ...fallback,
             ...stored,
+            mode,
             role,
             workerUrl: typeof stored.workerUrl === "string" ? stored.workerUrl : fallback.workerUrl,
             roomId: typeof stored.roomId === "string" ? stored.roomId : fallback.roomId,
             accessToken: typeof stored.accessToken === "string" ? stored.accessToken : fallback.accessToken,
             roomKey: typeof stored.roomKey === "string" ? stored.roomKey : fallback.roomKey,
+            localOfferCode: typeof stored.localOfferCode === "string" ? stored.localOfferCode : fallback.localOfferCode,
+            localAnswerCode: typeof stored.localAnswerCode === "string" ? stored.localAnswerCode : fallback.localAnswerCode,
             deviceId: typeof stored.deviceId === "string" && stored.deviceId ? stored.deviceId : fallback.deviceId,
             deviceName: typeof stored.deviceName === "string" && stored.deviceName ? stored.deviceName : fallback.deviceName,
             revision: Math.max(0, Number(stored.revision) || 0),
@@ -2655,13 +2728,24 @@
 
       function syncStatusDetail() {
         if (syncRole === "local") return "当前记录只保存在本机。配对后，操作端的状态变化会自动同步到镜像设备。";
+        if (syncTransport === "webrtc-local") {
+          if (syncConnectionState === "connecting") return "正在通过同一 Wi‑Fi 或手机热点建立本地直连，记录操作不会被阻塞。";
+          if (syncConnectionState === "offline") return "本地直连已中断，请确认两台设备仍在同一 Wi‑Fi 或手机热点后重新配对。";
+          if (syncConnectionState === "error") return syncErrorMessage || "本地直连暂时不可用，请确认当前微信版本支持 WebRTC。";
+        }
         if (syncConnectionState === "connecting") return "正在连接 Cloudflare 同步服务，记录操作不会被阻塞。";
         if (syncConnectionState === "error") return syncErrorMessage || "同步服务暂时不可用，请检查 Worker 地址或网络。";
         if (syncConnectionState === "offline") return "同步连接已中断，页面会自动重试；当前记录仍保存在本机。";
         if (syncRole === "mirror") {
+          if (syncTransport === "webrtc-local") return "这是只读本地镜像。操作端的每次消融状态变化会自动更新本页面。";
           return syncTransport === "https-poll"
             ? "这是只读实时镜像，当前通过 HTTPS 备用通道跟随操作端状态。"
             : "这是只读实时镜像。操作端的每次消融状态变化会自动更新本页面。";
+        }
+        if (syncTransport === "webrtc-local") {
+          return syncPeerCount > 0
+            ? "本地直连已建立，消融状态会自动同步到镜像设备。"
+            : "本地操作端已准备好，请把配对码发给镜像设备。";
         }
         const hostDetail = syncPeerCount > 0
           ? `当前操作端已连接 ${syncPeerCount} 台镜像设备，状态变化会自动广播。`
@@ -2705,6 +2789,8 @@
 
       function updateSyncUi() {
         const label = syncStatusLabelText();
+        const isLocalDirect = syncSettings.mode === "local" || syncTransport === "webrtc-local";
+        const directSessionActive = isLocalDirect && syncRole !== "local";
         const state = syncConnectionState === "connected" && syncRole !== "local"
           ? "connected"
           : syncConnectionState;
@@ -2715,9 +2801,35 @@
         if (syncDialogStatus) syncDialogStatus.textContent = syncRole === "mirror" ? "实时跟随" : label === "仅本机" ? "仅本机保存" : label;
         if (syncDialogDetail) syncDialogDetail.textContent = syncStatusDetail();
         if (syncLocalPanel) syncLocalPanel.hidden = syncRole !== "local";
+        if (syncDirectLocalSection) syncDirectLocalSection.hidden = syncRole !== "local";
+        if (syncCloudflareSection) syncCloudflareSection.hidden = isLocalDirect;
         if (syncPairedPanel) syncPairedPanel.hidden = syncRole === "local";
         if (syncPairedHeading) syncPairedHeading.textContent = syncRole === "host" ? "操作端配对" : "已连接操作端";
         if (syncPairingCode) syncPairingCode.value = syncClient?.pairingCode || "";
+        if (syncPairingCodeField) syncPairingCodeField.hidden = isLocalDirect;
+        if (syncDirectSetup) syncDirectSetup.hidden = !directSessionActive;
+        if (directSessionActive) {
+          const isHost = syncRole === "host";
+          const directCode = isHost
+            ? syncSettings.localOfferCode || syncClient?.pairingCode || ""
+            : syncSettings.localAnswerCode || syncClient?.pairingCode || "";
+          if (syncDirectInstruction) {
+            syncDirectInstruction.textContent = isHost
+              ? syncConnectionState === "connected"
+                ? "本地直连已建立。后续消融状态会自动同步；如需重新配对，请重新创建本地操作端。"
+                : "请复制下面的操作端配对码发给镜像设备，再把镜像设备返回的应答码粘贴回来。"
+              : syncConnectionState === "connected"
+                ? "本地直连已建立。操作端的消融状态会自动更新本页面。"
+                : "请复制下面的镜像应答码发回操作端，并等待操作端完成配对。";
+          }
+          if (syncDirectCodeLabel) syncDirectCodeLabel.textContent = isHost
+            ? "本地操作端配对码（发给镜像设备）"
+            : "本地镜像应答码（发回操作端）";
+          if (syncDirectCode) syncDirectCode.value = directCode;
+          if (syncDirectCodeField) syncDirectCodeField.hidden = !directCode;
+          if (syncDirectAnswerField) syncDirectAnswerField.hidden = !isHost || syncConnectionState === "connected";
+          if (syncDirectAnswerActions) syncDirectAnswerActions.hidden = !isHost || syncConnectionState === "connected";
+        }
         if (syncPushNowButton) syncPushNowButton.hidden = syncRole !== "host";
         settingsButton.disabled = syncRole === "mirror";
         resetButton.disabled = syncRole === "mirror";
@@ -2815,6 +2927,171 @@
         return value || syncSettings.workerUrl;
       }
 
+      function resetSyncToLocal(error = null) {
+        syncClient?.disconnect({ silent: true });
+        syncRole = "local";
+        syncConnectionState = "local";
+        syncTransport = "websocket";
+        syncPeerCount = 0;
+        syncPeers = [];
+        syncRevision = 0;
+        syncLastSyncedAt = null;
+        syncSettings = {
+          ...syncSettings,
+          mode: "cloudflare",
+          roomId: "",
+          accessToken: "",
+          roomKey: "",
+          localOfferCode: "",
+          localAnswerCode: "",
+          role: "local",
+          revision: 0,
+          lastSyncedAt: null,
+        };
+        persistSyncSettings(syncSettings);
+        updateSyncUi();
+        if (error) handleSyncError(error);
+      }
+
+      async function createLocalDirectPairing() {
+        if (!syncClient) {
+          handleSyncError(new Error("同步组件未加载，请刷新页面后重试"));
+          return;
+        }
+        syncDirectCreateButton.disabled = true;
+        syncErrorMessage = "";
+        syncDirectAnswer.value = "";
+        syncRole = "host";
+        syncTransport = "webrtc-local";
+        syncConnectionState = "connecting";
+        syncSettings = {
+          ...syncSettings,
+          mode: "local",
+          roomId: "",
+          accessToken: "",
+          roomKey: "",
+          localOfferCode: "",
+          localAnswerCode: "",
+          role: "host",
+          revision: 1,
+          lastSyncedAt: null,
+        };
+        syncRevision = 1;
+        syncLastSyncedAt = null;
+        persistSyncSettings(syncSettings);
+        updateSyncUi();
+        try {
+          const details = await syncClient.createLocalOffer({
+            deviceId: syncSettings.deviceId,
+            deviceName: syncSettings.deviceName || "操作设备",
+          });
+          syncSettings = {
+            ...syncSettings,
+            mode: "local",
+            roomId: details.roomId,
+            roomKey: details.roomKey,
+            localOfferCode: details.offerCode,
+            role: "host",
+            revision: 1,
+            lastSyncedAt: null,
+          };
+          syncRole = "host";
+          syncRevision = 1;
+          persistSyncSettings(syncSettings);
+          updateSyncUi();
+          showToast("本地配对码已生成，请发给镜像设备");
+        } catch (error) {
+          resetSyncToLocal(error);
+        } finally {
+          syncDirectCreateButton.disabled = false;
+        }
+      }
+
+      async function joinLocalDirectPairing() {
+        if (!syncClient) {
+          handleSyncError(new Error("同步组件未加载，请刷新页面后重试"));
+          return;
+        }
+        const offerCode = syncDirectOfferInput.value.trim();
+        if (!offerCode) {
+          handleSyncError(new Error("请先粘贴操作端本地配对码"));
+          return;
+        }
+        syncDirectJoinButton.disabled = true;
+        syncErrorMessage = "";
+        syncRole = "mirror";
+        syncTransport = "webrtc-local";
+        syncConnectionState = "connecting";
+        syncSettings = {
+          ...syncSettings,
+          mode: "local",
+          roomId: "",
+          accessToken: "",
+          roomKey: "",
+          localOfferCode: offerCode,
+          localAnswerCode: "",
+          role: "mirror",
+          revision: 0,
+          lastSyncedAt: null,
+        };
+        syncRevision = 0;
+        syncLastSyncedAt = null;
+        persistSyncSettings(syncSettings);
+        updateSyncUi();
+        try {
+          const details = await syncClient.joinLocalOffer(offerCode, {
+            deviceId: syncSettings.deviceId,
+            deviceName: syncSettings.deviceName || "镜像设备",
+          });
+          syncSettings = {
+            ...syncSettings,
+            mode: "local",
+            roomId: details.roomId,
+            roomKey: details.roomKey,
+            localOfferCode: offerCode,
+            localAnswerCode: details.answerCode,
+            role: "mirror",
+            revision: 0,
+            lastSyncedAt: null,
+          };
+          syncRole = "mirror";
+          syncTransport = "webrtc-local";
+          syncRevision = 0;
+          persistSyncSettings(syncSettings);
+          updateSyncUi();
+          showToast("镜像应答码已生成，请发回操作端");
+        } catch (error) {
+          resetSyncToLocal(error);
+        } finally {
+          syncDirectJoinButton.disabled = false;
+        }
+      }
+
+      async function applyLocalDirectAnswer() {
+        if (!syncClient || syncRole !== "host") return;
+        const answerCode = syncDirectAnswer.value.trim();
+        if (!answerCode) {
+          handleSyncError(new Error("请先粘贴镜像应答码"));
+          return;
+        }
+        syncDirectApplyAnswerButton.disabled = true;
+        try {
+          await syncClient.applyLocalAnswer(answerCode);
+          syncSettings = { ...syncSettings, localAnswerCode: answerCode };
+          syncRevision = Math.max(1, syncRevision);
+          persistSyncSettings({ localAnswerCode: answerCode, revision: syncRevision });
+          syncClient.sendSnapshot(syncSnapshotPayload(), syncRevision);
+          syncConnectionState = "connecting";
+          syncTransport = "webrtc-local";
+          updateSyncUi();
+          showToast("应答码已提交，正在建立本地直连");
+        } catch (error) {
+          handleSyncError(error);
+        } finally {
+          syncDirectApplyAnswerButton.disabled = false;
+        }
+      }
+
       function setSyncConnectionState(nextState, details = {}) {
         syncConnectionState = nextState;
         if (details.transport) syncTransport = details.transport;
@@ -2879,6 +3156,9 @@
           syncSettings = {
             ...syncSettings,
             ...details,
+            mode: "cloudflare",
+            localOfferCode: "",
+            localAnswerCode: "",
             role: "host",
             deviceName: syncSettings.deviceName || "操作设备",
             revision: 1,
@@ -2914,6 +3194,9 @@
           syncSettings = {
             ...syncSettings,
             ...details,
+            mode: "cloudflare",
+            localOfferCode: "",
+            localAnswerCode: "",
             role: "mirror",
             deviceName: syncSettings.deviceName || "镜像设备",
             revision: 0,
@@ -2933,6 +3216,7 @@
         syncClient?.disconnect();
         syncRole = "local";
         syncConnectionState = "local";
+        syncTransport = "websocket";
         syncPeerCount = 0;
         syncPeers = [];
         syncRevision = 0;
@@ -2942,6 +3226,9 @@
           roomId: "",
           accessToken: "",
           roomKey: "",
+          mode: "cloudflare",
+          localOfferCode: "",
+          localAnswerCode: "",
           role: "local",
           revision: 0,
           lastSyncedAt: null,
@@ -3009,6 +3296,24 @@
       }
 
       function restoreSyncSession() {
+        if (syncSettings.mode === "local") {
+          syncRole = "local";
+          syncConnectionState = "local";
+          syncTransport = "websocket";
+          persistSyncSettings({
+            mode: "cloudflare",
+            roomId: "",
+            accessToken: "",
+            roomKey: "",
+            localOfferCode: "",
+            localAnswerCode: "",
+            role: "local",
+            revision: 0,
+            lastSyncedAt: null,
+          });
+          updateSyncUi();
+          return;
+        }
         if (syncRole !== "host" && syncRole !== "mirror") {
           syncRole = "local";
           syncConnectionState = "local";
@@ -6655,6 +6960,25 @@
       syncDialog.addEventListener("click", (event) => {
         if (event.target === syncDialog) closeSyncDialog();
       });
+      syncDirectShowJoinButton.addEventListener("click", () => {
+        syncDirectJoinWrap.hidden = !syncDirectJoinWrap.hidden;
+        if (!syncDirectJoinWrap.hidden) syncDirectOfferInput.focus();
+      });
+      syncDirectCreateButton.addEventListener("click", createLocalDirectPairing);
+      syncDirectJoinButton.addEventListener("click", joinLocalDirectPairing);
+      syncDirectCopyButton.addEventListener("click", async () => {
+        const code = syncDirectCode.value.trim();
+        if (!code) return;
+        try {
+          await navigator.clipboard.writeText(code);
+          showToast("本地配对码已复制");
+        } catch {
+          syncDirectCode.focus();
+          syncDirectCode.select();
+          showToast("已选中本地配对码，请手动复制");
+        }
+      });
+      syncDirectApplyAnswerButton.addEventListener("click", applyLocalDirectAnswer);
       syncShowJoinButton.addEventListener("click", () => {
         syncJoinWrap.hidden = !syncJoinWrap.hidden;
         if (!syncJoinWrap.hidden) syncPairingInput.focus();

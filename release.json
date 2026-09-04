@@ -1,9 +1,10 @@
 {
-  "version": "1.5.2",
-  "iteration": "2026-09-04T11:26:49+08:00",
-  "summary": "完善 HTTPS 备用同步的失败重试。",
+  "version": "1.6.0",
+  "iteration": "2026-09-04T11:41:09+08:00",
+  "summary": "新增无需 Cloudflare 的本地直连同步。",
   "changes": [
-    "轮询通道在网络恢复后自动重试待发送快照，避免临时失败后等待下一次操作。",
-    "继续兼容 iOS 微信内置浏览器，保持 WebSocket 优先与 HTTPS 自动切换。"
+    "两台设备连接同一 Wi‑Fi 或手机热点后，可通过 WebRTC offer/answer 配对并自动同步消融状态。",
+    "本地直连继续使用 AES-GCM 加密，不依赖网页蓝牙、Cloudflare、STUN 或额外服务器。",
+    "保留 Cloudflare 云端同步和 iOS 微信 HTTPS 备用通道，可按网络环境选择。"
   ]
 }

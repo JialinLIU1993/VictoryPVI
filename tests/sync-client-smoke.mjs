@@ -36,4 +36,16 @@ assert.equal(parsed.roomId, details.roomId);
 assert.equal(parsed.accessToken, details.accessToken);
 assert.equal(parsed.roomKey, details.roomKey);
 assert.throws(() => client.parsePairingCode("VPVI1.invalid"));
+const localDetails = {
+  roomId: details.roomId,
+  roomKey: details.roomKey,
+  sdp: "v=0\\r\\no=- 1 2 IN IP4 127.0.0.1\\r\\n",
+};
+const localOffer = client.makeLocalPairingCode({ ...localDetails, type: "offer" });
+const parsedLocalOffer = client.parseLocalPairingCode(localOffer, "offer");
+assert.equal(parsedLocalOffer.type, "offer");
+assert.equal(parsedLocalOffer.roomId, localDetails.roomId);
+assert.equal(parsedLocalOffer.roomKey, localDetails.roomKey);
+assert.equal(parsedLocalOffer.sdp, localDetails.sdp);
+assert.throws(() => client.parseLocalPairingCode(localOffer, "answer"));
 console.log("sync-client-smoke: ok");
