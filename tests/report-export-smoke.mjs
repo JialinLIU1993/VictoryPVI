@@ -49,6 +49,11 @@ assert.match(indexHtml, /id="sync-status"/);
 assert.match(appScript, /function scheduleSyncSnapshot/);
 assert.match(appScript, /function applySyncedSnapshot/);
 assert.match(appScript, /VictoryPVISyncClient/);
+assert.match(indexHtml, /vendor\/qrcode-generator\.js/);
+assert.match(indexHtml, /vendor\/jsqr\.js/);
+assert.match(indexHtml, /id="sync-direct-qr"/);
+assert.match(appScript, /function renderSyncQr/);
+assert.match(appScript, /function startSyncQrScanner/);
 assert.match(appScript, /endpointSelect\.disabled = syncRole === "mirror"/);
 assert.doesNotMatch(appScript, /function pdfDrawClinicalBanner|function pdfDrawAssessmentTable|function pdfDrawPageTwo/);
 
@@ -107,6 +112,10 @@ const dependencies = [
   "release.json",
   "CHANGELOG.md",
   "sync-client.js",
+  "vendor/qrcode-generator.js",
+  "vendor/jsqr.js",
+  "vendor/jsqr.LICENSE.txt",
+  "vendor/qrcode-generator.LICENSE.txt",
   "cloudflare/worker.js",
   "cloudflare/wrangler.jsonc",
   "SYNC_DESIGN.md",

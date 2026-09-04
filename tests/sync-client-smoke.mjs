@@ -47,5 +47,8 @@ assert.equal(parsedLocalOffer.type, "offer");
 assert.equal(parsedLocalOffer.roomId, localDetails.roomId);
 assert.equal(parsedLocalOffer.roomKey, localDetails.roomKey);
 assert.equal(parsedLocalOffer.sdp, localDetails.sdp);
+const localLink = client.makeLocalPairingLink(localOffer, "https://jialinliu1993.github.io/VictoryPVI/");
+assert.match(localLink, /#local=VPVI-LAN1\./);
+assert.equal(client.parseLocalPairingCode(localLink, "offer").roomId, localDetails.roomId);
 assert.throws(() => client.parseLocalPairingCode(localOffer, "answer"));
 console.log("sync-client-smoke: ok");

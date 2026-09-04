@@ -308,6 +308,16 @@
       }
     }
 
+    static makeLocalPairingLink(code, pageUrl = global.location?.href || "") {
+      try {
+        const url = new URL(pageUrl);
+        url.hash = `local=${code}`;
+        return url.toString();
+      } catch {
+        return code;
+      }
+    }
+
     get isConnected() {
       if (this.transport === "poll") return Boolean(this.connection) && !this.manualDisconnect;
       if (this.transport === "webrtc-local") {

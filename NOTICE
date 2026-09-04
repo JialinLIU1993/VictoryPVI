@@ -14,5 +14,6 @@ Redistributions and modified versions must preserve this project-origin notice
 and provide users with a readily accessible About or Legal notice as described
 in ADDITIONAL_TERMS.md.
 
-PDF export includes html2canvas 1.4.1 and jsPDF 4.2.1 under the MIT License.
-Their license texts are available in the vendor directory.
+PDF export includes jsPDF 4.2.1 under the MIT License. Device-sync QR support
+includes QR Code Generator for JavaScript 1.4.4 and jsQR 1.4.0 under the MIT
+License. Their license notices are available in the vendor directory.
