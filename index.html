@@ -2008,7 +2008,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <div class="remove-cursor" id="remove-cursor" aria-hidden="true"></div>
 
-    <script src="./vendor/html2canvas.min.js"></script>
     <script src="./vendor/jspdf.umd.min.js"></script>
     <script>
       const NS = "http://www.w3.org/2000/svg";
@@ -2021,6 +2020,9 @@
       const HISTORY_LIMIT = 100;
       const APPLICATIONS_PER_SEQUENCE = 3;
       const MIN_SINGLE_VEIN_TOTAL_APPLICATIONS = 4;
+      const PDF_FONT_ASSET = "./vendor/noto-sans-sc-regular-vfs.js";
+      const PDF_FONT_VFS_FILE = "NotoSansSC-Regular.ttf";
+      const PDF_FONT_FAMILY = "NotoSansSC";
       let storageAvailable = true;
       const VEIN_DEFINITIONS = {
         LSPV: { id: "LSPV", name: "左上肺静脉", short: "左上肺", x: 260, y: 205, common: false },
@@ -2120,6 +2122,7 @@
       let mapEditMode = "ablate";
       let toastTimer = null;
       let pdfExportInProgress = false;
+      let pdfFontLoadPromise = null;
 
       const svg = document.getElementById("pv-map");
       let highlightDefs = null;
@@ -3978,6 +3981,795 @@
         };
       }
 
+      const PDF_COLORS = Object.freeze({
+        ink: "#172033",
+        muted: "#6f7787",
+        line: "#dfe3eb",
+        surface: "#ffffff",
+        canvas: "#f5f6f9",
+        purple1: "#d9c8f4",
+        purple2: "#8754bd",
+        purple3: "#5a278f",
+        purple4: "#351053",
+        orange: "#f28c18",
+        orangePale: "#fff4dd",
+        green: "#11745c",
+        greenPale: "#e8f5f0",
+      });
+
+      const PDF_SEGMENT_COLORS = Object.freeze([
+        "#f3f2f5",
+        PDF_COLORS.purple1,
+        PDF_COLORS.purple2,
+        PDF_COLORS.purple3,
+        PDF_COLORS.purple4,
+      ]);
+
+      function getVectorReportModel(exportTime, patientInfo) {
+        const assessments = veins.map(getVeinClinicalAssessment);
+        const recordedRidges = getActiveRidgeSites().filter(
+          (site) =>
+            Number(ridgeApplications[site.id] || 0) > 0 ||
+            Number(counts[ridgeCountKey(site.id)] || 0) > 0,
+        );
+        const overviewMetrics = getAblationOverviewMetrics();
+        const anatomyLabels = {
+          standard: "标准四支肺静脉",
+          "left-common": "左共同肺静脉",
+          "right-common": "右共同肺静脉",
+          "bilateral-common": "双侧共同肺静脉",
+        };
+        const reportElectrodes = activeElectrodeNumbers();
+        const formattedTime = new Intl.DateTimeFormat("zh-CN", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        }).format(exportTime);
+
+        return {
+          assessments,
+          overviewMetrics,
+          recordedRidges,
+          anatomyLabel: anatomyLabels[settings.anatomyMode],
+          currentProtocol: protocolSummary.textContent || anatomyLabels[settings.anatomyMode],
+          latestOperation: lastOperation
+            ? `${lastOperation.label}${lastOperation.recordedAt ? ` · ${formatOperationTime(lastOperation.recordedAt)}` : ""}`
+            : "尚无操作记录",
+          electrodeSummary: reportElectrodes.length
+            ? `开启 ${reportElectrodes.length}/${ELECTRODE_NUMBERS.length}：${reportElectrodes.join("、")}`
+            : "当前未开启放电电极",
+          formattedTime,
+          reportDate: localDateInputValue(exportTime),
+          otherInfo: String(patientInfo.otherInfo || "").trim(),
+          patientInfo,
+        };
+      }
+
+      function pdfRgb(hex) {
+        const value = Number.parseInt(hex.slice(1), 16);
+        return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
+      }
+
+      function pdfSetColor(pdf, method, hex) {
+        pdf[method](...pdfRgb(hex));
+      }
+
+      function pdfWrappedLines(pdf, text, width, fontSize = 8) {
+        pdf.setFont(PDF_FONT_FAMILY, "normal");
+        pdf.setFontSize(fontSize);
+        return String(text ?? "")
+          .split(/\r?\n/)
+          .flatMap((paragraph) => paragraph
+            ? pdf.splitTextToSize(paragraph, width)
+            : [""]);
+      }
+
+      function pdfDrawText(pdf, text, x, y, options = {}) {
+        const {
+          fontSize = 8,
+          color = PDF_COLORS.ink,
+          width = null,
+          lineHeight = fontSize * 0.48,
+          align = "left",
+          maxLines = Infinity,
+        } = options;
+        const lines = (width
+          ? pdfWrappedLines(pdf, text, width, fontSize)
+          : [String(text ?? "")]
+        ).slice(0, maxLines);
+        pdf.setFont(PDF_FONT_FAMILY, "normal");
+        pdf.setFontSize(fontSize);
+        pdfSetColor(pdf, "setTextColor", color);
+        lines.forEach((line, index) => {
+          pdf.text(line, x, y + index * lineHeight, { align });
+        });
+        return {
+          lines,
+          bottom: y + Math.max(0, lines.length - 1) * lineHeight,
+        };
+      }
+
+      function pdfDrawHeader(pdf, title, subtitle, metadata) {
+        pdfSetColor(pdf, "setFillColor", PDF_COLORS.purple3);
+        pdf.circle(14, 14, 4, "F");
+        pdfSetColor(pdf, "setFillColor", PDF_COLORS.surface);
+        pdf.circle(14, 14, 2.1, "F");
+        pdfDrawText(pdf, title, 22, 14.2, { fontSize: 18, color: PDF_COLORS.ink });
+        pdfDrawText(pdf, subtitle, 22, 20, { fontSize: 7.5, color: PDF_COLORS.muted });
+        metadata.slice(0, 3).forEach((line, index) => {
+          pdfDrawText(pdf, line, 200, 10.5 + index * 4.2, {
+            fontSize: 6.8,
+            color: PDF_COLORS.muted,
+            align: "right",
+          });
+        });
+        pdfSetColor(pdf, "setDrawColor", PDF_COLORS.purple3);
+        pdf.setLineWidth(0.7);
+        pdf.line(10, 25, 200, 25);
+      }
+
+      function pdfDrawSectionHeading(pdf, label, title, y) {
+        pdfDrawText(pdf, label, 10, y, { fontSize: 6.2, color: PDF_COLORS.purple3 });
+        pdfDrawText(pdf, title, 10, y + 5, { fontSize: 12.5, color: PDF_COLORS.ink });
+      }
+
+      function pdfDrawPatientGrid(pdf, patientInfo, y) {
+        const fields = [
+          ["姓名", patientInfo.name || "未填写"],
+          ["性别", patientInfo.sex || "未填写"],
+          ["病种", patientInfo.diagnosis || "未填写"],
+          ["手术类型", patientInfo.procedureType || "未填写"],
+          ["手术日期", patientInfo.surgeryDate || "未填写"],
+          ["病案号", patientInfo.recordNumber || "未填写"],
+        ];
+        const width = 190 / 3;
+        const height = 12;
+        fields.forEach(([label, value], index) => {
+          const column = index % 3;
+          const row = Math.floor(index / 3);
+          const x = 10 + column * width;
+          const cellY = y + row * height;
+          pdfSetColor(pdf, "setFillColor", PDF_COLORS.canvas);
+          pdfSetColor(pdf, "setDrawColor", PDF_COLORS.line);
+          pdf.setLineWidth(0.25);
+          pdf.rect(x, cellY, width, height, "FD");
+          pdfDrawText(pdf, label, x + 3, cellY + 4, {
+            fontSize: 5.8,
+            color: PDF_COLORS.muted,
+          });
+          pdfDrawText(pdf, value, x + 3, cellY + 9, {
+            fontSize: 8.4,
+            color: PDF_COLORS.ink,
+            width: width - 6,
+            maxLines: 1,
+          });
+        });
+      }
+
+      function pdfPolarPoint(cx, cy, radius, angle) {
+        const radians = ((angle - 90) * Math.PI) / 180;
+        return {
+          x: cx + radius * Math.cos(radians),
+          y: cy + radius * Math.sin(radians),
+        };
+      }
+
+      function pdfDrawPolygon(pdf, points, style = "FD", closed = true) {
+        if (points.length < 2) return;
+        const vectors = points.slice(1).map((point, index) => [
+          point.x - points[index].x,
+          point.y - points[index].y,
+        ]);
+        pdf.lines(vectors, points[0].x, points[0].y, [1, 1], style, closed);
+      }
+
+      function pdfDrawAnnularSector(pdf, cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill) {
+        const steps = 18;
+        const points = [];
+        for (let index = 0; index <= steps; index += 1) {
+          const angle = startAngle + ((endAngle - startAngle) * index) / steps;
+          points.push(pdfPolarPoint(cx, cy, outerRadius, angle));
+        }
+        for (let index = steps; index >= 0; index -= 1) {
+          const angle = startAngle + ((endAngle - startAngle) * index) / steps;
+          points.push(pdfPolarPoint(cx, cy, innerRadius, angle));
+        }
+        pdfSetColor(pdf, "setFillColor", fill);
+        pdfSetColor(pdf, "setDrawColor", PDF_COLORS.surface);
+        pdf.setLineWidth(0.3);
+        pdfDrawPolygon(pdf, points, "FD");
+      }
+
+      const PDF_MAP_VIEWBOX = Object.freeze({ width: 980, height: 650 });
+
+      function pdfMapGeometry(x, y, width, height) {
+        const scale = Math.min(
+          width / PDF_MAP_VIEWBOX.width,
+          height / PDF_MAP_VIEWBOX.height,
+        );
+        return {
+          x: x + (width - PDF_MAP_VIEWBOX.width * scale) / 2,
+          y: y + (height - PDF_MAP_VIEWBOX.height * scale) / 2,
+          scale,
+        };
+      }
+
+      function pdfMapPoint(geometry, x, y) {
+        return {
+          x: geometry.x + x * geometry.scale,
+          y: geometry.y + y * geometry.scale,
+        };
+      }
+
+      function pdfMapFontSize(geometry, pixels) {
+        return Math.max(2.6, pixels * geometry.scale * 2.83464567);
+      }
+
+      function pdfDrawMapText(pdf, text, geometry, x, y, options = {}) {
+        const {
+          fontSizePx = 10,
+          baseline = "alphabetic",
+          color = PDF_COLORS.ink,
+          align = "left",
+          width = null,
+          maxLines = 1,
+        } = options;
+        const point = pdfMapPoint(geometry, x, y);
+        const fontSize = pdfMapFontSize(geometry, fontSizePx);
+        const baselineOffset = baseline === "middle"
+          ? (fontSize * 0.35) / 2.83464567
+          : 0;
+        return pdfDrawText(pdf, text, point.x, point.y + baselineOffset, {
+          fontSize,
+          color,
+          align,
+          width,
+          maxLines,
+        });
+      }
+
+      function pdfTransformMapPoints(geometry, points) {
+        return points.map((point) => pdfMapPoint(geometry, point.x, point.y));
+      }
+
+      function pdfDrawMapPolyline(pdf, geometry, points, color, lineWidth, dash = []) {
+        if (points.length < 2) return;
+        pdfSetColor(pdf, "setDrawColor", color);
+        pdf.setLineWidth(lineWidth);
+        if (typeof pdf.setLineDashPattern === "function") {
+          pdf.setLineDashPattern(dash, 0);
+        }
+        pdfDrawPolygon(pdf, pdfTransformMapPoints(geometry, points), "S", false);
+        if (typeof pdf.setLineDashPattern === "function") {
+          pdf.setLineDashPattern([], 0);
+        }
+      }
+
+      function pdfCubicBezierPoints(start, controlOne, controlTwo, end, steps = 16) {
+        const points = [];
+        for (let index = 1; index <= steps; index += 1) {
+          const t = index / steps;
+          const inverse = 1 - t;
+          points.push({
+            x: inverse ** 3 * start.x + 3 * inverse ** 2 * t * controlOne.x + 3 * inverse * t ** 2 * controlTwo.x + t ** 3 * end.x,
+            y: inverse ** 3 * start.y + 3 * inverse ** 2 * t * controlOne.y + 3 * inverse * t ** 2 * controlTwo.y + t ** 3 * end.y,
+          });
+        }
+        return points;
+      }
+
+      function pdfDrawWebAnatomy(pdf, geometry) {
+        const anatomyPoints = [{ x: 424, y: 178 }];
+        const anatomySegments = [
+          [{ x: 424, y: 178 }, { x: 445, y: 151 }, { x: 535, y: 151 }, { x: 556, y: 178 }],
+          [{ x: 556, y: 178 }, { x: 574, y: 204 }, { x: 567, y: 247 }, { x: 561, y: 286 }],
+          [{ x: 561, y: 286 }, { x: 556, y: 320 }, { x: 571, y: 352 }, { x: 566, y: 408 }],
+          [{ x: 566, y: 408 }, { x: 561, y: 457 }, { x: 539, y: 482 }, { x: 490, y: 490 }],
+          [{ x: 490, y: 490 }, { x: 441, y: 482 }, { x: 419, y: 457 }, { x: 414, y: 408 }],
+          [{ x: 414, y: 408 }, { x: 409, y: 352 }, { x: 424, y: 320 }, { x: 419, y: 286 }],
+          [{ x: 419, y: 286 }, { x: 413, y: 247 }, { x: 406, y: 204 }, { x: 424, y: 178 }],
+        ];
+        anatomySegments.forEach(([start, controlOne, controlTwo, end]) => {
+          anatomyPoints.push(...pdfCubicBezierPoints(start, controlOne, controlTwo, end));
+        });
+        pdfSetColor(pdf, "setFillColor", "#f8f8fa");
+        pdfSetColor(pdf, "setDrawColor", "#e1e4ea");
+        pdf.setLineWidth(2 * geometry.scale);
+        pdfDrawPolygon(pdf, pdfTransformMapPoints(geometry, anatomyPoints), "FD");
+
+        const atriumLines = [
+          [{ x: 378, y: 205 }, { x: 420, y: 225 }, { x: 560, y: 225 }, { x: 602, y: 205 }],
+          [{ x: 378, y: 455 }, { x: 420, y: 435 }, { x: 560, y: 435 }, { x: 602, y: 455 }],
+        ];
+        atriumLines.forEach(([start, controlOne, controlTwo, end]) => {
+          pdfDrawMapPolyline(
+            pdf,
+            geometry,
+            [start, ...pdfCubicBezierPoints(start, controlOne, controlTwo, end)],
+            "#e4e6ec",
+            2 * geometry.scale,
+            [4 * geometry.scale, 7 * geometry.scale],
+          );
+        });
+
+        pdfDrawMapText(pdf, "左房后壁", geometry, 490, 335, {
+          fontSizePx: 18,
+          color: "#aeb4bf",
+          align: "center",
+          baseline: "middle",
+        });
+        pdfDrawMapText(pdf, "左侧肺静脉", geometry, 260, 36, {
+          fontSizePx: 17,
+          color: PDF_COLORS.ink,
+          align: "center",
+        });
+        pdfDrawMapText(pdf, "右侧肺静脉", geometry, 720, 36, {
+          fontSizePx: 17,
+          color: PDF_COLORS.ink,
+          align: "center",
+        });
+      }
+
+      function pdfDrawMapSectorOutline(pdf, points, color, lineWidth, dash = []) {
+        pdfSetColor(pdf, "setDrawColor", color);
+        pdf.setLineWidth(lineWidth);
+        if (typeof pdf.setLineDashPattern === "function") {
+          pdf.setLineDashPattern(dash, 0);
+        }
+        pdfDrawPolygon(pdf, points, "S");
+        if (typeof pdf.setLineDashPattern === "function") {
+          pdf.setLineDashPattern([], 0);
+        }
+      }
+
+      function pdfDrawMapAnnularSector(
+        pdf,
+        geometry,
+        cx,
+        cy,
+        innerRadius,
+        outerRadius,
+        startAngle,
+        endAngle,
+        fill,
+      ) {
+        const steps = 18;
+        const points = [];
+        for (let index = 0; index <= steps; index += 1) {
+          const angle = startAngle + ((endAngle - startAngle) * index) / steps;
+          const point = pdfPolarPoint(cx, cy, outerRadius, angle);
+          points.push(pdfMapPoint(geometry, point.x, point.y));
+        }
+        for (let index = steps; index >= 0; index -= 1) {
+          const angle = startAngle + ((endAngle - startAngle) * index) / steps;
+          const point = pdfPolarPoint(cx, cy, innerRadius, angle);
+          points.push(pdfMapPoint(geometry, point.x, point.y));
+        }
+        pdfSetColor(pdf, "setFillColor", fill);
+        pdfSetColor(pdf, "setDrawColor", "#ffffff");
+        pdf.setLineWidth(2.4 * geometry.scale);
+        pdfDrawPolygon(pdf, points, "FD");
+        return points;
+      }
+
+      function pdfDrawVein(pdf, vein, mapGeometry) {
+        const ringGeometry = {
+          outer: { inner: 82, outer: 116 },
+          inner: { inner: 44, outer: 78 },
+        };
+        const center = pdfMapPoint(mapGeometry, vein.x, vein.y);
+        const lastIncrease = getLastIncreasedSectorRecord();
+        Object.entries(ringGeometry).forEach(([layerId, layerGeometry]) => {
+          const key = ringKey(vein.id, layerId);
+          for (let sector = 1; sector <= 8; sector += 1) {
+            const count = Number(counts[sectorKey(key, sector)] || 0);
+            const level = Math.min(4, Math.max(0, levelForCount(count, key, sector)));
+            const startAngle = (sector - 1) * 45 + 1.4;
+            const endAngle = sector * 45 - 1.4;
+            const segmentPoints = pdfDrawMapAnnularSector(
+              pdf,
+              mapGeometry,
+              vein.x,
+              vein.y,
+              layerGeometry.inner,
+              layerGeometry.outer,
+              startAngle,
+              endAngle,
+              PDF_SEGMENT_COLORS[level],
+            );
+            if (count > 0) {
+              const point = pdfPolarPoint(
+                vein.x,
+                vein.y,
+                (layerGeometry.inner + layerGeometry.outer) / 2,
+                (startAngle + endAngle) / 2,
+              );
+              pdfDrawMapText(pdf, String(count), mapGeometry, point.x, point.y, {
+                fontSizePx: 12,
+                color: level >= 2 ? "#ffffff" : "#403a49",
+                align: "center",
+                baseline: "middle",
+              });
+            }
+            if (lastIncrease?.key === key && lastIncrease.excludedSector !== sector && count > 0) {
+              pdfDrawMapSectorOutline(
+                pdf,
+                segmentPoints,
+                "#f2a21b",
+                8 * mapGeometry.scale,
+              );
+            }
+            if (key === selectedKey && sector === selectedSector) {
+              pdfDrawMapSectorOutline(
+                pdf,
+                segmentPoints,
+                "#17131c",
+                6.2 * mapGeometry.scale,
+                [7 * mapGeometry.scale, 3 * mapGeometry.scale],
+              );
+              pdfDrawMapSectorOutline(
+                pdf,
+                segmentPoints,
+                "#ffffff",
+                3.4 * mapGeometry.scale,
+                [7 * mapGeometry.scale, 3 * mapGeometry.scale],
+              );
+            }
+          }
+        });
+
+        const status = getVeinAblationStatus(vein);
+        const statusColor = status.ablationComplete
+          ? PDF_COLORS.green
+          : status.hasAblation
+            ? PDF_COLORS.orange
+            : "#cbd1db";
+        pdfSetColor(pdf, "setFillColor", PDF_COLORS.surface);
+        pdfSetColor(pdf, "setDrawColor", statusColor);
+        pdf.setLineWidth((status.hasAblation || status.ablationComplete ? 3 : 2) * mapGeometry.scale);
+        pdf.circle(center.x, center.y, 40 * mapGeometry.scale, "FD");
+        pdfDrawMapText(pdf, vein.id, mapGeometry, vein.x, vein.y - 3, {
+          fontSizePx: 13,
+          color: status.ablationComplete ? "#075744" : status.hasAblation ? "#a94d00" : "#7b8492",
+          align: "center",
+          baseline: "middle",
+        });
+        pdfDrawMapText(pdf, vein.short, mapGeometry, vein.x, vein.y + 16, {
+          fontSizePx: 10,
+          color: "#8b929f",
+          align: "center",
+        });
+      }
+
+      function pdfDrawRidges(pdf, geometry) {
+        if (!settings.ridgeEnabled) return;
+        getActiveRidgeSites().forEach((site) => {
+          const count = Number(counts[ridgeCountKey(site.id)] || 0);
+          const level = Math.min(4, Math.max(0, ridgeLevel(count)));
+          const pathNumbers = String(site.path).match(/-?\d+(?:\.\d+)?/g) || [];
+          const mapPoints = [];
+          for (let index = 0; index + 1 < pathNumbers.length; index += 2) {
+            mapPoints.push({ x: Number(pathNumbers[index]), y: Number(pathNumbers[index + 1]) });
+          }
+          pdfSetColor(pdf, "setFillColor", PDF_SEGMENT_COLORS[level]);
+          pdfSetColor(pdf, "setDrawColor", PDF_COLORS.surface);
+          pdf.setLineWidth(2.4 * geometry.scale);
+          pdfDrawPolygon(pdf, pdfTransformMapPoints(geometry, mapPoints), "FD");
+          if (selectedRidgeId === site.id) {
+            pdfDrawMapSectorOutline(
+              pdf,
+              pdfTransformMapPoints(geometry, mapPoints),
+              "#075744",
+              3.4 * geometry.scale,
+              [7 * geometry.scale, 3 * geometry.scale],
+            );
+          }
+          pdfDrawMapText(pdf, count > 0 ? String(count) : site.shortName, geometry, site.x, site.y, {
+            fontSizePx: count > 0 ? 12 : 10,
+            color: count > 0 && level >= 2 ? "#ffffff" : "#403a49",
+            align: "center",
+            baseline: "middle",
+          });
+        });
+      }
+
+      function pdfDrawAblationMap(pdf, x, y, width, height, model) {
+        pdfSetColor(pdf, "setFillColor", "#fbfbfd");
+        pdfSetColor(pdf, "setDrawColor", PDF_COLORS.line);
+        pdf.setLineWidth(0.3);
+        pdf.rect(x, y, width, height, "FD");
+        const geometry = pdfMapGeometry(x, y, width, height);
+        pdfDrawWebAnatomy(pdf, geometry);
+        veins.forEach((vein) => {
+          pdfDrawVein(pdf, vein, geometry);
+        });
+        pdfDrawRidges(pdf, geometry);
+
+        pdfDrawText(pdf, `最近操作：${model.latestOperation}`, x + 3, y + height - 3, {
+          fontSize: 5.8,
+          color: PDF_COLORS.muted,
+          width: width - 6,
+          maxLines: 1,
+        });
+      }
+
+      function pdfDrawMetrics(pdf, model, y) {
+        const metrics = [
+          [String(model.overviewMetrics.total), "累计消融次数"],
+          [`${model.overviewMetrics.covered}/${model.overviewMetrics.totalPositions}`, "已覆盖位置"],
+          [`${model.overviewMetrics.targetMetPercentage}%`, "达标扇区"],
+        ];
+        const width = 190 / 3;
+        metrics.forEach(([value, label], index) => {
+          const x = 10 + index * width;
+          pdfSetColor(pdf, "setFillColor", PDF_COLORS.canvas);
+          pdfSetColor(pdf, "setDrawColor", PDF_COLORS.line);
+          pdf.setLineWidth(0.25);
+          pdf.rect(x, y, width, 15, "FD");
+          pdfDrawText(pdf, value, x + 3, y + 7, { fontSize: 13, color: PDF_COLORS.purple4 });
+          pdfDrawText(pdf, label, x + 3, y + 12, { fontSize: 5.8, color: PDF_COLORS.muted });
+        });
+      }
+
+      function pdfDrawBadge(pdf, text, rightX, y, tone) {
+        const fill = tone === "success"
+          ? PDF_COLORS.greenPale
+          : tone === "warning"
+            ? PDF_COLORS.orangePale
+            : PDF_COLORS.canvas;
+        const color = tone === "success"
+          ? PDF_COLORS.green
+          : tone === "warning"
+            ? "#9a5800"
+            : PDF_COLORS.muted;
+        pdf.setFont(PDF_FONT_FAMILY, "normal");
+        pdf.setFontSize(5.8);
+        const width = Math.min(30, pdf.getTextWidth(text) + 4);
+        pdfSetColor(pdf, "setFillColor", fill);
+        pdf.roundedRect(rightX - width, y, width, 5, 2.2, 2.2, "F");
+        pdfDrawText(pdf, text, rightX - width / 2, y + 3.4, {
+          fontSize: 5.8,
+          color,
+          align: "center",
+        });
+      }
+
+      function pdfDrawVeinOverviewCard(pdf, assessment, x, y, width, height) {
+        pdfSetColor(pdf, "setFillColor", PDF_COLORS.surface);
+        pdfSetColor(pdf, "setDrawColor", PDF_COLORS.line);
+        pdf.setLineWidth(0.25);
+        pdf.rect(x, y, width, height, "FD");
+        pdfDrawText(pdf, assessment.vein.id, x + 3, y + 5, { fontSize: 7.3, color: PDF_COLORS.ink });
+        pdfDrawText(pdf, assessment.vein.name, x + 14, y + 5, { fontSize: 5.4, color: PDF_COLORS.muted });
+
+        const endpointTone = assessment.endpointStatus === "entrance-block" ||
+          assessment.endpointStatus === "bidirectional-block"
+          ? "success"
+          : assessment.endpointStatus === "not-assessed"
+            ? "warning"
+            : "neutral";
+        const endpointShortLabels = {
+          "not-assessed": "未评估",
+          "entrance-block": "传入阻滞",
+          "exit-block": "传出阻滞",
+          "bidirectional-block": "双向阻滞",
+        };
+        pdfDrawBadge(pdf, endpointShortLabels[assessment.endpointStatus], x + width - 3, y + 2, endpointTone);
+
+        const target = Math.max(1, assessment.progress.target);
+        const progressWidth = width - 28;
+        const gap = 0.8;
+        const segmentWidth = (progressWidth - gap * (target - 1)) / target;
+        const completed = Math.min(target, Math.max(0, Number(assessment.progress.planProgress) || 0));
+        for (let index = 0; index < target; index += 1) {
+          pdfSetColor(pdf, "setFillColor", index < completed ? PDF_COLORS.purple2 : "#e6e8ee");
+          pdf.roundedRect(x + 3 + index * (segmentWidth + gap), y + 8, segmentWidth, 2.2, 0.8, 0.8, "F");
+        }
+        pdfDrawText(pdf, assessment.progress.countLabel, x + width - 3, y + 10, {
+          fontSize: 5,
+          color: PDF_COLORS.muted,
+          align: "right",
+        });
+        pdfDrawText(pdf, assessment.completionSummary, x + 3, y + height - 3, {
+          fontSize: 5.4,
+          color: assessment.ablationStatus.ablationComplete ? PDF_COLORS.green : PDF_COLORS.muted,
+          width: width - 6,
+          maxLines: 1,
+        });
+      }
+
+      function pdfDrawPageOne(pdf, model) {
+        pdfDrawHeader(pdf, "VARIPULSE PFA 消融记录报告", "当前肺静脉消融分布、消融概览与患者信息", [
+          `解剖类型：${model.anatomyLabel}`,
+          `报告生成：${model.formattedTime}`,
+          "报告版本：v1.4.0 · 原生矢量",
+        ]);
+        pdfDrawPatientGrid(pdf, model.patientInfo, 29);
+        pdfDrawSectionHeading(pdf, "记录主视图", "肺静脉消融分布", 57);
+        pdfDrawText(pdf, model.currentProtocol, 10, 66, {
+          fontSize: 5.8,
+          color: PDF_COLORS.muted,
+          width: 190,
+          maxLines: 1,
+        });
+        pdfDrawAblationMap(pdf, 10, 69, 190, 104, model);
+
+        pdfDrawSectionHeading(pdf, "治疗进度", "消融概览", 177);
+        pdfDrawMetrics(pdf, model, 185);
+        const gap = 4;
+        const cardWidth = (190 - gap) / 2;
+        model.assessments.forEach((assessment, index) => {
+          const column = index % 2;
+          const row = Math.floor(index / 2);
+          pdfDrawVeinOverviewCard(
+            pdf,
+            assessment,
+            10 + column * (cardWidth + gap),
+            203 + row * 20,
+            cardWidth,
+            17,
+          );
+        });
+
+        pdfSetColor(pdf, "setFillColor", PDF_COLORS.canvas);
+        pdfSetColor(pdf, "setDrawColor", PDF_COLORS.line);
+        pdf.rect(10, 245, cardWidth, 18, "FD");
+        pdf.rect(10 + cardWidth + gap, 245, cardWidth, 18, "FD");
+        const ridgeSummary = model.recordedRidges.length
+          ? model.recordedRidges.map((site) => `${site.shortName} ${Number(ridgeApplications[site.id] || 0)} 次`).join("；")
+          : "未记录补充靶区消融";
+        pdfDrawText(pdf, "补充靶区", 13, 250, { fontSize: 6.2, color: PDF_COLORS.purple3 });
+        pdfDrawText(pdf, ridgeSummary, 13, 257, {
+          fontSize: 6.3,
+          color: PDF_COLORS.muted,
+          width: cardWidth - 6,
+          maxLines: 2,
+          lineHeight: 3.2,
+        });
+        pdfDrawText(pdf, "本次放电电极", 13 + cardWidth + gap, 250, {
+          fontSize: 6.2,
+          color: PDF_COLORS.purple3,
+        });
+        pdfDrawText(pdf, model.electrodeSummary, 13 + cardWidth + gap, 257, {
+          fontSize: 6.3,
+          color: PDF_COLORS.muted,
+          width: cardWidth - 6,
+          maxLines: 2,
+          lineHeight: 3.2,
+        });
+        const otherInfoLines = model.otherInfo
+          ? pdfWrappedLines(pdf, model.otherInfo, 184, 6.8)
+          : [];
+        if (otherInfoLines.length === 1) {
+          const otherInfoY = 267;
+          const otherInfoHeight = 11;
+          pdfSetColor(pdf, "setFillColor", PDF_COLORS.canvas);
+          pdfSetColor(pdf, "setDrawColor", PDF_COLORS.line);
+          pdf.rect(10, otherInfoY, 190, otherInfoHeight, "FD");
+          pdfDrawText(pdf, "患者补充信息", 14, otherInfoY + 6, {
+            fontSize: 6.5,
+            color: PDF_COLORS.purple3,
+          });
+          pdfDrawText(pdf, otherInfoLines[0], 43, otherInfoY + 6, {
+            fontSize: 6.5,
+            color: PDF_COLORS.muted,
+            width: 154,
+            maxLines: 1,
+          });
+          return true;
+        }
+        return false;
+      }
+
+      function pdfDrawOtherInfoPages(pdf, model) {
+        const allLines = pdfWrappedLines(pdf, model.otherInfo, 190, 8.2);
+        const linesPerPage = 48;
+        for (let offset = 0; offset < allLines.length; offset += linesPerPage) {
+          pdf.addPage("a4", "portrait");
+          const pageIndex = Math.floor(offset / linesPerPage);
+          pdfDrawHeader(
+            pdf,
+            pageIndex ? "患者补充信息（续）" : "患者补充信息",
+            "患者基础信息表中填写的其它内容",
+            [
+              `患者：${model.patientInfo.name || "未填写"}`,
+              `病案号：${model.patientInfo.recordNumber || "未填写"}`,
+              model.formattedTime,
+            ],
+          );
+          pdfDrawSectionHeading(pdf, "补充信息", "其它信息", 35);
+          allLines.slice(offset, offset + linesPerPage).forEach((line, index) => {
+            pdfDrawText(pdf, line, 10, 45 + index * 4.6, {
+              fontSize: 8.2,
+              color: PDF_COLORS.ink,
+            });
+          });
+        }
+      }
+
+      function pdfDrawFooters(pdf) {
+        const totalPages = pdf.getNumberOfPages();
+        for (let pageNumber = 1; pageNumber <= totalPages; pageNumber += 1) {
+          pdf.setPage(pageNumber);
+          pdfSetColor(pdf, "setDrawColor", PDF_COLORS.line);
+          pdf.setLineWidth(0.25);
+          pdf.line(10, 283, 200, 283);
+          pdfDrawText(pdf, "VictoryPVI Community · 第三方非官方记录辅助工具", 10, 289, {
+            fontSize: 5.8,
+            color: PDF_COLORS.muted,
+          });
+          pdfDrawText(pdf, `记录报告 · ${pageNumber} / ${totalPages}`, 200, 289, {
+            fontSize: 5.8,
+            color: PDF_COLORS.muted,
+            align: "right",
+          });
+        }
+      }
+
+      function ensurePdfFontAsset() {
+        if (window.VICTORY_PDF_FONT_BASE64) {
+          return Promise.resolve(window.VICTORY_PDF_FONT_BASE64);
+        }
+        if (pdfFontLoadPromise) return pdfFontLoadPromise;
+
+        pdfFontLoadPromise = new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = PDF_FONT_ASSET;
+          script.async = true;
+          script.dataset.victoryPdfFont = "true";
+          script.addEventListener("load", () => {
+            if (window.VICTORY_PDF_FONT_BASE64) {
+              resolve(window.VICTORY_PDF_FONT_BASE64);
+            } else {
+              reject(new Error("PDF 中文字体加载后未注册"));
+            }
+          }, { once: true });
+          script.addEventListener("error", () => {
+            reject(new Error("PDF 中文字体加载失败"));
+          }, { once: true });
+          document.head.appendChild(script);
+        }).catch((error) => {
+          pdfFontLoadPromise = null;
+          throw error;
+        });
+        return pdfFontLoadPromise;
+      }
+
+      async function createVectorClinicalPdf(exportTime, patientInfo) {
+        const fontBase64 = await ensurePdfFontAsset();
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+          orientation: "portrait",
+          unit: "mm",
+          format: "a4",
+          compress: true,
+          precision: 12,
+          putOnlyUsedFonts: true,
+        });
+        pdf.addFileToVFS(PDF_FONT_VFS_FILE, fontBase64);
+        pdf.addFont(PDF_FONT_VFS_FILE, PDF_FONT_FAMILY, "normal");
+        pdf.setFont(PDF_FONT_FAMILY, "normal");
+        pdf.setLanguage?.("zh-CN");
+        pdf.setProperties({
+          title: "VARIPULSE PFA 消融记录报告",
+          subject: "肺静脉消融分布、消融概览与患者基础信息",
+          author: "VictoryPVI Community",
+          creator: "VictoryPVI",
+        });
+
+        const model = getVectorReportModel(exportTime, patientInfo);
+        const otherInfoOnPageOne = pdfDrawPageOne(pdf, model);
+        if (model.otherInfo && !otherInfoOnPageOne) {
+          pdfDrawOtherInfoPages(pdf, model);
+        }
+        pdfDrawFooters(pdf);
+        return pdf;
+      }
+
       function buildReportMapMarkup() {
         const reportSvg = svg.cloneNode(true);
         reportSvg.removeAttribute("id");
@@ -4865,8 +5657,8 @@
           <div class="report-brand">
             <span class="report-brand-mark" aria-hidden="true"></span>
             <div>
-              <h1>临床摘要与复核</h1>
-              <p class="subtitle">治疗记录、PVI 终点与待复核事项</p>
+              <h1>记录明细</h1>
+              <p class="subtitle">治疗记录、PVI 终点与待处理事项</p>
             </div>
           </div>
           <div class="report-meta">
@@ -4878,8 +5670,8 @@
 
         <section class="clinical-summary ${reportTone}">
           <div>
-            <div class="section-label">临床综合</div>
-            <strong>临床结论</strong>
+            <div class="section-label">记录汇总</div>
+            <strong>记录结论</strong>
           </div>
           <div>
             <p>${escapeHtml(endpointConclusion)}</p>
@@ -4891,7 +5683,7 @@
         <div class="detail-grid">
           <section class="detail-section">
             <div class="section-label">逐支评估</div>
-            <h2>各肺静脉临床摘要</h2>
+            <h2>各肺静脉记录</h2>
             <table class="clinical-table">
               <thead><tr><th>目标肺静脉</th><th>治疗记录</th><th>消融完成与覆盖</th><th>PVI 终点</th></tr></thead>
               <tbody>${assessmentRows}</tbody>
@@ -4906,8 +5698,8 @@
               ${ridgeContent}
             </section>
             <section class="side-section">
-              <div class="section-label">复核清单</div>
-              <h2>建议复核事项</h2>
+              <div class="section-label">待处理事项</div>
+              <h2>建议处理事项</h2>
               <ul>${actionItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
             </section>
           </div>
@@ -4916,7 +5708,7 @@
         <p class="report-note">说明：本报告由社区维护的第三方非官方工具根据当前质控记录自动汇总。单根肺静脉的消融完成判定为前庭 8 个扇区均达到各自完成阈值，且口部与前庭总消融次数不少于 ${MIN_SINGLE_VEIN_TOTAL_APPLICATIONS} 次；消融完成判定不等同于 PVI 电生理终点。报告以传入阻滞作为确认 PVI 的最低记录标准，传出阻滞作为补充证据。肺静脉隔离是否达成，应以术中电生理终点评估为准。</p>
         <footer class="report-footer">
           <span>本报告不替代设备原始数据、机构规范或医师临床判断</span>
-          <span>临床摘要 · 2 / ${reportPageCount}</span>
+          <span>记录明细 · 2 / ${reportPageCount}</span>
         </footer>
       </section>
       ${hasLongOtherInfo ? `
@@ -4950,68 +5742,6 @@
 </html>`;
       }
 
-      function createReportRenderFrame(reportHtml) {
-        const frame = document.createElement("iframe");
-        frame.title = "PDF 报告渲染区域";
-        frame.tabIndex = -1;
-        frame.setAttribute("aria-hidden", "true");
-        frame.style.cssText = [
-          "position:absolute",
-          "left:-100000px",
-          "top:0",
-          "width:210mm",
-          "height:1200mm",
-          "border:0",
-          "background:#fff",
-          "pointer-events:none",
-        ].join(";");
-        document.body.appendChild(frame);
-
-        const frameDocument = frame.contentDocument;
-        if (!frameDocument) {
-          frame.remove();
-          throw new Error("无法创建 PDF 报告渲染区域");
-        }
-        frameDocument.open();
-        frameDocument.write(reportHtml);
-        frameDocument.close();
-        return frame;
-      }
-
-      async function waitForReportLayout(frame) {
-        const frameDocument = frame.contentDocument;
-        const frameWindow = frame.contentWindow;
-        if (!frameDocument || !frameWindow) {
-          throw new Error("PDF 报告渲染区域不可用");
-        }
-
-        if (frameDocument.readyState === "loading") {
-          await new Promise((resolve) => {
-            const fallbackTimer = window.setTimeout(resolve, 1200);
-            frame.addEventListener("load", () => {
-              window.clearTimeout(fallbackTimer);
-              resolve();
-            }, { once: true });
-          });
-        }
-        if (frameDocument.fonts?.ready) {
-          await frameDocument.fonts.ready;
-        }
-        await new Promise((resolve) => {
-          frameWindow.requestAnimationFrame(() => {
-            frameWindow.requestAnimationFrame(resolve);
-          });
-        });
-      }
-
-      function reportRenderScale() {
-        const deviceMemory = Number(navigator.deviceMemory || 0);
-        const screenWidth = Number(window.screen?.width || window.innerWidth || 0);
-        const constrainedDevice = (deviceMemory > 0 && deviceMemory <= 4) ||
-          (screenWidth > 0 && screenWidth <= 820);
-        return constrainedDevice ? 1.6 : 2;
-      }
-
       async function exportClinicalReport(patientInfo) {
         if (pdfExportInProgress) return;
         pdfExportInProgress = true;
@@ -5019,69 +5749,22 @@
         const previousButtonState = exportButton.disabled;
         exportButton.disabled = true;
         exportButton.textContent = "正在生成 PDF…";
-        showToast("正在生成 A4 PDF…");
+        showToast("正在生成原生矢量 A4 PDF…");
 
-        let reportFrame = null;
         try {
-          if (typeof window.html2canvas !== "function" || !window.jspdf?.jsPDF) {
+          if (!window.jspdf?.jsPDF) {
             throw new Error("PDF 生成组件未加载");
           }
 
           const exportTime = new Date();
-          const reportHtml = buildClinicalReport(exportTime, patientInfo);
-          reportFrame = createReportRenderFrame(reportHtml);
-          await waitForReportLayout(reportFrame);
-
-          const reportDocument = reportFrame.contentDocument;
-          const pages = Array.from(reportDocument.querySelectorAll("[data-report-page]"));
-          if (!pages.length) throw new Error("PDF 报告没有可导出的页面");
-
-          const { jsPDF } = window.jspdf;
-          const pdf = new jsPDF({
-            orientation: "portrait",
-            unit: "mm",
-            format: "a4",
-            compress: true,
-            precision: 12,
-          });
-          pdf.setProperties({
-            title: "VARIPULSE PFA 消融记录报告",
-            subject: "肺静脉消融分布、消融概览、患者基础信息与临床摘要",
-            author: "VictoryPVI Community",
-            creator: "VictoryPVI",
-          });
-
-          const renderScale = reportRenderScale();
-          for (let index = 0; index < pages.length; index += 1) {
-            const page = pages[index];
-            const canvas = await window.html2canvas(page, {
-              backgroundColor: "#ffffff",
-              scale: renderScale,
-              logging: false,
-              useCORS: false,
-              allowTaint: false,
-              imageTimeout: 0,
-              removeContainer: true,
-              scrollX: 0,
-              scrollY: 0,
-              windowWidth: reportDocument.documentElement.scrollWidth,
-              windowHeight: reportDocument.documentElement.scrollHeight,
-            });
-            if (index > 0) pdf.addPage("a4", "portrait");
-            const pageImage = canvas.toDataURL("image/jpeg", 0.95);
-            pdf.addImage(pageImage, "JPEG", 0, 0, 210, 297, undefined, "FAST");
-            canvas.width = 1;
-            canvas.height = 1;
-          }
-
+          const pdf = await createVectorClinicalPdf(exportTime, patientInfo);
           const fileName = `VARIPULSE-PFA-clinical-report-${localDateInputValue(exportTime)}.pdf`;
           pdf.save(fileName);
-          showToast("A4 PDF 已生成并开始下载");
+          showToast("原生矢量 A4 PDF 已生成并开始下载");
         } catch (error) {
           console.error("PDF export failed", error);
           showToast("PDF 生成失败，请刷新页面后重试");
         } finally {
-          reportFrame?.remove();
           pdfExportInProgress = false;
           exportButton.textContent = previousButtonLabel;
           exportButton.disabled = previousButtonState;

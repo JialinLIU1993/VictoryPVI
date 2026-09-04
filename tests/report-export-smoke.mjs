@@ -14,169 +14,84 @@ function sourceBetween(startMarker, endMarker) {
   return appScript.slice(start, end);
 }
 
-function escapeHtml(value) {
-  const entities = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" };
-  return String(value).replace(/[&<>"']/g, (character) => entities[character]);
-}
+assert.doesNotMatch(indexHtml, /<script[^>]+html2canvas/i);
+assert.doesNotMatch(appScript, /window\.html2canvas|\.toDataURL\(|\.addImage\(/);
+assert.match(appScript, /putOnlyUsedFonts:\s*true/);
+assert.match(appScript, /pdf\.addFileToVFS\(PDF_FONT_VFS_FILE, fontBase64\)/);
+assert.match(appScript, /pdf\.addFont\(PDF_FONT_VFS_FILE, PDF_FONT_FAMILY, "normal"\)/);
+assert.match(appScript, /function pdfDrawAnnularSector/);
+assert.match(appScript, /pdf\.lines\(/);
+assert.match(appScript, /const PDF_MAP_VIEWBOX = Object\.freeze\(\{ width: 980, height: 650 \}\)/);
+assert.match(appScript, /function pdfDrawWebAnatomy/);
+assert.match(appScript, /inner: 82, outer: 116/);
+assert.match(appScript, /inner: 44, outer: 78/);
+assert.match(appScript, /startAngle = \(sector - 1\) \* 45 \+ 1\.4/);
+assert.match(appScript, /pdfDrawAblationMap\(pdf, 10, 69, 190, 104, model\)/);
+assert.match(appScript, /orientation:\s*"portrait"/);
+assert.match(appScript, /format:\s*"a4"/);
+assert.match(appScript, /报告版本：v1\.4\.0 · 原生矢量/);
+assert.doesNotMatch(appScript, /function pdfDrawClinicalBanner|function pdfDrawAssessmentTable|function pdfDrawPageTwo/);
 
-const veins = [
-  { id: "LSPV", name: "左上肺静脉", common: false },
-  { id: "LIPV", name: "左下肺静脉", common: false },
-  { id: "RSPV", name: "右上肺静脉", common: false },
-  { id: "RIPV", name: "右下肺静脉", common: false },
-];
-const assessmentFor = (vein) => ({
-  vein,
-  progress: { target: 4, total: 3, planProgress: [true, true, true, false], countLabel: "3 / 4" },
-  ablationStatus: { ablationComplete: false, coverageComplete: false, hasAblation: true },
-  endpointStatus: "entrance-block",
-  endpointLabel: "PVI 已验证：传入阻滞（无肺静脉电位）",
-  treatmentSummary: "口部 2/2 次消融；前庭 1/2 次消融",
-  completionSummary: "单支 PV · 未完成 · 前庭扇区 7/8 · 总数 3/≥4",
-  coverageSummary: "覆盖待复核：前庭 4区",
-});
-
-const reportContext = vm.createContext({
-  Intl,
-  Date,
-  veins,
-  ridgeSites: [],
-  ridgeApplications: {},
-  counts: {},
-  settings: { anatomyMode: "standard" },
-  MIN_SINGLE_VEIN_TOTAL_APPLICATIONS: 4,
-  ELECTRODE_NUMBERS: Array.from({ length: 10 }, (_, index) => index + 1),
-  protocolSummary: { textContent: "标准四支肺静脉 · 口部 2 次 · 前庭 2 次" },
-  lastOperation: null,
-  getVeinClinicalAssessment: assessmentFor,
-  getAblationOverviewMetrics: () => ({
-    total: 12,
-    covered: 24,
-    totalPositions: 64,
-    targetMetPercentage: 38,
-  }),
-  progressSegments: (progress) => progress
-    .map((filled) => `<i class="progress-segment${filled ? " filled" : ""}"></i>`)
-    .join(""),
-  activeElectrodeNumbers: () => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-  buildReportMapMarkup: () => '<svg class="report-map-svg" viewBox="0 0 980 650"></svg>',
-  formatOperationTime: () => "10:20",
-  localDateInputValue: () => "2026-09-03",
-  escapeHtml,
-});
-vm.runInContext(
-  sourceBetween("function buildClinicalReport", "function createReportRenderFrame"),
-  reportContext,
+const vectorPdfSource = sourceBetween(
+  "async function createVectorClinicalPdf",
+  "function buildReportMapMarkup",
 );
+assert.doesNotMatch(vectorPdfSource, /临床摘要|临床结论|复核清单|建议复核事项/);
+assert.match(vectorPdfSource, /const otherInfoOnPageOne = pdfDrawPageOne\(pdf, model\)/);
+assert.match(vectorPdfSource, /pdfDrawOtherInfoPages\(pdf, model\)/);
 
-const basePatient = {
-  name: "测试患者<script>",
+const exportSource = sourceBetween(
+  "async function exportClinicalReport",
+  "aboutButton.addEventListener",
+);
+const savedFiles = [];
+const messages = [];
+const exportButton = { textContent: "导出 PDF 报告", disabled: false };
+const patientInfo = {
+  name: "测试患者",
   sex: "女",
   diagnosis: "阵发性房颤",
   procedureType: "初发",
   surgeryDate: "2026-09-03",
   recordNumber: "TEST-001",
-  otherInfo: "短备注",
+  otherInfo: "测试备注",
 };
-const shortReport = reportContext.buildClinicalReport(new Date("2026-09-03T10:20:30+08:00"), basePatient);
-const longReport = reportContext.buildClinicalReport(
-  new Date("2026-09-03T10:20:30+08:00"),
-  { ...basePatient, otherInfo: "较长补充信息。".repeat(70) },
-);
-
-assert.equal((shortReport.match(/data-report-page/g) || []).length, 2);
-assert.equal((longReport.match(/data-report-page/g) || []).length, 3);
-assert.match(shortReport, /width: 210mm/);
-assert.match(shortReport, /height: 297mm/);
-assert.match(shortReport, /测试患者&lt;script&gt;/);
-assert.match(shortReport, /单支 PV · 未完成 · 前庭扇区 7\/8 · 总数 3\/≥4/);
-assert.match(shortReport, /消融完成与覆盖/);
-assert.match(shortReport, /0\/4 支目标肺静脉达到当前消融完成判定/);
-assert.doesNotMatch(shortReport, /window\.print|print-button|A4 landscape/);
-
-const exportSource = sourceBetween("function createReportRenderFrame", "aboutButton.addEventListener");
-assert.doesNotMatch(exportSource, /window\.open|\.print\s*\(/);
-
-const renderedCanvases = [];
-const pdfCalls = { addPage: 0, addImage: [], save: null, options: null };
-class FakePDF {
-  constructor(options) {
-    pdfCalls.options = options;
-  }
-  setProperties() {}
-  addPage(format, orientation) {
-    pdfCalls.addPage += 1;
-    assert.equal(format, "a4");
-    assert.equal(orientation, "portrait");
-  }
-  addImage(...args) {
-    pdfCalls.addImage.push(args);
-  }
-  save(fileName) {
-    pdfCalls.save = fileName;
-  }
-}
-
-const fakePages = [{ id: 1 }, { id: 2 }];
-const fakeReportDocument = {
-  querySelectorAll: () => fakePages,
-  documentElement: { scrollWidth: 794, scrollHeight: 2246 },
-};
-const fakeFrame = { contentDocument: fakeReportDocument, removeCalled: false, remove() { this.removeCalled = true; } };
-const messages = [];
-const exportButton = { textContent: "导出 PDF 报告", disabled: false };
-const exportWindow = {
-  jspdf: { jsPDF: FakePDF },
-  html2canvas: async () => {
-    const canvas = {
-      width: 1588,
-      height: 2246,
-      toDataURL: () => "data:image/jpeg;base64,AA==",
-    };
-    renderedCanvases.push(canvas);
-    return canvas;
-  },
-};
+let receivedPatientInfo = null;
 const exportContext = vm.createContext({
   console,
   Date,
-  navigator: { deviceMemory: 8 },
-  window: exportWindow,
-  document: {},
+  window: { jspdf: { jsPDF: class {} } },
   exportButton,
   pdfExportInProgress: false,
   showToast: (message) => messages.push(message),
   localDateInputValue: () => "2026-09-03",
-  buildClinicalReport: () => "<html></html>",
+  createVectorClinicalPdf: async (_exportTime, received) => {
+    receivedPatientInfo = received;
+    return { save: (fileName) => savedFiles.push(fileName) };
+  },
 });
 vm.runInContext(exportSource, exportContext);
-exportContext.createReportRenderFrame = () => fakeFrame;
-exportContext.waitForReportLayout = async () => {};
-assert.equal(exportContext.reportRenderScale(), 2);
-exportContext.navigator.deviceMemory = 2;
-assert.equal(exportContext.reportRenderScale(), 1.6);
-exportContext.navigator.deviceMemory = 8;
 
-await exportContext.exportClinicalReport(basePatient);
+await exportContext.exportClinicalReport(patientInfo);
 
-assert.deepEqual(
-  { orientation: pdfCalls.options.orientation, unit: pdfCalls.options.unit, format: pdfCalls.options.format },
-  { orientation: "portrait", unit: "mm", format: "a4" },
-);
-assert.equal(pdfCalls.addPage, 1);
-assert.equal(pdfCalls.addImage.length, 2);
-for (const imageCall of pdfCalls.addImage) {
-  assert.deepEqual(imageCall.slice(1, 6), ["JPEG", 0, 0, 210, 297]);
-}
-assert.equal(pdfCalls.save, "VARIPULSE-PFA-clinical-report-2026-09-03.pdf");
-assert.ok(renderedCanvases.every((canvas) => canvas.width === 1 && canvas.height === 1));
-assert.equal(fakeFrame.removeCalled, true);
+assert.equal(receivedPatientInfo, patientInfo);
+assert.deepEqual(savedFiles, ["VARIPULSE-PFA-clinical-report-2026-09-03.pdf"]);
 assert.equal(exportButton.textContent, "导出 PDF 报告");
 assert.equal(exportButton.disabled, false);
-assert.equal(messages.at(-1), "A4 PDF 已生成并开始下载");
+assert.equal(messages.at(-1), "原生矢量 A4 PDF 已生成并开始下载");
 
-for (const dependency of ["vendor/html2canvas.min.js", "vendor/jspdf.umd.min.js"]) {
+const dependencies = [
+  "vendor/jspdf.umd.min.js",
+  "vendor/noto-sans-sc-regular-vfs.js",
+  "vendor/NotoSansSC.OFL.txt",
+];
+for (const dependency of dependencies) {
   assert.ok(fs.existsSync(new URL(`../${dependency}`, import.meta.url)), `Missing ${dependency}`);
 }
+
+const fontAssetPath = new URL("../vendor/noto-sans-sc-regular-vfs.js", import.meta.url);
+const fontAssetPrefix = fs.readFileSync(fontAssetPath, "utf8").slice(0, 400);
+assert.match(fontAssetPrefix, /window\.VICTORY_PDF_FONT_BASE64 = "/);
+assert.ok(fs.statSync(fontAssetPath).size > 10_000_000, "Embedded CJK font asset looks incomplete");
 
 console.log("report-export-smoke: ok");
