@@ -45,6 +45,11 @@ assert.match(appScript, /pdfDrawAblationMap\(pdf, 10, 69, 190, 104, model\)/);
 assert.match(appScript, /orientation:\s*"portrait"/);
 assert.match(appScript, /format:\s*"a4"/);
 assert.match(appScript, /报告版本：v\$\{APP_RELEASE\.version\} · 原生矢量/);
+assert.match(indexHtml, /id="sync-status"/);
+assert.match(appScript, /function scheduleSyncSnapshot/);
+assert.match(appScript, /function applySyncedSnapshot/);
+assert.match(appScript, /VictoryPVISyncClient/);
+assert.match(appScript, /endpointSelect\.disabled = syncRole === "mirror"/);
 assert.doesNotMatch(appScript, /function pdfDrawClinicalBanner|function pdfDrawAssessmentTable|function pdfDrawPageTwo/);
 
 const vectorPdfSource = sourceBetween(
@@ -101,6 +106,10 @@ const dependencies = [
   "vendor/NotoSansSC.OFL.txt",
   "release.json",
   "CHANGELOG.md",
+  "sync-client.js",
+  "cloudflare/worker.js",
+  "cloudflare/wrangler.jsonc",
+  "SYNC_DESIGN.md",
 ];
 for (const dependency of dependencies) {
   assert.ok(fs.existsSync(new URL(`../${dependency}`, import.meta.url)), `Missing ${dependency}`);

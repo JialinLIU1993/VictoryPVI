@@ -1,0 +1,37 @@
+# Cloudflare 免费层同步服务
+
+该 Worker 使用 Durable Objects 的 SQLite 存储和 WebSocket 连接，为 VictoryPVI 提供配对后的实时状态广播。Cloudflare Workers Free 目前支持 SQLite-backed Durable Objects；免费层的 Worker 请求和 Durable Object 存储/请求有每日额度，适合小规模设备同步。实际额度以 Cloudflare 控制台为准。
+
+## 部署
+
+在已安装 Node.js 的设备上执行：
+
+```bash
+npx wrangler login
+npx wrangler deploy --config cloudflare/wrangler.jsonc
+```
+
+部署完成后会得到一个 `https://victorypvi-sync.<账户子域>.workers.dev` 地址。将该地址填入 VictoryPVI 页面“设备同步”中的“Cloudflare Worker 地址”，之后创建配对即可。
+
+## 运行方式
+
+- 操作端创建一个同步空间，浏览器生成随机访问令牌和 256 位房间密钥；
+- Worker 只保存密文快照和 revision，不接收房间密钥；
+- 配对码把 Worker 地址、空间令牌和房间密钥放入应用链接的 `#` 片段，片段不会随 HTTP 请求发送给 Worker；
+- 操作端每次状态变化发送一份加密快照，Durable Object 立即广播给所有镜像设备；
+- 镜像设备解密后更新本地肺静脉图和消融概览，无需刷新；
+- 重连时 Durable Object 返回最后一份快照，保证镜像设备恢复到最新状态。
+
+## 安全边界
+
+患者姓名、病案号、PDF 和报告中的其它患者信息不进入同步快照。同步内容在浏览器端使用 AES-GCM 加密，Worker 只负责鉴权、保存和广播密文。配对码应当像密码一样保管，不要在公开聊天中转发。
+
+该 Worker 没有账号系统；随机空间 ID 和访问令牌负责空间隔离。若用于机构环境，建议在 Cloudflare Access 或机构网络层增加访问控制，并配置自己的 Worker 域名。
+
+## 本地测试
+
+```bash
+npx wrangler dev --config cloudflare/wrangler.jsonc
+```
+
+前端需要把 Worker 地址改为 Wrangler 本地地址，例如 `http://127.0.0.1:8787`。本地开发只用于测试，生产配对码应使用 HTTPS Worker 地址。

@@ -4,17 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f4f5f8" />
-    <meta name="application-version" content="1.4.1" />
-    <meta name="application-iteration" content="2026-09-04T08:54:50+08:00" />
+    <meta name="application-version" content="1.5.0" />
+    <meta name="application-iteration" content="2026-09-04T10:13:10+08:00" />
     <script id="app-release" type="application/json">
       {
-        "version": "1.4.1",
-        "iteration": "2026-09-04T08:54:50+08:00",
-        "summary": "肺静脉消融分布图对齐网页版 SVG 样式，PDF 继续使用原生矢量输出。",
+        "version": "1.5.0",
+        "iteration": "2026-09-04T10:13:10+08:00",
+        "summary": "新增 Cloudflare 免费层多端实时同步。",
         "changes": [
-          "按网页版 980×650 坐标重绘主图、左房后壁、房间隔线和脊部路径。",
-          "环形扇区、计数、状态色和最近记录标记与网页版保持一致。",
-          "同步调整 A4 竖向 PDF 主图比例与留白。"
+          "操作端每次消融状态变化自动广播到配对镜像设备。",
+          "使用 Durable Objects WebSocket 保存并广播加密快照，支持断线重连。",
+          "患者信息与 PDF 排除在同步数据之外。"
         ]
       }
     </script>
@@ -166,6 +166,53 @@
       .save-state[data-storage="memory"]::before {
         background: #c78a2d;
         box-shadow: 0 0 0 3px #f7eddc;
+      }
+
+      .sync-status {
+        min-height: 36px;
+        padding: 0 11px;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 11px;
+        white-space: nowrap;
+        transition: 160ms ease;
+      }
+
+      .sync-status:hover {
+        border-color: #9fa8b8;
+        background: #f8f9fb;
+      }
+
+      .sync-status-dot {
+        width: 7px;
+        height: 7px;
+        flex: 0 0 auto;
+        border-radius: 50%;
+        background: #9ba3b0;
+        box-shadow: 0 0 0 3px #f0f1f4;
+      }
+
+      .sync-status[data-state="connected"] .sync-status-dot,
+      .sync-status[data-state="synced"] .sync-status-dot {
+        background: #24856b;
+        box-shadow: 0 0 0 3px #e6f3ed;
+      }
+
+      .sync-status[data-state="connecting"] .sync-status-dot,
+      .sync-status[data-state="offline"] .sync-status-dot {
+        background: #c78a2d;
+        box-shadow: 0 0 0 3px #f7eddc;
+      }
+
+      .sync-status[data-state="error"] .sync-status-dot {
+        background: #b65252;
+        box-shadow: 0 0 0 3px #fae9e9;
       }
 
       .operation-status-bar {
@@ -1113,6 +1160,179 @@
         box-shadow: 0 30px 90px rgba(24, 20, 32, 0.28);
       }
 
+      .sync-dialog {
+        width: min(650px, calc(100vw - 32px));
+      }
+
+      .sync-section + .sync-section {
+        margin-top: 20px;
+        padding-top: 18px;
+        border-top: 1px solid var(--line);
+      }
+
+      .sync-state-line {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+
+      .sync-state-dot {
+        width: 9px;
+        height: 9px;
+        flex: 0 0 auto;
+        border-radius: 50%;
+        background: #9ba3b0;
+        box-shadow: 0 0 0 4px #f0f1f4;
+      }
+
+      .sync-state-dot[data-state="connected"],
+      .sync-state-dot[data-state="synced"] {
+        background: #24856b;
+        box-shadow: 0 0 0 4px #e6f3ed;
+      }
+
+      .sync-state-dot[data-state="connecting"],
+      .sync-state-dot[data-state="offline"] {
+        background: #c78a2d;
+        box-shadow: 0 0 0 4px #f7eddc;
+      }
+
+      .sync-state-dot[data-state="error"] {
+        background: #b65252;
+        box-shadow: 0 0 0 4px #fae9e9;
+      }
+
+      .sync-state-line strong {
+        font-size: 15px;
+      }
+
+      .sync-detail {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.65;
+      }
+
+      .sync-action-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 9px;
+      }
+
+      .sync-code-wrap {
+        display: grid;
+        gap: 8px;
+      }
+
+      .sync-code-wrap[hidden],
+      .sync-join-wrap[hidden] {
+        display: none;
+      }
+
+      .sync-code {
+        width: 100%;
+        min-height: 68px;
+        padding: 10px 11px;
+        border: 1px solid #cfc5df;
+        border-radius: 9px;
+        background: #faf8fc;
+        color: var(--purple-dark);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 10px;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
+        resize: vertical;
+      }
+
+      .sync-code:focus {
+        border-color: var(--purple-2);
+        outline: 3px solid rgba(155, 112, 216, 0.16);
+      }
+
+      .sync-code-note {
+        margin: 0;
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1.6;
+      }
+
+      .sync-device-list {
+        display: grid;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .sync-device-row {
+        min-height: 42px;
+        padding: 9px 11px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        border-radius: 9px;
+        background: #f7f6fa;
+        color: var(--ink);
+        font-size: 11px;
+      }
+
+      .sync-device-row::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        flex: 0 0 auto;
+        border-radius: 50%;
+        background: #24856b;
+        box-shadow: 0 0 0 3px #e6f3ed;
+      }
+
+      .sync-device-row small {
+        margin-left: auto;
+        color: var(--muted);
+        font-size: 10px;
+      }
+
+      .sync-privacy-note {
+        margin: 18px 0 0;
+        padding: 11px 12px;
+        border-radius: 9px;
+        background: #f7f5fa;
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1.65;
+      }
+
+      .sync-error {
+        margin: 10px 0 0;
+        color: #a44b4b;
+        font-size: 11px;
+        line-height: 1.6;
+      }
+
+      body[data-sync-role="mirror"] .map-panel,
+      body[data-sync-role="mirror"] .electrode-selector-section {
+        position: relative;
+      }
+
+      body[data-sync-role="mirror"] .map-panel::after {
+        content: "实时镜像 · 只读";
+        position: absolute;
+        top: 12px;
+        right: 14px;
+        z-index: 2;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--purple-3);
+        font-size: 10px;
+        box-shadow: 0 4px 14px rgba(40, 28, 61, 0.08);
+        pointer-events: none;
+      }
+
+      body[data-sync-role="mirror"] #pv-map,
+      body[data-sync-role="mirror"] #electrode-selector,
+      body[data-sync-role="mirror"] #map-mode-toggle {
+        pointer-events: none;
+      }
+
       .settings-dialog::backdrop {
         background: rgba(28, 29, 36, 0.48);
         backdrop-filter: blur(3px);
@@ -1525,7 +1745,8 @@
           gap: 8px;
         }
 
-        .top-actions .button {
+        .top-actions .button,
+        .top-actions .sync-status {
           width: 100%;
           padding-right: 8px;
           padding-left: 8px;
@@ -1648,17 +1869,21 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>VARIPULSE 消融质控记录</h1>
-            <p class="app-meta" id="app-meta" aria-label="软件版本 1.4.1，独立社区维护的非官方工具，迭代时间 2026年9月4日 8点54分">
-              <span class="app-version" id="app-version">v1.4.1</span>
+            <p class="app-meta" id="app-meta" aria-label="软件版本 1.5.0，独立社区维护的非官方工具，迭代时间 2026年9月4日 10点13分">
+              <span class="app-version" id="app-version">v1.5.0</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
               <span>社区维护 · 非官方</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
-              <time id="app-iteration" datetime="2026-09-04T08:54:50+08:00">迭代于 2026-09-04 08:54</time>
+              <time id="app-iteration" datetime="2026-09-04T10:13:10+08:00">迭代于 2026-09-04 10:13</time>
             </p>
           </div>
         </div>
         <div class="top-actions">
           <span class="save-state" id="save-state">记录已自动保存</span>
+          <button class="sync-status" id="sync-status" type="button" aria-haspopup="dialog" aria-label="设备同步">
+            <i class="sync-status-dot" aria-hidden="true"></i>
+            <span id="sync-status-label">仅本机</span>
+          </button>
           <button class="button" id="about-button" type="button">关于</button>
           <button class="button" id="settings-button" type="button">术式设置</button>
           <button class="button" id="undo-button" type="button" title="撤回上一步（⌘/Ctrl + Z）" disabled>撤回</button>
@@ -1838,6 +2063,78 @@
       </main>
     </div>
 
+    <dialog class="settings-dialog sync-dialog" id="sync-dialog" aria-labelledby="sync-title">
+      <form class="settings-card" id="sync-form">
+        <header class="settings-header">
+          <div>
+            <h2 id="sync-title">设备同步</h2>
+          </div>
+          <button class="dialog-close" id="sync-close" type="button" aria-label="关闭设备同步">×</button>
+        </header>
+
+        <div class="settings-body">
+          <section class="sync-section">
+            <div class="sync-state-line">
+              <i class="sync-state-dot" id="sync-dialog-dot" data-state="local" aria-hidden="true"></i>
+              <strong id="sync-dialog-status">仅本机保存</strong>
+            </div>
+            <p class="sync-detail" id="sync-dialog-detail">当前记录只保存在本机。配对后，操作端的状态变化会自动同步到镜像设备。</p>
+          </section>
+
+          <section class="sync-section">
+            <h3>Cloudflare Worker</h3>
+            <label class="field full">
+              同步服务地址
+              <input id="sync-worker-url" type="url" inputmode="url" placeholder="https://victorypvi-sync.你的账户.workers.dev" autocomplete="url" />
+            </label>
+            <p class="settings-help">只需在首次使用时填写。Worker 只保存加密快照和版本号，不接收患者信息。</p>
+          </section>
+
+          <section class="sync-section" id="sync-local-panel">
+            <h3>建立配对</h3>
+            <div class="sync-action-row">
+              <button class="button primary" id="sync-create-room" type="button">创建操作端配对</button>
+              <button class="button" id="sync-show-join" type="button">加入已有配对</button>
+            </div>
+            <div class="sync-join-wrap" id="sync-join-wrap" hidden>
+              <label class="field full" style="margin-top: 12px">
+                配对码或配对链接
+                <textarea class="sync-code" id="sync-pairing-input" rows="3" placeholder="粘贴操作端生成的 VPVI1 配对码或链接"></textarea>
+              </label>
+              <div class="sync-action-row" style="margin-top: 9px">
+                <button class="button primary" id="sync-join-room" type="button">加入实时镜像</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="sync-section sync-code-wrap" id="sync-paired-panel" hidden>
+            <h3 id="sync-paired-heading">当前配对</h3>
+            <div class="sync-device-list" id="sync-device-list"></div>
+            <p class="sync-detail" id="sync-last-synced">尚未收到同步状态</p>
+            <label class="field full" id="sync-pairing-code-field">
+              操作端配对码（仅用于连接新设备）
+              <textarea class="sync-code" id="sync-pairing-code" rows="3" readonly></textarea>
+            </label>
+            <div class="sync-action-row">
+              <button class="button" id="sync-copy-code" type="button">复制配对码</button>
+              <button class="button" id="sync-push-now" type="button">立即发送当前状态</button>
+              <button class="button" id="sync-disconnect" type="button">退出配对</button>
+            </div>
+            <p class="sync-code-note">配对设备默认是只读镜像；操作端每次记录变化后会自动广播，镜像端无需刷新。</p>
+          </section>
+
+          <p class="sync-error" id="sync-error" hidden></p>
+          <p class="sync-privacy-note">隐私提示：患者姓名、病案号、报告中的其它信息和 PDF 不进入同步数据。请像保管密码一样保管配对码。</p>
+        </div>
+
+        <footer class="settings-footer">
+          <div class="settings-footer-actions">
+            <button class="button" id="sync-cancel" type="button">关闭</button>
+          </div>
+        </footer>
+      </form>
+    </dialog>
+
     <dialog class="settings-dialog" id="settings-dialog" aria-labelledby="settings-title">
       <form class="settings-card" id="settings-form">
         <header class="settings-header">
@@ -1999,11 +2296,11 @@
           <section class="about-section">
             <h3>当前版本</h3>
             <p>
-              <strong id="about-release-version">v1.4.1</strong>
+              <strong id="about-release-version">v1.5.0</strong>
               <span aria-hidden="true"> · </span>
-              <time id="about-release-iteration" datetime="2026-09-04T08:54:50+08:00">迭代于 2026-09-04 08:54</time>
+              <time id="about-release-iteration" datetime="2026-09-04T10:13:10+08:00">迭代于 2026-09-04 10:13</time>
             </p>
-            <p id="about-release-summary">更新内容：肺静脉消融分布图对齐网页版 SVG 样式，PDF 继续使用原生矢量输出。</p>
+            <p id="about-release-summary">更新内容：新增 Cloudflare 免费层多端实时同步。</p>
           </section>
           <section class="about-section">
             <h3>项目身份</h3>
@@ -2030,6 +2327,7 @@
     <div class="remove-cursor" id="remove-cursor" aria-hidden="true"></div>
 
     <script src="./vendor/jspdf.umd.min.js"></script>
+    <script src="./sync-client.js"></script>
     <script>
       const NS = "http://www.w3.org/2000/svg";
       const STORAGE_KEY = "varipulse-ablation-map-v5";
@@ -2037,6 +2335,7 @@
       const LEGACY_STORAGE_KEY = "varipulse-ablation-map-v4";
       const LEGACY_HISTORY_KEY = "varipulse-ablation-map-v4-history";
       const OLDEST_STORAGE_KEY = "varipulse-ablation-map-v3";
+      const SYNC_SETTINGS_KEY = "varipulse-sync-settings-v1";
       const SCHEMA_VERSION = 7;
       const HISTORY_LIMIT = 100;
       const APPLICATIONS_PER_SEQUENCE = 3;
@@ -2046,9 +2345,9 @@
       const PDF_FONT_FAMILY = "NotoSansSC";
       const APP_RELEASE = Object.freeze((() => {
         const fallback = {
-          version: "1.4.1",
-          iteration: "2026-09-04T08:54:50+08:00",
-          summary: "肺静脉消融分布图对齐网页版 SVG 样式，PDF 继续使用原生矢量输出。",
+          version: "1.5.0",
+          iteration: "2026-09-04T10:13:10+08:00",
+          summary: "新增 Cloudflare 免费层多端实时同步。",
           changes: [],
         };
         try {
@@ -2162,6 +2461,19 @@
       let toastTimer = null;
       let pdfExportInProgress = false;
       let pdfFontLoadPromise = null;
+      let syncRole = "local";
+      let syncApplying = false;
+      let syncRevision = 0;
+      let syncConnectionState = "local";
+      let syncPeerCount = 0;
+      let syncPeers = [];
+      let syncLastSyncedAt = null;
+      let syncErrorMessage = "";
+      let syncSettings = loadSyncSettings();
+      let syncClient = null;
+      syncRole = syncSettings.role || "local";
+      syncRevision = Number(syncSettings.revision) || 0;
+      syncLastSyncedAt = syncSettings.lastSyncedAt || null;
 
       const svg = document.getElementById("pv-map");
       let highlightDefs = null;
@@ -2189,6 +2501,30 @@
       const resetButton = document.getElementById("reset-button");
       const exportButton = document.getElementById("export-button");
       const toast = document.getElementById("toast");
+      const syncStatusButton = document.getElementById("sync-status");
+      const syncStatusLabel = document.getElementById("sync-status-label");
+      const syncDialog = document.getElementById("sync-dialog");
+      const syncClose = document.getElementById("sync-close");
+      const syncCancel = document.getElementById("sync-cancel");
+      const syncWorkerUrlInput = document.getElementById("sync-worker-url");
+      const syncCreateRoomButton = document.getElementById("sync-create-room");
+      const syncShowJoinButton = document.getElementById("sync-show-join");
+      const syncJoinWrap = document.getElementById("sync-join-wrap");
+      const syncPairingInput = document.getElementById("sync-pairing-input");
+      const syncJoinRoomButton = document.getElementById("sync-join-room");
+      const syncLocalPanel = document.getElementById("sync-local-panel");
+      const syncPairedPanel = document.getElementById("sync-paired-panel");
+      const syncPairedHeading = document.getElementById("sync-paired-heading");
+      const syncDialogDot = document.getElementById("sync-dialog-dot");
+      const syncDialogStatus = document.getElementById("sync-dialog-status");
+      const syncDialogDetail = document.getElementById("sync-dialog-detail");
+      const syncPairingCode = document.getElementById("sync-pairing-code");
+      const syncCopyCodeButton = document.getElementById("sync-copy-code");
+      const syncPushNowButton = document.getElementById("sync-push-now");
+      const syncDisconnectButton = document.getElementById("sync-disconnect");
+      const syncDeviceList = document.getElementById("sync-device-list");
+      const syncLastSynced = document.getElementById("sync-last-synced");
+      const syncError = document.getElementById("sync-error");
       const settingsDialog = document.getElementById("settings-dialog");
       const settingsForm = document.getElementById("settings-form");
       const settingsClose = document.getElementById("settings-close");
@@ -2255,6 +2591,430 @@
         }
         const aboutSummary = document.getElementById("about-release-summary");
         if (aboutSummary) aboutSummary.textContent = `更新内容：${APP_RELEASE.summary}`;
+      }
+
+      function createSyncDeviceId() {
+        if (typeof window.crypto?.randomUUID === "function") return window.crypto.randomUUID();
+        return `device-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      }
+
+      function loadSyncSettings() {
+        const fallback = {
+          workerUrl: "",
+          roomId: "",
+          accessToken: "",
+          roomKey: "",
+          role: "local",
+          deviceId: createSyncDeviceId(),
+          deviceName: "VictoryPVI 设备",
+          revision: 0,
+          lastSyncedAt: null,
+        };
+        try {
+          const stored = JSON.parse(safeStorageGet(SYNC_SETTINGS_KEY) || "{}");
+          const role = stored.role === "host" || stored.role === "mirror" ? stored.role : "local";
+          return {
+            ...fallback,
+            ...stored,
+            role,
+            workerUrl: typeof stored.workerUrl === "string" ? stored.workerUrl : fallback.workerUrl,
+            roomId: typeof stored.roomId === "string" ? stored.roomId : fallback.roomId,
+            accessToken: typeof stored.accessToken === "string" ? stored.accessToken : fallback.accessToken,
+            roomKey: typeof stored.roomKey === "string" ? stored.roomKey : fallback.roomKey,
+            deviceId: typeof stored.deviceId === "string" && stored.deviceId ? stored.deviceId : fallback.deviceId,
+            deviceName: typeof stored.deviceName === "string" && stored.deviceName ? stored.deviceName : fallback.deviceName,
+            revision: Math.max(0, Number(stored.revision) || 0),
+            lastSyncedAt: typeof stored.lastSyncedAt === "string" ? stored.lastSyncedAt : null,
+          };
+        } catch {
+          return fallback;
+        }
+      }
+
+      function persistSyncSettings(patch = {}) {
+        syncSettings = { ...syncSettings, ...patch };
+        safeStorageSet(SYNC_SETTINGS_KEY, JSON.stringify(syncSettings));
+      }
+
+      function syncTimeLabel(isoTime) {
+        if (!isoTime) return "尚未同步";
+        const date = new Date(isoTime);
+        if (Number.isNaN(date.getTime())) return "尚未同步";
+        return formatOperationTime(date.toISOString());
+      }
+
+      function syncStatusLabelText() {
+        if (syncRole === "local") return "仅本机";
+        if (syncConnectionState === "connecting") return "连接中…";
+        if (syncConnectionState === "error") return "同步失败";
+        if (syncConnectionState === "offline") return "同步中断";
+        if (syncRole === "mirror") return "实时跟随";
+        if (syncPeerCount > 0) return `已同步 · ${syncPeerCount}台`;
+        return "实时同步";
+      }
+
+      function syncStatusDetail() {
+        if (syncRole === "local") return "当前记录只保存在本机。配对后，操作端的状态变化会自动同步到镜像设备。";
+        if (syncConnectionState === "connecting") return "正在连接 Cloudflare 同步服务，记录操作不会被阻塞。";
+        if (syncConnectionState === "error") return syncErrorMessage || "同步服务暂时不可用，请检查 Worker 地址或网络。";
+        if (syncConnectionState === "offline") return "同步连接已中断，页面会自动重试；当前记录仍保存在本机。";
+        if (syncRole === "mirror") return "这是只读实时镜像。操作端的每次消融状态变化会自动更新本页面。";
+        return syncPeerCount > 0
+          ? `当前操作端已连接 ${syncPeerCount} 台镜像设备，状态变化会自动广播。`
+          : "当前操作端已连接同步空间，等待镜像设备加入。";
+      }
+
+      function updateSyncDeviceList() {
+        if (!syncDeviceList) return;
+        syncDeviceList.replaceChildren();
+        const devices = [];
+        if (syncRole === "host") {
+          devices.push({
+            deviceId: syncSettings.deviceId,
+            deviceName: `${syncSettings.deviceName || "操作设备"}（本机）`,
+            role: "host",
+          });
+        }
+        syncPeers.forEach((peer) => {
+          if (peer.deviceId === syncSettings.deviceId) return;
+          devices.push(peer);
+        });
+        if (!devices.length) {
+          const empty = document.createElement("div");
+          empty.className = "sync-device-row";
+          empty.textContent = syncRole === "mirror" ? "正在等待操作端状态" : "等待镜像设备加入";
+          syncDeviceList.appendChild(empty);
+          return;
+        }
+        devices.forEach((device) => {
+          const row = document.createElement("div");
+          row.className = "sync-device-row";
+          const name = document.createElement("span");
+          name.textContent = device.deviceName || "未命名设备";
+          const role = document.createElement("small");
+          role.textContent = device.role === "host" ? "操作端" : "实时镜像";
+          row.append(name, role);
+          syncDeviceList.appendChild(row);
+        });
+      }
+
+      function updateSyncUi() {
+        const label = syncStatusLabelText();
+        const state = syncConnectionState === "connected" && syncRole !== "local"
+          ? "connected"
+          : syncConnectionState;
+        syncStatusButton?.setAttribute("data-state", state);
+        if (syncStatusLabel) syncStatusLabel.textContent = label;
+        document.body.dataset.syncRole = syncRole === "mirror" ? "mirror" : "";
+        if (syncDialogDot) syncDialogDot.dataset.state = state;
+        if (syncDialogStatus) syncDialogStatus.textContent = syncRole === "mirror" ? "实时跟随" : label === "仅本机" ? "仅本机保存" : label;
+        if (syncDialogDetail) syncDialogDetail.textContent = syncStatusDetail();
+        if (syncLocalPanel) syncLocalPanel.hidden = syncRole !== "local";
+        if (syncPairedPanel) syncPairedPanel.hidden = syncRole === "local";
+        if (syncPairedHeading) syncPairedHeading.textContent = syncRole === "host" ? "操作端配对" : "已连接操作端";
+        if (syncPairingCode) syncPairingCode.value = syncClient?.pairingCode || "";
+        if (syncPushNowButton) syncPushNowButton.hidden = syncRole !== "host";
+        settingsButton.disabled = syncRole === "mirror";
+        resetButton.disabled = syncRole === "mirror";
+        mapModeToggle.disabled = syncRole === "mirror";
+        document.querySelectorAll(".endpoint-control select").forEach((select) => {
+          select.disabled = syncRole === "mirror";
+        });
+        if (syncLastSynced) {
+          syncLastSynced.textContent = syncLastSyncedAt
+            ? `最近同步：${syncTimeLabel(syncLastSyncedAt)}`
+            : syncRole === "mirror" ? "等待操作端发送当前状态" : "等待镜像设备连接";
+        }
+        if (syncError) {
+          syncError.hidden = !syncErrorMessage;
+          syncError.textContent = syncErrorMessage;
+        }
+        updateSyncDeviceList();
+      }
+
+      function syncSnapshotPayload() {
+        return {
+          schemaVersion: SCHEMA_VERSION,
+          counts: { ...counts },
+          applications: { ...applications },
+          ridgeApplications: { ...ridgeApplications },
+          sequenceEvents: sequenceEvents.map((event) => ({
+            ...event,
+            activeElectrodes: Array.isArray(event.activeElectrodes)
+              ? [...event.activeElectrodes]
+              : event.activeElectrodes,
+          })),
+          endpoints: { ...endpoints },
+          settings: cloneSettings(),
+          electrodeSelection: [...selectedElectrodes],
+          lastOperation: lastOperation ? { ...lastOperation } : null,
+        };
+      }
+
+      function applySyncedSnapshot(payload, envelope = {}) {
+        if (syncRole !== "mirror") return;
+        if (!payload || typeof payload !== "object") {
+          syncErrorMessage = "收到的同步状态无效";
+          updateSyncUi();
+          return;
+        }
+        if (Number(payload.schemaVersion || 0) > SCHEMA_VERSION) {
+          syncErrorMessage = "操作端版本较新，请先更新本页面后再同步";
+          updateSyncUi();
+          return;
+        }
+        const ridgeState = normalizeRidgeState(payload.counts, payload.ridgeApplications);
+        syncApplying = true;
+        try {
+          counts = ridgeState.counts;
+          applications = payload.applications && typeof payload.applications === "object"
+            ? { ...payload.applications }
+            : {};
+          ridgeApplications = ridgeState.ridgeApplications;
+          sequenceEvents = normalizeSequenceEvents(payload.sequenceEvents);
+          endpoints = sanitizeEndpoints(payload.endpoints);
+          settings = sanitizeSettings(payload.settings);
+          selectedElectrodes = new Set(sanitizeCurrentElectrodeSelection(payload.electrodeSelection));
+          lastOperation = sanitizeLastOperation(payload.lastOperation);
+          migrationInfo = null;
+          veins = getActiveVeins(settings.anatomyMode);
+          selectedKey = null;
+          selectedSector = null;
+          selectedRidgeId = null;
+          syncRevision = Math.max(syncRevision, Number(envelope.revision) || 0);
+          syncLastSyncedAt = envelope.updatedAt || new Date().toISOString();
+          persistSyncSettings({ revision: syncRevision, lastSyncedAt: syncLastSyncedAt });
+          saveCounts();
+          saveHistory();
+          renderMap();
+          syncErrorMessage = "";
+        } finally {
+          syncApplying = false;
+        }
+        updateSyncUi();
+      }
+
+      function scheduleSyncSnapshot() {
+        if (syncApplying || syncRole !== "host" || !syncClient || !syncSettings.roomId) return;
+        syncRevision = Math.max(syncRevision + 1, Number(syncSettings.revision || 0) + 1);
+        persistSyncSettings({ revision: syncRevision });
+        window.clearTimeout(scheduleSyncSnapshot.timer);
+        scheduleSyncSnapshot.timer = window.setTimeout(() => {
+          if (syncRole === "host") syncClient.sendSnapshot(syncSnapshotPayload(), syncRevision);
+        }, 120);
+      }
+
+      function syncWorkerUrlFromInput() {
+        const value = syncWorkerUrlInput?.value.trim() || "";
+        if (value) persistSyncSettings({ workerUrl: value });
+        return value || syncSettings.workerUrl;
+      }
+
+      function setSyncConnectionState(nextState, details = {}) {
+        syncConnectionState = nextState;
+        if (Number.isInteger(details.peerCount)) syncPeerCount = Math.max(0, details.peerCount);
+        if (details.peers) syncPeers = Array.isArray(details.peers) ? details.peers : [];
+        if (details.revision) syncRevision = Math.max(syncRevision, Number(details.revision) || 0);
+        updateSyncUi();
+      }
+
+      function handleSyncError(error) {
+        syncErrorMessage = error?.message || String(error || "同步服务处理失败");
+        syncConnectionState = "error";
+        updateSyncUi();
+        showToast(syncErrorMessage);
+      }
+
+      async function connectSyncSession({ announce = true } = {}) {
+        if (!syncClient || !syncSettings.workerUrl || !syncSettings.roomId || !syncSettings.accessToken || !syncSettings.roomKey) return false;
+        try {
+          syncErrorMessage = "";
+          await syncClient.connect({
+            workerUrl: syncSettings.workerUrl,
+            roomId: syncSettings.roomId,
+            accessToken: syncSettings.accessToken,
+            roomKey: syncSettings.roomKey,
+            role: syncRole,
+            deviceId: syncSettings.deviceId,
+            deviceName: syncSettings.deviceName,
+          });
+          if (syncRole === "host") {
+            if (!syncRevision) {
+              syncRevision = 1;
+              persistSyncSettings({ revision: syncRevision });
+            }
+            syncClient.sendSnapshot(syncSnapshotPayload(), syncRevision);
+          }
+          if (announce) showToast(syncRole === "mirror" ? "已连接操作端，等待实时状态" : "已连接同步空间");
+          return true;
+        } catch (error) {
+          handleSyncError(error);
+          return false;
+        }
+      }
+
+      async function createSyncRoom() {
+        const workerUrl = syncWorkerUrlFromInput();
+        if (!workerUrl) {
+          handleSyncError(new Error("请先填写 Cloudflare Worker 地址"));
+          return;
+        }
+        if (!syncClient) {
+          handleSyncError(new Error("同步组件未加载，请刷新页面后重试"));
+          return;
+        }
+        syncCreateRoomButton.disabled = true;
+        syncErrorMessage = "";
+        syncRole = "host";
+        syncConnectionState = "connecting";
+        updateSyncUi();
+        try {
+          const details = await syncClient.createRoom(workerUrl);
+          syncSettings = {
+            ...syncSettings,
+            ...details,
+            role: "host",
+            deviceName: syncSettings.deviceName || "操作设备",
+            revision: 1,
+            lastSyncedAt: null,
+          };
+          syncRole = "host";
+          syncRevision = 1;
+          persistSyncSettings(syncSettings);
+          syncPairingCode.value = syncClient.pairingCode;
+          syncErrorMessage = "";
+          syncConnectionState = "connected";
+          updateSyncUi();
+          syncClient.sendSnapshot(syncSnapshotPayload(), syncRevision);
+          showToast("配对已创建，请把配对码发给镜像设备");
+        } catch (error) {
+          syncRole = "local";
+          syncConnectionState = "local";
+          handleSyncError(error);
+        } finally {
+          syncCreateRoomButton.disabled = false;
+        }
+      }
+
+      async function joinSyncRoom() {
+        if (!syncClient) {
+          handleSyncError(new Error("同步组件未加载，请刷新页面后重试"));
+          return;
+        }
+        const value = syncPairingInput.value.trim();
+        try {
+          const details = window.VictoryPVISyncClient.parsePairingCode(value);
+          syncPairingInput.value = window.VictoryPVISyncClient.makePairingCode(details);
+          syncSettings = {
+            ...syncSettings,
+            ...details,
+            role: "mirror",
+            deviceName: syncSettings.deviceName || "镜像设备",
+            revision: 0,
+            lastSyncedAt: null,
+          };
+          syncRole = "mirror";
+          syncConnectionState = "connecting";
+          persistSyncSettings(syncSettings);
+          updateSyncUi();
+          await connectSyncSession();
+        } catch (error) {
+          handleSyncError(error);
+        }
+      }
+
+      function disconnectSyncSession({ notify = true } = {}) {
+        syncClient?.disconnect();
+        syncRole = "local";
+        syncConnectionState = "local";
+        syncPeerCount = 0;
+        syncPeers = [];
+        syncRevision = 0;
+        syncLastSyncedAt = null;
+        syncErrorMessage = "";
+        persistSyncSettings({
+          roomId: "",
+          accessToken: "",
+          roomKey: "",
+          role: "local",
+          revision: 0,
+          lastSyncedAt: null,
+        });
+        document.body.dataset.syncRole = "";
+        updateSyncUi();
+        if (notify) showToast("已退出同步空间，本机记录仍然保留");
+      }
+
+      function openSyncDialog() {
+        syncWorkerUrlInput.value = syncSettings.workerUrl || "";
+        const locationPairing = window.location.hash.startsWith("#sync=")
+          ? window.location.hash.slice("#sync=".length)
+          : "";
+        syncPairingInput.value = locationPairing;
+        syncJoinWrap.hidden = !locationPairing;
+        syncErrorMessage = "";
+        updateSyncUi();
+        if (typeof syncDialog.showModal === "function") {
+          syncDialog.showModal();
+        } else {
+          syncDialog.setAttribute("open", "");
+        }
+      }
+
+      function closeSyncDialog() {
+        if (syncDialog.open) syncDialog.close();
+        else syncDialog.removeAttribute("open");
+      }
+
+      function initializeSyncClient() {
+        if (typeof window.VictoryPVISyncClient !== "function") {
+          syncErrorMessage = "同步组件未加载，请确认 sync-client.js 与页面位于同一目录";
+          updateSyncUi();
+          return;
+        }
+        syncClient = new window.VictoryPVISyncClient({
+          onSnapshot: (payload, envelope) => applySyncedSnapshot(payload, envelope),
+          onStatus: (details = {}) => {
+            if (details.state === "synced") {
+              if (syncRole === "host" && Number(details.revision) > syncRevision) {
+                syncRevision = Number(details.revision) + 1;
+                persistSyncSettings({ revision: syncRevision });
+                syncClient?.sendSnapshot(syncSnapshotPayload(), syncRevision);
+              }
+              syncLastSyncedAt = new Date().toISOString();
+              persistSyncSettings({
+                revision: Math.max(syncRevision, Number(details.revision) || 0),
+                lastSyncedAt: syncLastSyncedAt,
+              });
+            }
+            setSyncConnectionState(details.state || "local", details);
+          },
+          onPresence: (peers) => {
+            syncPeers = Array.isArray(peers) ? peers : [];
+            syncPeerCount = syncRole === "host"
+              ? syncPeers.filter((peer) => peer.deviceId !== syncSettings.deviceId).length
+              : Math.max(0, syncPeers.length - 1);
+            updateSyncUi();
+          },
+          onError: handleSyncError,
+        });
+        updateSyncUi();
+      }
+
+      function restoreSyncSession() {
+        if (syncRole !== "host" && syncRole !== "mirror") {
+          syncRole = "local";
+          syncConnectionState = "local";
+          updateSyncUi();
+          return;
+        }
+        if (!syncSettings.workerUrl || !syncSettings.roomId || !syncSettings.accessToken || !syncSettings.roomKey) {
+          syncRole = "local";
+          persistSyncSettings({ role: "local" });
+          updateSyncUi();
+          return;
+        }
+        connectSyncSession({ announce: false });
       }
 
       resetButton.disabled = false;
@@ -2533,6 +3293,12 @@
         return ELECTRODE_NUMBERS.filter((electrode) => selectedElectrodes.has(electrode));
       }
 
+      function syncWriteBlocked() {
+        if (syncRole !== "mirror") return false;
+        showToast("当前设备为只读实时镜像，请在操作端修改记录");
+        return true;
+      }
+
       function updateElectrodeSelector() {
         const active = activeElectrodeNumbers();
         electrodeSelector.querySelectorAll(".electrode-button").forEach((button) => {
@@ -2565,6 +3331,7 @@
       }
 
       function toggleElectrode(electrode) {
+        if (syncWriteBlocked()) return;
         if (selectedElectrodes.has(electrode)) {
           const closeTowardOne = electrode - 1 <= 10 - electrode;
           ELECTRODE_NUMBERS.forEach((number) => {
@@ -2595,6 +3362,7 @@
       }
 
       function toggleAllElectrodes() {
+        if (syncWriteBlocked()) return;
         if (selectedElectrodes.size === ELECTRODE_NUMBERS.length) {
           selectedElectrodes.clear();
         } else {
@@ -2624,6 +3392,7 @@
       }
 
       function toggleMapEditMode() {
+        if (syncWriteBlocked()) return;
         mapEditMode = mapEditMode === "ablate" ? "remove" : "ablate";
         selectedKey = null;
         selectedSector = null;
@@ -3066,14 +3835,15 @@
         if (!saved) {
           saveState.textContent = "记录已更新 · 当前页面内有效";
           saveState.dataset.storage = "memory";
-          return;
+        } else {
+          delete saveState.dataset.storage;
+          saveState.textContent = "正在保存…";
+          window.clearTimeout(saveCounts.timer);
+          saveCounts.timer = window.setTimeout(() => {
+            saveState.textContent = "记录已自动保存";
+          }, 450);
         }
-        delete saveState.dataset.storage;
-        saveState.textContent = "正在保存…";
-        window.clearTimeout(saveCounts.timer);
-        saveCounts.timer = window.setTimeout(() => {
-          saveState.textContent = "记录已自动保存";
-        }, 450);
+        scheduleSyncSnapshot();
       }
 
       function saveHistory() {
@@ -3109,7 +3879,7 @@
       }
 
       function updateUndoButton() {
-        undoButton.disabled = actionHistory.length === 0;
+        undoButton.disabled = syncRole === "mirror" || actionHistory.length === 0;
         const latest = actionHistory[actionHistory.length - 1];
         undoButton.title = latest
           ? `撤回：${normalizeAblationWording(latest.actionLabel)}（⌘/Ctrl + Z）`
@@ -3380,6 +4150,7 @@
       }
 
       function removeSectorCoverage(key, sector) {
+        if (syncWriteBlocked()) return;
         const parsed = parseKey(key);
         if (!parsed.vein || !parsed.layer) return;
         const keyForSector = sectorKey(key, sector);
@@ -3405,6 +4176,7 @@
       }
 
       function removeRidgeCoverage(site) {
+        if (syncWriteBlocked()) return;
         const countKey = ridgeCountKey(site.id);
         const currentCount = Math.max(
           Number(counts[countKey] || 0),
@@ -3443,6 +4215,7 @@
       }
 
       function applyRingExcluding(key, excludedSector) {
+        if (syncWriteBlocked()) return;
         const parsed = parseKey(key);
         if (!parsed.vein || !parsed.layer) return;
         if (mapEditMode === "remove") {
@@ -3489,6 +4262,7 @@
       }
 
       function applyRidge(ridgeId) {
+        if (syncWriteBlocked()) return;
         const site = getRidgeSite(ridgeId);
         if (!site || !settings.ridgeEnabled) return;
         if (mapEditMode === "remove") {
@@ -3748,7 +4522,13 @@
             </label>
           `;
           veinList.appendChild(item);
-          item.querySelector("select").addEventListener("change", (event) => {
+          const endpointSelect = item.querySelector("select");
+          endpointSelect.disabled = syncRole === "mirror";
+          endpointSelect.addEventListener("change", (event) => {
+            if (syncWriteBlocked()) {
+              event.target.value = endpoints[vein.id] || "not-assessed";
+              return;
+            }
             pushHistory(`更新${vein.name} PVI 终点`);
             endpoints[vein.id] = event.target.value;
             saveCounts();
@@ -3777,6 +4557,7 @@
       }
 
       function undoLastAction() {
+        if (syncWriteBlocked()) return;
         const previous = actionHistory.pop();
         if (!previous) {
           showToast("暂无可撤回操作");
@@ -3849,6 +4630,7 @@
       }
 
       function resetRecord() {
+        if (syncWriteBlocked()) return;
         if (!hasAnyClinicalRecords()) {
           showToast("当前没有可清空的记录");
           return;
@@ -3948,6 +4730,7 @@
 
       function applySettings(event) {
         event.preventDefault();
+        if (syncWriteBlocked()) return;
         if (!settingsForm.reportValidity()) return;
         const nextSettings = settingsFromForm();
         if (JSON.stringify(nextSettings) === JSON.stringify(settings)) {
@@ -5859,6 +6642,43 @@
       aboutDialog.addEventListener("click", (event) => {
         if (event.target === aboutDialog) aboutDialog.close();
       });
+      syncStatusButton.addEventListener("click", openSyncDialog);
+      syncClose.addEventListener("click", closeSyncDialog);
+      syncCancel.addEventListener("click", closeSyncDialog);
+      syncDialog.addEventListener("click", (event) => {
+        if (event.target === syncDialog) closeSyncDialog();
+      });
+      syncShowJoinButton.addEventListener("click", () => {
+        syncJoinWrap.hidden = !syncJoinWrap.hidden;
+        if (!syncJoinWrap.hidden) syncPairingInput.focus();
+      });
+      syncWorkerUrlInput.addEventListener("change", () => {
+        persistSyncSettings({ workerUrl: syncWorkerUrlInput.value.trim() });
+      });
+      syncCreateRoomButton.addEventListener("click", createSyncRoom);
+      syncJoinRoomButton.addEventListener("click", joinSyncRoom);
+      syncCopyCodeButton.addEventListener("click", async () => {
+        const code = syncPairingCode.value.trim();
+        if (!code) return;
+        try {
+          await navigator.clipboard.writeText(code);
+          showToast("配对码已复制");
+        } catch {
+          syncPairingCode.focus();
+          syncPairingCode.select();
+          showToast("已选中配对码，请手动复制");
+        }
+      });
+      syncPushNowButton.addEventListener("click", () => {
+        if (syncRole !== "host" || !syncClient) return;
+        syncClient.sendSnapshot(syncSnapshotPayload(), Math.max(1, syncRevision));
+        showToast("正在发送当前消融状态");
+      });
+      syncDisconnectButton.addEventListener("click", () => {
+        if (window.confirm("退出同步空间后，本机记录仍会保留，但不再自动同步。确认退出？")) {
+          disconnectSyncSession();
+        }
+      });
       settingsButton.addEventListener("click", openSettings);
       settingsClose.addEventListener("click", closeSettings);
       settingsCancel.addEventListener("click", closeSettings);
@@ -5916,6 +6736,8 @@
       updateMapEditMode();
       drawElectrodeSelector();
       renderMap();
+      initializeSyncClient();
+      restoreSyncSession();
     </script>
   </body>
 </html>
