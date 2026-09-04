@@ -2,7 +2,7 @@
 
 文档状态：设计稿 v0.3 · 2026-09-04
 
-实现状态：前端实时镜像与 Cloudflare Worker/ Durable Object 代码已落地；生产环境还需要在用户自己的 Cloudflare 账号中完成一次部署。
+实现状态：前端实时镜像与 Cloudflare Worker/ Durable Object 代码已落地，并已部署到目标 Cloudflare 账号；生产环境继续保留 HTTPS 备用同步通道。
 
 ## 1. 目标
 
@@ -239,10 +239,11 @@ const syncProvider = {
 
 - 已接入 Cloudflare Worker + SQLite-backed Durable Object Provider；
 - 已建立同步空间、配对码、设备状态和断线重连；
-- 配对完成后推送完整加密快照，并通过 WebSocket 广播每次状态变化；
+- 配对完成后推送完整加密快照，并优先通过 WebSocket 广播每次状态变化；
 - 镜像端自动解密并更新图形，不要求手动刷新页面；
 - 重连时返回最近快照，保证镜像端恢复最新状态；
-- 仍需在目标 Cloudflare 账号部署 Worker，并补充线上端到端测试。
+- 如果 iOS 微信内置浏览器限制 WebSocket，自动切换到 HTTPS 轮询/推送备用通道；
+- Worker 已部署到目标 Cloudflare 账号；仍建议用实际 iOS 微信设备完成一次线上端到端验证。
 
 ### 阶段三：机构部署能力
 

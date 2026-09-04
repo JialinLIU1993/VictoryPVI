@@ -13,6 +13,7 @@
   const CLIENT_FORMAT = "victorypvi-sync-link";
   const CLIENT_VERSION = 1;
   const SNAPSHOT_MAX_BYTES = 1_500_000;
+  const HTTPS_POLL_INTERVAL_MS = 3_000;
 
   function requireCrypto() {
     if (!global.crypto?.subtle || typeof global.crypto.getRandomValues !== "function") {
@@ -167,6 +168,11 @@
       this.reconnectTimer = null;
       this.reconnectAttempts = 0;
       this.manualDisconnect = false;
+      this.transport = "websocket";
+      this.pollTimer = null;
+      this.pollInFlight = false;
+      this.pollErrorShown = false;
+      this.lastReceivedRevision = 0;
     }
 
     static parsePairingCode(value) {
@@ -195,7 +201,8 @@
     }
 
     get isConnected() {
-      return this.socket?.readyState === WebSocket.OPEN;
+      if (this.transport === "poll") return Boolean(this.connection) && !this.manualDisconnect;
+      return this.socket?.readyState === global.WebSocket?.OPEN;
     }
 
     get pairingCode() {
@@ -235,6 +242,7 @@
     }
 
     async connect({ workerUrl, roomId, accessToken, roomKey, role = "mirror", deviceId = randomId(), deviceName = "未命名设备" }) {
+      this.stopPolling();
       this.disconnect({ silent: true });
       const normalizedWorkerUrl = normalizeWorkerUrl(workerUrl);
       const normalizedRoomId = String(roomId || "");
@@ -253,12 +261,27 @@
       };
       this.manualDisconnect = false;
       this.reconnectAttempts = 0;
-      return this.openSocket();
+      this.transport = "websocket";
+      this.lastReceivedRevision = 0;
+      try {
+        return await this.openSocket();
+      } catch (error) {
+        if (!this.connection || this.manualDisconnect) throw error;
+        const failedSocket = this.socket;
+        this.socket = null;
+        try {
+          if (failedSocket && failedSocket.readyState < global.WebSocket.CLOSING) failedSocket.close(1000, "use https fallback");
+        } catch {
+          // The socket may not have completed its handshake.
+        }
+        await this.startPolling();
+      }
     }
 
     openSocket() {
       if (!this.connection) throw new Error("尚未配置同步空间");
-      this.onStatus({ state: "connecting", role: this.connection.role });
+      this.transport = "websocket";
+      this.onStatus({ state: "connecting", role: this.connection.role, transport: "websocket" });
       const { workerUrl, roomId, accessToken, role, deviceId, deviceName } = this.connection;
       const endpoint = `${toWebSocketUrl(workerUrl)}/api/rooms/${encodeURIComponent(roomId)}/ws?token=${encodeURIComponent(accessToken)}&role=${encodeURIComponent(role)}&device=${encodeURIComponent(deviceId)}&name=${encodeURIComponent(deviceName)}`;
       const socket = new WebSocket(endpoint);
@@ -268,7 +291,7 @@
         socket.addEventListener("open", () => {
           settled = true;
           this.reconnectAttempts = 0;
-          this.onStatus({ state: "connected", role: this.connection?.role });
+          this.onStatus({ state: "connected", role: this.connection?.role, transport: "websocket" });
           socket.send(JSON.stringify({ type: "hello", cursor: 0 }));
           this.flushSnapshot();
           resolve();
@@ -279,7 +302,7 @@
             settled = true;
             reject(new Error("无法连接 Cloudflare 同步服务"));
           }
-          this.onStatus({ state: "error", role: this.connection?.role });
+          this.onStatus({ state: "error", role: this.connection?.role, transport: "websocket" });
         });
         socket.addEventListener("close", (event) => {
           if (!settled) {
@@ -287,12 +310,84 @@
             reject(new Error(event.reason || "同步连接被关闭"));
           }
           this.socket = null;
-          if (!this.manualDisconnect && this.connection) {
-            this.onStatus({ state: "offline", role: this.connection.role });
+          if (!this.manualDisconnect && this.connection && this.transport === "websocket") {
+            this.onStatus({ state: "offline", role: this.connection.role, transport: "websocket" });
             this.scheduleReconnect();
           }
         });
       });
+    }
+
+    snapshotEndpoint() {
+      if (!this.connection) throw new Error("尚未配置同步空间");
+      const { workerUrl, roomId, accessToken, role, deviceId, deviceName } = this.connection;
+      return `${workerUrl}/api/rooms/${encodeURIComponent(roomId)}/snapshot?token=${encodeURIComponent(accessToken)}&role=${encodeURIComponent(role)}&device=${encodeURIComponent(deviceId)}&name=${encodeURIComponent(deviceName)}`;
+    }
+
+    async startPolling() {
+      if (!this.connection) throw new Error("尚未配置同步空间");
+      if (this.reconnectTimer) {
+        global.clearTimeout(this.reconnectTimer);
+        this.reconnectTimer = null;
+      }
+      this.transport = "poll";
+      this.reconnectAttempts = 0;
+      this.pollErrorShown = false;
+      this.onStatus({ state: "connecting", role: this.connection.role, transport: "https-poll" });
+      await this.pollSnapshot({ reportError: true });
+      if (!this.manualDisconnect && this.connection && !this.pollTimer) {
+        this.onStatus({ state: "connected", role: this.connection.role, transport: "https-poll" });
+        this.pollTimer = global.setInterval(() => this.pollSnapshot(), HTTPS_POLL_INTERVAL_MS);
+        this.flushSnapshot();
+      }
+    }
+
+    stopPolling() {
+      if (this.pollTimer) {
+        global.clearInterval(this.pollTimer);
+        this.pollTimer = null;
+      }
+      this.pollInFlight = false;
+    }
+
+    async pollSnapshot({ reportError = false } = {}) {
+      if (!this.connection || this.manualDisconnect || this.pollInFlight) return;
+      this.pollInFlight = true;
+      try {
+        const response = await fetch(this.snapshotEndpoint(), {
+          method: "GET",
+          cache: "no-store",
+        });
+        if (!response.ok) {
+          let message = "无法通过 HTTPS 访问 Cloudflare 同步服务";
+          try {
+            message = (await response.json()).error || message;
+          } catch {
+            // Keep the safe generic message.
+          }
+          throw new Error(message);
+        }
+        const body = await response.json();
+        this.onPresence(body.peers || []);
+        if (body.snapshot && Number(body.snapshot.revision) > this.lastReceivedRevision) {
+          await this.handleSnapshotEnvelope({ type: "snapshot", ...body.snapshot });
+        }
+        this.pollErrorShown = false;
+        this.onStatus({
+          state: "connected",
+          role: this.connection?.role,
+          transport: "https-poll",
+          peerCount: Array.isArray(body.peers) ? body.peers.length : 0,
+        });
+      } catch (error) {
+        this.onStatus({ state: "offline", role: this.connection?.role, transport: "https-poll" });
+        if (reportError || !this.pollErrorShown) {
+          this.pollErrorShown = true;
+          this.onError(error);
+        }
+      } finally {
+        this.pollInFlight = false;
+      }
     }
 
     async handleMessage(rawMessage) {
@@ -320,8 +415,15 @@
         return;
       }
       if (message.type !== "snapshot" || !this.roomKey) return;
+      await this.handleSnapshotEnvelope(message);
+    }
+
+    async handleSnapshotEnvelope(message) {
+      const revision = Number(message.revision) || 0;
+      if (revision && revision <= this.lastReceivedRevision) return;
       try {
         const payload = await decryptJson(this.roomKey, message.iv, message.ciphertext);
+        this.lastReceivedRevision = Math.max(this.lastReceivedRevision, revision);
         this.onSnapshot(payload, message);
       } catch {
         this.onError(new Error("同步数据解密失败，请重新配对"));
@@ -338,7 +440,12 @@
     }
 
     flushSnapshot() {
-      if (!this.pendingSnapshot || !this.isConnected || !this.connection || this.connection.role !== "host") return;
+      if (!this.pendingSnapshot || !this.connection || this.connection.role !== "host") return;
+      if (this.transport === "poll") {
+        this.flushHttpSnapshot();
+        return;
+      }
+      if (!this.isConnected) return;
       this.sendQueue = this.sendQueue.then(async () => {
         if (!this.pendingSnapshot || !this.isConnected || !this.connection) return;
         const next = this.pendingSnapshot;
@@ -357,29 +464,76 @@
       }).catch((error) => this.onError(error));
     }
 
+    flushHttpSnapshot() {
+      if (!this.pendingSnapshot || !this.isConnected || !this.connection || this.connection.role !== "host") return;
+      this.sendQueue = this.sendQueue.then(async () => {
+        if (!this.pendingSnapshot || !this.isConnected || !this.connection || this.transport !== "poll") return;
+        const next = this.pendingSnapshot;
+        this.pendingSnapshot = null;
+        try {
+          const encrypted = await encryptJson(this.roomKey, next.payload);
+          const response = await fetch(this.snapshotEndpoint(), {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            cache: "no-store",
+            body: JSON.stringify({
+              type: "snapshot",
+              revision: next.revision,
+              updatedAt: new Date().toISOString(),
+              ...encrypted,
+            }),
+          });
+          if (!response.ok) {
+            let message = "无法通过 HTTPS 发送同步状态";
+            try {
+              message = (await response.json()).error || message;
+            } catch {
+              // Keep the safe generic message.
+            }
+            throw new Error(message);
+          }
+          const ack = await response.json();
+          this.onStatus({
+            state: "synced",
+            role: this.connection?.role,
+            revision: ack.revision,
+            peerCount: ack.peerCount,
+            transport: "https-poll",
+          });
+        } catch (error) {
+          if (!this.pendingSnapshot || this.pendingSnapshot.revision < next.revision) {
+            this.pendingSnapshot = next;
+          }
+          this.onError(error);
+        }
+      }).catch((error) => this.onError(error));
+    }
+
     scheduleReconnect() {
-      if (this.reconnectTimer || !this.connection || this.manualDisconnect) return;
+      if (this.reconnectTimer || !this.connection || this.manualDisconnect || this.transport !== "websocket") return;
       const delay = Math.min(30_000, 1_000 * (2 ** Math.min(this.reconnectAttempts, 5)));
       this.reconnectAttempts += 1;
       this.reconnectTimer = global.setTimeout(() => {
         this.reconnectTimer = null;
         if (!this.connection || this.manualDisconnect) return;
         this.openSocket().catch(() => {
-          // close/error handlers schedule the next attempt.
+          // If the WebSocket path is unavailable, keep the session alive over HTTPS.
+          if (this.connection && !this.manualDisconnect && this.transport === "websocket") this.startPolling();
         });
       }, delay);
     }
 
     disconnect({ silent = false } = {}) {
       this.manualDisconnect = true;
+      this.stopPolling();
       if (this.reconnectTimer) {
         global.clearTimeout(this.reconnectTimer);
         this.reconnectTimer = null;
       }
       const socket = this.socket;
       this.socket = null;
-      if (socket && socket.readyState < WebSocket.CLOSING) socket.close(1000, "client disconnect");
-      if (!silent) this.onStatus({ state: "disconnected", role: this.connection?.role });
+      if (socket && socket.readyState < global.WebSocket.CLOSING) socket.close(1000, "client disconnect");
+      if (!silent) this.onStatus({ state: "disconnected", role: this.connection?.role, transport: this.transport });
     }
   }
 

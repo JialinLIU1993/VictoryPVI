@@ -4,17 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f4f5f8" />
-    <meta name="application-version" content="1.5.0" />
-    <meta name="application-iteration" content="2026-09-04T10:13:10+08:00" />
+    <meta name="application-version" content="1.5.1" />
+    <meta name="application-iteration" content="2026-09-04T11:23:06+08:00" />
     <script id="app-release" type="application/json">
       {
-        "version": "1.5.0",
-        "iteration": "2026-09-04T10:13:10+08:00",
-        "summary": "新增 Cloudflare 免费层多端实时同步。",
+        "version": "1.5.1",
+        "iteration": "2026-09-04T11:23:06+08:00",
+        "summary": "兼容 iOS 微信内置浏览器的 HTTPS 备用同步。",
         "changes": [
-          "操作端每次消融状态变化自动广播到配对镜像设备。",
-          "使用 Durable Objects WebSocket 保存并广播加密快照，支持断线重连。",
-          "患者信息与 PDF 排除在同步数据之外。"
+          "WebSocket 连接失败时自动切换 HTTPS 轮询与加密快照推送，配对设备无需刷新。",
+          "Cloudflare Worker 增加加密快照的 HTTPS 读写接口，保持端到端加密。",
+          "保留断线重连与最新状态去重，减少重复渲染。"
         ]
       }
     </script>
@@ -1869,12 +1869,12 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>VARIPULSE 消融质控记录</h1>
-            <p class="app-meta" id="app-meta" aria-label="软件版本 1.5.0，独立社区维护的非官方工具，迭代时间 2026年9月4日 10点13分">
-              <span class="app-version" id="app-version">v1.5.0</span>
+            <p class="app-meta" id="app-meta" aria-label="软件版本 1.5.1，独立社区维护的非官方工具，迭代时间 2026年9月4日 11点23分">
+              <span class="app-version" id="app-version">v1.5.1</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
               <span>社区维护 · 非官方</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
-              <time id="app-iteration" datetime="2026-09-04T10:13:10+08:00">迭代于 2026-09-04 10:13</time>
+              <time id="app-iteration" datetime="2026-09-04T11:23:06+08:00">迭代于 2026-09-04 11:23</time>
             </p>
           </div>
         </div>
@@ -2296,11 +2296,11 @@
           <section class="about-section">
             <h3>当前版本</h3>
             <p>
-              <strong id="about-release-version">v1.5.0</strong>
+              <strong id="about-release-version">v1.5.1</strong>
               <span aria-hidden="true"> · </span>
-              <time id="about-release-iteration" datetime="2026-09-04T10:13:10+08:00">迭代于 2026-09-04 10:13</time>
+              <time id="about-release-iteration" datetime="2026-09-04T11:23:06+08:00">迭代于 2026-09-04 11:23</time>
             </p>
-            <p id="about-release-summary">更新内容：新增 Cloudflare 免费层多端实时同步。</p>
+            <p id="about-release-summary">更新内容：兼容 iOS 微信内置浏览器的 HTTPS 备用同步。</p>
           </section>
           <section class="about-section">
             <h3>项目身份</h3>
@@ -2345,9 +2345,9 @@
       const PDF_FONT_FAMILY = "NotoSansSC";
       const APP_RELEASE = Object.freeze((() => {
         const fallback = {
-          version: "1.5.0",
-          iteration: "2026-09-04T10:13:10+08:00",
-          summary: "新增 Cloudflare 免费层多端实时同步。",
+          version: "1.5.1",
+          iteration: "2026-09-04T11:23:06+08:00",
+          summary: "兼容 iOS 微信内置浏览器的 HTTPS 备用同步。",
           changes: [],
         };
         try {
@@ -2469,6 +2469,7 @@
       let syncPeers = [];
       let syncLastSyncedAt = null;
       let syncErrorMessage = "";
+      let syncTransport = "websocket";
       let syncSettings = loadSyncSettings();
       let syncClient = null;
       syncRole = syncSettings.role || "local";
@@ -2658,10 +2659,15 @@
         if (syncConnectionState === "connecting") return "正在连接 Cloudflare 同步服务，记录操作不会被阻塞。";
         if (syncConnectionState === "error") return syncErrorMessage || "同步服务暂时不可用，请检查 Worker 地址或网络。";
         if (syncConnectionState === "offline") return "同步连接已中断，页面会自动重试；当前记录仍保存在本机。";
-        if (syncRole === "mirror") return "这是只读实时镜像。操作端的每次消融状态变化会自动更新本页面。";
-        return syncPeerCount > 0
+        if (syncRole === "mirror") {
+          return syncTransport === "https-poll"
+            ? "这是只读实时镜像，当前通过 HTTPS 备用通道跟随操作端状态。"
+            : "这是只读实时镜像。操作端的每次消融状态变化会自动更新本页面。";
+        }
+        const hostDetail = syncPeerCount > 0
           ? `当前操作端已连接 ${syncPeerCount} 台镜像设备，状态变化会自动广播。`
           : "当前操作端已连接同步空间，等待镜像设备加入。";
+        return syncTransport === "https-poll" ? `${hostDetail} 当前使用 HTTPS 备用通道。` : hostDetail;
       }
 
       function updateSyncDeviceList() {
@@ -2812,6 +2818,7 @@
 
       function setSyncConnectionState(nextState, details = {}) {
         syncConnectionState = nextState;
+        if (details.transport) syncTransport = details.transport;
         if (Number.isInteger(details.peerCount)) syncPeerCount = Math.max(0, details.peerCount);
         if (details.peers) syncPeers = Array.isArray(details.peers) ? details.peers : [];
         if (details.revision) syncRevision = Math.max(syncRevision, Number(details.revision) || 0);
@@ -2975,6 +2982,7 @@
         syncClient = new window.VictoryPVISyncClient({
           onSnapshot: (payload, envelope) => applySyncedSnapshot(payload, envelope),
           onStatus: (details = {}) => {
+            if (details.state === "connected" || details.state === "synced") syncErrorMessage = "";
             if (details.state === "synced") {
               if (syncRole === "host" && Number(details.revision) > syncRevision) {
                 syncRevision = Number(details.revision) + 1;

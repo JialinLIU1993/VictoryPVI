@@ -1,10 +1,10 @@
 {
-  "version": "1.5.0",
-  "iteration": "2026-09-04T10:13:10+08:00",
-  "summary": "新增 Cloudflare 免费层多端实时同步。",
+  "version": "1.5.1",
+  "iteration": "2026-09-04T11:23:06+08:00",
+  "summary": "兼容 iOS 微信内置浏览器的 HTTPS 备用同步。",
   "changes": [
-    "操作端每次消融状态变化自动广播到配对镜像设备。",
-    "使用 Durable Objects WebSocket 保存并广播加密快照，支持断线重连。",
-    "患者信息与 PDF 排除在同步数据之外。"
+    "WebSocket 连接失败时自动切换 HTTPS 轮询与加密快照推送，配对设备无需刷新。",
+    "Cloudflare Worker 增加加密快照的 HTTPS 读写接口，保持端到端加密。",
+    "保留断线重连与最新状态去重，减少重复渲染。"
   ]
 }

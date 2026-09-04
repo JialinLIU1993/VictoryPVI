@@ -116,6 +116,19 @@ export default {
         headers: { ...corsHeaders(), "content-type": "application/json; charset=utf-8" },
       });
     }
+    if (request.method === "POST" && action === "snapshot") {
+      const snapshotQuery = new URLSearchParams({
+        token,
+        role: url.searchParams.get("role") || "mirror",
+        device: url.searchParams.get("device") || "unknown",
+        name: url.searchParams.get("name") || "",
+      });
+      const response = await stub.fetch(new Request(`https://sync-room.internal/snapshot?${snapshotQuery.toString()}`, request));
+      return new Response(response.body, {
+        status: response.status,
+        headers: { ...corsHeaders(), "content-type": "application/json; charset=utf-8" },
+      });
+    }
     if (request.method === "DELETE" && action === "snapshot") {
       const response = await stub.fetch(`https://sync-room.internal/delete?token=${encodeURIComponent(token)}`, { method: "DELETE" });
       return new Response(response.body, {
@@ -222,6 +235,23 @@ export class SyncRoom extends DurableObject {
       });
     }
 
+    if (url.pathname === "/snapshot" && request.method === "POST") {
+      let body;
+      try {
+        body = await request.json();
+      } catch {
+        return jsonResponse({ error: "请求内容不是有效 JSON" }, 400);
+      }
+      const attachment = {
+        role: url.searchParams.get("role") === "host" ? "host" : "mirror",
+        deviceId: normalizeDeviceId(url.searchParams.get("device")),
+        deviceName: normalizeDeviceName(url.searchParams.get("name")),
+      };
+      const result = await this.storeSnapshot(body, attachment);
+      if (result.error) return jsonResponse({ error: result.error }, result.status || 400);
+      return jsonResponse({ ok: true, ...result });
+    }
+
     if (url.pathname === "/delete" && request.method === "DELETE") {
       await this.ctx.storage.deleteAll();
       this.ctx.getWebSockets().forEach((socket) => {
@@ -251,6 +281,43 @@ export class SyncRoom extends DurableObject {
     return jsonResponse({ error: "不支持的同步请求" }, 405);
   }
 
+  async storeSnapshot(parsed, attachment = {}) {
+    if (attachment.role !== "host") {
+      return { error: "配对设备为只读镜像", status: 403 };
+    }
+    if (!snapshotIsValid(parsed)) {
+      return { error: "同步快照无效或过大", status: 400 };
+    }
+    const current = await this.ctx.storage.get("snapshot");
+    if (current && parsed.revision <= current.revision) {
+      return {
+        revision: current.revision,
+        peerCount: Math.max(0, this.ctx.getWebSockets().length - 1),
+        accepted: false,
+      };
+    }
+    const snapshot = {
+      revision: parsed.revision,
+      updatedAt: parsed.updatedAt,
+      iv: parsed.iv,
+      ciphertext: parsed.ciphertext,
+      sourceDeviceId: attachment.deviceId || "unknown",
+    };
+    await this.ctx.storage.put("snapshot", snapshot);
+    const meta = await this.getMeta();
+    if (meta) {
+      const nextMeta = { ...meta, expiresAt: Date.now() + ROOM_TTL_MS };
+      await this.ctx.storage.put("meta", nextMeta);
+      await this.ctx.storage.setAlarm(nextMeta.expiresAt);
+    }
+    this.broadcast({ type: "snapshot", ...snapshot });
+    return {
+      revision: snapshot.revision,
+      peerCount: Math.max(0, this.ctx.getWebSockets().length - 1),
+      accepted: true,
+    };
+  }
+
   async webSocketMessage(webSocket, message) {
     const attachment = webSocket.deserializeAttachment() || {};
     let parsed;
@@ -273,35 +340,12 @@ export class SyncRoom extends DurableObject {
       webSocket.send(JSON.stringify({ type: "error", error: "配对设备为只读镜像" }));
       return;
     }
-    if (!snapshotIsValid(parsed)) {
-      webSocket.send(JSON.stringify({ type: "error", error: "同步快照无效或过大" }));
+    const result = await this.storeSnapshot(parsed, attachment);
+    if (result.error) {
+      webSocket.send(JSON.stringify({ type: "error", error: result.error }));
       return;
     }
-    const current = await this.ctx.storage.get("snapshot");
-    if (current && parsed.revision <= current.revision) {
-      webSocket.send(JSON.stringify({ type: "ack", revision: current.revision, peerCount: this.ctx.getWebSockets().length - 1 }));
-      return;
-    }
-    const snapshot = {
-      revision: parsed.revision,
-      updatedAt: parsed.updatedAt,
-      iv: parsed.iv,
-      ciphertext: parsed.ciphertext,
-      sourceDeviceId: attachment.deviceId,
-    };
-    await this.ctx.storage.put("snapshot", snapshot);
-    const meta = await this.getMeta();
-    if (meta) {
-      const nextMeta = { ...meta, expiresAt: Date.now() + ROOM_TTL_MS };
-      await this.ctx.storage.put("meta", nextMeta);
-      await this.ctx.storage.setAlarm(nextMeta.expiresAt);
-    }
-    this.broadcast({ type: "snapshot", ...snapshot });
-    webSocket.send(JSON.stringify({
-      type: "ack",
-      revision: snapshot.revision,
-      peerCount: Math.max(0, this.ctx.getWebSockets().length - 1),
-    }));
+    webSocket.send(JSON.stringify({ type: "ack", ...result }));
   }
 
   webSocketClose() {

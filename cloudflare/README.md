@@ -2,6 +2,8 @@
 
 该 Worker 使用 Durable Objects 的 SQLite 存储和 WebSocket 连接，为 VictoryPVI 提供配对后的实时状态广播。Cloudflare Workers Free 目前支持 SQLite-backed Durable Objects；免费层的 Worker 请求和 Durable Object 存储/请求有每日额度，适合小规模设备同步。实际额度以 Cloudflare 控制台为准。
 
+页面默认优先使用 WebSocket；如果 iOS 微信内置浏览器限制 WebSocket，客户端会自动切换为 HTTPS 轮询和加密快照推送，不依赖浏览器打印或本地后台服务。
+
 ## 部署
 
 在已安装 Node.js 的设备上执行：
@@ -20,7 +22,8 @@ npx wrangler deploy --config cloudflare/wrangler.jsonc
 - 配对码把 Worker 地址、空间令牌和房间密钥放入应用链接的 `#` 片段，片段不会随 HTTP 请求发送给 Worker；
 - 操作端每次状态变化发送一份加密快照，Durable Object 立即广播给所有镜像设备；
 - 镜像设备解密后更新本地肺静脉图和消融概览，无需刷新；
-- 重连时 Durable Object 返回最后一份快照，保证镜像设备恢复到最新状态。
+- 重连时 Durable Object 返回最后一份快照，保证镜像设备恢复到最新状态；
+- WebSocket 不可用时，操作端通过 HTTPS 写入快照，镜像端每 3 秒拉取一次最新状态。
 
 ## 安全边界
 
