@@ -4,17 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f4f5f8" />
-    <meta name="application-version" content="1.7.0" />
-    <meta name="application-iteration" content="2026-09-04T17:19:18+08:00" />
+    <meta name="application-version" content="1.7.1" />
+    <meta name="application-iteration" content="2026-09-04T17:30:55+08:00" />
     <script id="app-release" type="application/json">
       {
-        "version": "1.7.0",
-        "iteration": "2026-09-04T17:19:18+08:00",
-        "summary": "优化设备同步入口并新增扫码配对。",
+        "version": "1.7.1",
+        "iteration": "2026-09-04T17:30:55+08:00",
+        "summary": "调整扫码配对为镜像端单向扫码。",
         "changes": [
-          "重排顶部设备同步入口与同步弹窗，状态、网络方案和配对步骤更清晰。",
-          "本地直连和 Cloudflare 配对均生成内置二维码，支持微信扫一扫、页面摄像头识别与配对链接。",
-          "扫码不可用时保留手动代码兜底，二维码与识别库随页面本地加载，不依赖运行时网络。"
+          "移除操作端扫描应答二维码入口，配对界面只引导镜像端扫描操作端二维码。",
+          "Cloudflare 模式扫码后直接加入；本地 WebRTC 保留一次应答代码回传作为无信令服务器时的必要兜底。",
+          "镜像端扫码成功后自动展开应答代码复制入口，减少配对步骤和界面干扰。"
         ]
       }
     </script>
@@ -1481,6 +1481,10 @@
         border-top: 1px dashed var(--line-strong);
       }
 
+      .sync-direct-manual-toggle-row {
+        margin-top: 12px;
+      }
+
       .sync-direct-manual[hidden],
       .sync-cloudflare-manual[hidden],
       .sync-direct-paste-wrap[hidden],
@@ -2301,12 +2305,12 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>VARIPULSE 消融质控记录</h1>
-            <p class="app-meta" id="app-meta" aria-label="软件版本 1.7.0，独立社区维护的非官方工具，迭代时间 2026年9月4日 17点19分">
-              <span class="app-version" id="app-version">v1.7.0</span>
+            <p class="app-meta" id="app-meta" aria-label="软件版本 1.7.1，独立社区维护的非官方工具，迭代时间 2026年9月4日 17点30分">
+              <span class="app-version" id="app-version">v1.7.1</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
               <span>社区维护 · 非官方</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
-              <time id="app-iteration" datetime="2026-09-04T17:19:18+08:00">迭代于 2026-09-04 17:19</time>
+              <time id="app-iteration" datetime="2026-09-04T17:30:55+08:00">迭代于 2026-09-04 17:30</time>
             </p>
           </div>
         </div>
@@ -2631,10 +2635,11 @@
                   <p id="sync-direct-qr-help">二维码只包含本地连接信息，不含患者资料。</p>
                   <div class="sync-action-row">
                     <button class="button" id="sync-direct-copy-link" type="button">复制配对链接</button>
-                    <button class="button" id="sync-direct-scan-answer" type="button" hidden>扫描应答二维码</button>
-                    <button class="button" id="sync-direct-manual-toggle" type="button">显示手动代码</button>
                   </div>
                 </div>
+              </div>
+              <div class="sync-direct-manual-toggle-row">
+                <button class="button" id="sync-direct-manual-toggle" type="button">显示手动代码</button>
               </div>
               <div class="sync-direct-manual" id="sync-direct-manual" hidden>
                 <label class="field full" id="sync-direct-code-field">
@@ -2884,11 +2889,11 @@
           <section class="about-section">
             <h3>当前版本</h3>
             <p>
-              <strong id="about-release-version">v1.7.0</strong>
+              <strong id="about-release-version">v1.7.1</strong>
               <span aria-hidden="true"> · </span>
-              <time id="about-release-iteration" datetime="2026-09-04T17:19:18+08:00">迭代于 2026-09-04 17:19</time>
+              <time id="about-release-iteration" datetime="2026-09-04T17:30:55+08:00">迭代于 2026-09-04 17:30</time>
             </p>
-            <p id="about-release-summary">更新内容：优化设备同步入口并新增扫码配对。</p>
+            <p id="about-release-summary">更新内容：调整扫码配对为镜像端单向扫码。</p>
           </section>
           <section class="about-section">
             <h3>项目身份</h3>
@@ -2935,9 +2940,9 @@
       const PDF_FONT_FAMILY = "NotoSansSC";
       const APP_RELEASE = Object.freeze((() => {
         const fallback = {
-          version: "1.7.0",
-          iteration: "2026-09-04T17:19:18+08:00",
-          summary: "优化设备同步入口并新增扫码配对。",
+          version: "1.7.1",
+          iteration: "2026-09-04T17:30:55+08:00",
+          summary: "调整扫码配对为镜像端单向扫码。",
           changes: [],
         };
         try {
@@ -3144,7 +3149,6 @@
       const syncDirectQrTitle = document.getElementById("sync-direct-qr-title");
       const syncDirectQrHelp = document.getElementById("sync-direct-qr-help");
       const syncDirectCopyLinkButton = document.getElementById("sync-direct-copy-link");
-      const syncDirectScanAnswerButton = document.getElementById("sync-direct-scan-answer");
       const syncDirectManualToggle = document.getElementById("sync-direct-manual-toggle");
       const syncPairingCodeField = document.getElementById("sync-pairing-code-field");
       const syncCloudflareManual = document.getElementById("sync-cloudflare-manual");
@@ -3477,10 +3481,6 @@
             syncDirectJoinWrap.hidden = false;
             syncDirectPasteWrap.hidden = true;
             await joinLocalDirectPairing(code);
-          } else if (target === "local-answer") {
-            window.VictoryPVISyncClient.parseLocalPairingCode(code, "answer");
-            syncDirectAnswer.value = code;
-            await applyLocalDirectAnswer(code);
           } else {
             window.VictoryPVISyncClient.parsePairingCode(code);
             syncPairingInput.value = code;
@@ -3524,9 +3524,7 @@
       async function startSyncQrScanner(target) {
         syncQrScanTarget = target;
         if (syncScanTitle) {
-          syncScanTitle.textContent = target === "local-answer"
-            ? "扫描镜像应答二维码"
-            : "扫描操作端配对二维码";
+          syncScanTitle.textContent = "扫描操作端配对二维码";
         }
         if (syncQrScanStatus) syncQrScanStatus.textContent = "正在请求摄像头权限…";
         try {
@@ -3567,7 +3565,7 @@
       }
 
       function refreshSyncPairingQr(isLocalDirect, directSessionActive, directCode) {
-        const localLink = directSessionActive && syncConnectionState !== "connected"
+        const localLink = directSessionActive && syncRole === "host" && syncConnectionState !== "connected"
           ? syncPairingLink(directCode, "local")
           : "";
         const localQrReady = Boolean(localLink) && renderSyncQr(
@@ -3578,23 +3576,16 @@
         if (localLink && !localQrReady) syncDirectManualVisible = true;
         if (syncDirectQrLayout) syncDirectQrLayout.hidden = !localQrReady;
         if (syncDirectQrCaption && directCode) {
-          syncDirectQrCaption.textContent = syncRole === "host" ? "本地操作端二维码" : "本地镜像应答二维码";
+          syncDirectQrCaption.textContent = "本地操作端二维码";
         }
         if (syncDirectQrKicker) {
-          syncDirectQrKicker.textContent = syncRole === "host" ? "第 2 步 · 镜像扫码加入" : "第 2 步 · 返回应答";
+          syncDirectQrKicker.textContent = "第 2 步 · 镜像扫码加入";
         }
         if (syncDirectQrTitle) {
-          syncDirectQrTitle.textContent = syncRole === "host"
-            ? "让镜像设备扫描此二维码"
-            : "把应答二维码发回操作端";
+          syncDirectQrTitle.textContent = "让镜像设备扫描此二维码";
         }
         if (syncDirectQrHelp) {
-          syncDirectQrHelp.textContent = syncRole === "host"
-            ? "扫码后镜像设备会生成应答二维码；操作端可扫描或粘贴应答完成直连。"
-            : "操作端扫描此二维码即可完成直连，也可以复制代码手动发送。";
-        }
-        if (syncDirectScanAnswerButton) {
-          syncDirectScanAnswerButton.hidden = syncRole !== "host" || syncConnectionState === "connected";
+          syncDirectQrHelp.textContent = "镜像设备扫码后会生成应答代码，请复制代码发回操作端完成本地直连。";
         }
         if (syncDirectCopyLinkButton) syncDirectCopyLinkButton.hidden = !localLink;
 
@@ -3645,16 +3636,16 @@
           if (syncDirectInstructionTitle) {
             syncDirectInstructionTitle.textContent = isHost
               ? syncConnectionState === "connected" ? "本地直连已建立" : "等待镜像设备扫码"
-              : syncConnectionState === "connected" ? "正在实时跟随操作端" : "应答二维码已生成";
+              : syncConnectionState === "connected" ? "正在实时跟随操作端" : "应答代码已生成";
           }
           if (syncDirectInstruction) {
             syncDirectInstruction.textContent = isHost
               ? syncConnectionState === "connected"
                 ? "后续消融状态会自动同步；如需重新配对，请重新创建操作端二维码。"
-                : "请让镜像设备扫描二维码；镜像端生成应答二维码后，可由本机扫描或粘贴完成直连。"
+                : "请让镜像设备扫描二维码；镜像端生成应答代码后，将代码发回本机完成直连。"
               : syncConnectionState === "connected"
                 ? "操作端的每次消融状态变化会自动更新本页面。"
-                : "请将此应答二维码展示给操作端扫描，或复制代码发回操作端。";
+                : "镜像端已完成扫码，请复制应答代码发回操作端。";
           }
           if (syncDirectCodeLabel) syncDirectCodeLabel.textContent = isHost
             ? "本地操作端代码（备用）"
@@ -3676,7 +3667,9 @@
           : "");
         if (syncDirectManual) syncDirectManual.hidden = !directSessionActive || !syncDirectManualVisible;
         if (syncCloudflareManual) syncCloudflareManual.hidden = !cloudflareCode || !syncCloudflareManualVisible;
-        if (syncDirectManualToggle) syncDirectManualToggle.textContent = syncDirectManualVisible ? "隐藏手动代码" : "显示手动代码";
+        if (syncDirectManualToggle) syncDirectManualToggle.textContent = syncDirectManualVisible
+          ? "隐藏手动代码"
+          : syncRole === "mirror" ? "显示应答代码" : "显示手动代码";
         if (syncCloudflareManualToggle) syncCloudflareManualToggle.textContent = syncCloudflareManualVisible ? "隐藏手动代码" : "显示手动代码";
         if (syncPushNowButton) syncPushNowButton.hidden = syncRole !== "host";
         settingsButton.disabled = syncRole === "mirror";
@@ -3911,9 +3904,10 @@
           syncRole = "mirror";
           syncTransport = "webrtc-local";
           syncRevision = 0;
+          syncDirectManualVisible = true;
           persistSyncSettings(syncSettings);
           updateSyncUi();
-          showToast("镜像应答二维码已生成，请让操作端扫码");
+          showToast("已扫码加入，请把应答代码发回操作端");
         } catch (error) {
           resetSyncToLocal(error);
         } finally {
@@ -7854,11 +7848,11 @@
         if (!code) return;
         try {
           await navigator.clipboard.writeText(code);
-          showToast("本地配对码已复制");
+          showToast(syncRole === "mirror" ? "应答代码已复制" : "本地配对代码已复制");
         } catch {
           syncDirectCode.focus();
           syncDirectCode.select();
-          showToast("已选中本地配对码，请手动复制");
+          showToast(syncRole === "mirror" ? "已选中应答代码，请手动复制" : "已选中本地配对代码，请手动复制");
         }
       });
       syncDirectApplyAnswerButton.addEventListener("click", applyLocalDirectAnswer);
@@ -7874,9 +7868,6 @@
           updateSyncUi();
           showToast("无法访问剪贴板，请复制备用代码");
         }
-      });
-      syncDirectScanAnswerButton.addEventListener("click", () => {
-        void startSyncQrScanner("local-answer");
       });
       syncDirectManualToggle.addEventListener("click", () => {
         syncDirectManualVisible = !syncDirectManualVisible;

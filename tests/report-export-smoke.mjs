@@ -54,6 +54,9 @@ assert.match(indexHtml, /vendor\/jsqr\.js/);
 assert.match(indexHtml, /id="sync-direct-qr"/);
 assert.match(appScript, /function renderSyncQr/);
 assert.match(appScript, /function startSyncQrScanner/);
+assert.doesNotMatch(indexHtml, /id="sync-direct-scan-answer"/);
+assert.doesNotMatch(appScript, /扫描应答二维码/);
+assert.doesNotMatch(appScript, /local-answer/);
 assert.match(appScript, /endpointSelect\.disabled = syncRole === "mirror"/);
 assert.doesNotMatch(appScript, /function pdfDrawClinicalBanner|function pdfDrawAssessmentTable|function pdfDrawPageTwo/);
 
