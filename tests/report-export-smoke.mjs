@@ -61,6 +61,11 @@ assert.match(appScript, /第 1 步完成：操作端二维码已生成/);
 assert.match(appScript, /第 2 步完成：已识别操作端二维码/);
 assert.match(appScript, /第 3 步完成：已识别应答二维码/);
 assert.match(appScript, /配对完成：本地直连已建立/);
+assert.match(appScript, /const initialLocalPairing = syncHashPairing\("local"\)/);
+assert.match(appScript, /正在生成镜像应答二维码/);
+assert.match(appScript, /镜像端已完成扫码，请把下方应答二维码给操作端扫描/);
+assert.match(indexHtml, /\.sync-direct-setup \[hidden\] \{\s*display: none !important;/);
+assert.match(indexHtml, /id="sync-direct-role-badge"/);
 assert.match(appScript, /endpointSelect\.disabled = syncRole === "mirror"/);
 assert.doesNotMatch(appScript, /function pdfDrawClinicalBanner|function pdfDrawAssessmentTable|function pdfDrawPageTwo/);
 

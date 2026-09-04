@@ -4,17 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f4f5f8" />
-    <meta name="application-version" content="1.8.0" />
-    <meta name="application-iteration" content="2026-09-04T17:49:08+08:00" />
+    <meta name="application-version" content="1.9.0" />
+    <meta name="application-iteration" content="2026-09-04T21:46:54+08:00" />
     <script id="app-release" type="application/json">
       {
-        "version": "1.8.0",
-        "iteration": "2026-09-04T17:49:08+08:00",
-        "summary": "恢复本地直连双向扫码并补充逐步成功提示。",
+        "version": "1.9.0",
+        "iteration": "2026-09-04T21:46:54+08:00",
+        "summary": "修复镜像端扫码后未自动生成应答二维码，并区分双端操作提示。",
         "changes": [
-          "本地直连恢复双向扫码：操作端展示二维码，镜像端扫描并生成应答二维码，操作端再扫描应答完成连接。",
-          "同步弹窗新增三步流程状态和扫码器目标提示，明确当前角色与下一步动作。",
-          "每一步成功后显示提示，连接建立后明确提示实时状态同步已开启；Cloudflare 保持镜像端单向扫码。"
+          "镜像端打开操作端二维码链接后自动加入，成功后立即生成并展示应答二维码。",
+          "同步界面增加操作端/镜像端角色徽标、专属颜色和明确的下一步说明，隐藏镜像端不需要的应答输入框。",
+          "补充扫码识别、应答生成和等待操作端扫描的状态提示，降低双向配对误操作。"
         ]
       }
     </script>
@@ -1407,6 +1407,34 @@
         justify-content: flex-start;
       }
 
+      .sync-direct-role-line {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-bottom: 4px;
+      }
+
+      .sync-direct-role-badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 19px;
+        padding: 3px 8px;
+        border: 1px solid #d9c9eb;
+        border-radius: 999px;
+        background: #f2ecfa;
+        color: var(--purple-3);
+        font-size: 10px;
+        font-weight: 760;
+        line-height: 1;
+      }
+
+      .sync-direct-role-note {
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1.25;
+      }
+
       .sync-direct-status .sync-detail {
         margin-top: 3px;
       }
@@ -1599,12 +1627,42 @@
         display: grid;
         gap: 8px;
         padding: 11px 12px;
+        border: 1px solid transparent;
         border-radius: 10px;
         background: #f7f5fa;
       }
 
+      .sync-direct-setup[data-role="mirror"] {
+        border-color: #d5ebdf;
+        background: #f3faf6;
+      }
+
+      .sync-direct-setup[data-role="mirror"] .sync-direct-role-badge {
+        border-color: #c7e5d5;
+        background: #e6f5ec;
+        color: #1d765e;
+      }
+
+      .sync-direct-setup[data-role="mirror"] .sync-flow-step[data-state="active"] {
+        border-color: #c7e5d5;
+        background: #fbfffc;
+      }
+
+      .sync-direct-setup[data-role="mirror"] .sync-flow-step[data-state="active"] .sync-flow-step-number {
+        background: #24856b;
+      }
+
+      .sync-direct-setup[data-role="mirror"] .sync-qr-layout {
+        border-color: #c7e5d5;
+        background: rgba(255, 255, 255, 0.9);
+      }
+
       .sync-direct-setup[hidden] {
         display: none;
+      }
+
+      .sync-direct-setup [hidden] {
+        display: none !important;
       }
 
       .sync-code-wrap[hidden],
@@ -2395,12 +2453,12 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>VARIPULSE 消融质控记录</h1>
-            <p class="app-meta" id="app-meta" aria-label="软件版本 1.8.0，独立社区维护的非官方工具，迭代时间 2026年9月4日 17点49分">
-              <span class="app-version" id="app-version">v1.8.0</span>
+            <p class="app-meta" id="app-meta" aria-label="软件版本 1.9.0，独立社区维护的非官方工具，迭代时间 2026年9月4日 21点46分">
+              <span class="app-version" id="app-version">v1.9.0</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
               <span>社区维护 · 非官方</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
-              <time id="app-iteration" datetime="2026-09-04T17:49:08+08:00">迭代于 2026-09-04 17:49</time>
+              <time id="app-iteration" datetime="2026-09-04T21:46:54+08:00">迭代于 2026-09-04 21:46</time>
             </p>
           </div>
         </div>
@@ -2711,6 +2769,10 @@
               <div class="sync-direct-status">
                 <span class="sync-step-number" id="sync-direct-step-number">2</span>
                 <div>
+                  <div class="sync-direct-role-line">
+                    <span class="sync-direct-role-badge" id="sync-direct-role-badge">操作端</span>
+                    <span class="sync-direct-role-note" id="sync-direct-role-note">主控设备</span>
+                  </div>
                   <strong id="sync-direct-instruction-title">等待镜像设备</strong>
                   <p class="sync-detail" id="sync-direct-instruction"></p>
                 </div>
@@ -3007,11 +3069,11 @@
           <section class="about-section">
             <h3>当前版本</h3>
             <p>
-              <strong id="about-release-version">v1.8.0</strong>
+              <strong id="about-release-version">v1.9.0</strong>
               <span aria-hidden="true"> · </span>
-              <time id="about-release-iteration" datetime="2026-09-04T17:49:08+08:00">迭代于 2026-09-04 17:49</time>
+              <time id="about-release-iteration" datetime="2026-09-04T21:46:54+08:00">迭代于 2026-09-04 21:46</time>
             </p>
-            <p id="about-release-summary">更新内容：恢复本地直连双向扫码并补充逐步成功提示。</p>
+            <p id="about-release-summary">更新内容：修复镜像端扫码后未自动生成应答二维码，并区分双端操作提示。</p>
           </section>
           <section class="about-section">
             <h3>项目身份</h3>
@@ -3058,9 +3120,9 @@
       const PDF_FONT_FAMILY = "NotoSansSC";
       const APP_RELEASE = Object.freeze((() => {
         const fallback = {
-          version: "1.8.0",
-          iteration: "2026-09-04T17:49:08+08:00",
-          summary: "恢复本地直连双向扫码并补充逐步成功提示。",
+          version: "1.9.0",
+          iteration: "2026-09-04T21:46:54+08:00",
+          summary: "修复镜像端扫码后未自动生成应答二维码，并区分双端操作提示。",
           changes: [],
         };
         try {
@@ -3250,6 +3312,8 @@
       const syncPairedHeading = document.getElementById("sync-paired-heading");
       const syncDirectSetup = document.getElementById("sync-direct-setup");
       const syncDirectStepNumber = document.getElementById("sync-direct-step-number");
+      const syncDirectRoleBadge = document.getElementById("sync-direct-role-badge");
+      const syncDirectRoleNote = document.getElementById("sync-direct-role-note");
       const syncDirectInstructionTitle = document.getElementById("sync-direct-instruction-title");
       const syncDirectInstruction = document.getElementById("sync-direct-instruction");
       const syncDirectFlow = document.getElementById("sync-direct-flow");
@@ -3835,8 +3899,18 @@
         if (syncStatusLabel) syncStatusLabel.textContent = label;
         document.body.dataset.syncRole = syncRole === "mirror" ? "mirror" : "";
         if (syncDialogDot) syncDialogDot.dataset.state = state;
-        if (syncDialogStatus) syncDialogStatus.textContent = syncRole === "mirror" ? "实时跟随" : label === "仅本机" ? "仅本机保存" : label;
-        if (syncDialogDetail) syncDialogDetail.textContent = syncStatusDetail();
+        const mirrorDirectHasAnswer = isLocalDirect && syncRole === "mirror" && Boolean(syncSettings.localAnswerCode);
+        const mirrorDirectConnected = syncRole === "mirror" && (state === "connected" || state === "synced");
+        if (syncDialogStatus) syncDialogStatus.textContent = syncRole === "mirror"
+          ? mirrorDirectConnected
+            ? "实时跟随"
+            : isLocalDirect
+              ? mirrorDirectHasAnswer ? "等待操作端扫描" : "正在生成应答"
+              : label
+          : label === "仅本机" ? "仅本机保存" : label;
+        if (syncDialogDetail) syncDialogDetail.textContent = mirrorDirectHasAnswer && !mirrorDirectConnected
+          ? "应答二维码已生成，请交给操作端扫描后建立本地直连。"
+          : syncStatusDetail();
         if (syncLocalPanel) syncLocalPanel.hidden = syncRole !== "local";
         if (syncDirectLocalSection) syncDirectLocalSection.hidden = syncRole !== "local";
         if (syncCloudflareSection) syncCloudflareSection.hidden = isLocalDirect || syncRole !== "local";
@@ -3844,7 +3918,10 @@
         if (syncPairedHeading) syncPairedHeading.textContent = syncRole === "host" ? "操作端配对" : "镜像设备已连接";
         if (syncPairingCode) syncPairingCode.value = syncClient?.pairingCode || "";
         if (syncPairingCodeField) syncPairingCodeField.hidden = isLocalDirect || syncRole !== "host" || !syncCloudflareManualVisible;
-        if (syncDirectSetup) syncDirectSetup.hidden = !directSessionActive;
+        if (syncDirectSetup) {
+          syncDirectSetup.hidden = !directSessionActive;
+          if (!directSessionActive) syncDirectSetup.removeAttribute("data-role");
+        }
         if (directSessionActive) {
           const isHost = syncRole === "host";
           const directCode = isHost
@@ -3853,6 +3930,9 @@
           const hasOffer = Boolean(syncSettings.localOfferCode);
           const hasAnswer = Boolean(syncSettings.localAnswerCode);
           const connected = syncConnectionState === "connected" || syncConnectionState === "synced";
+          if (syncDirectSetup) syncDirectSetup.dataset.role = isHost ? "host" : "mirror";
+          if (syncDirectRoleBadge) syncDirectRoleBadge.textContent = isHost ? "操作端" : "镜像端";
+          if (syncDirectRoleNote) syncDirectRoleNote.textContent = isHost ? "主控设备" : "只读跟随设备";
           if (syncDirectInstructionTitle) {
             syncDirectInstructionTitle.textContent = isHost
               ? connected
@@ -3860,13 +3940,13 @@
                 : !hasOffer
                   ? "正在生成操作端二维码"
                   : hasAnswer
-                    ? "等待建立本地直连"
-                    : "等待镜像设备扫码"
+                    ? "应答已收到，正在建立直连"
+                    : "等待镜像端扫码"
               : connected
-                ? "正在实时跟随操作端"
+                ? "本地直连已建立，正在跟随"
                 : hasAnswer
-                  ? "应答二维码已生成"
-                  : "正在生成应答二维码";
+                  ? "应答二维码已生成，请操作端扫描"
+                  : "正在生成镜像应答二维码";
           }
           if (syncDirectInstruction) {
             syncDirectInstruction.textContent = isHost
@@ -3875,13 +3955,13 @@
                 : !hasOffer
                   ? "请稍候，二维码生成后即可让镜像端扫描。"
                   : hasAnswer
-                    ? "应答二维码已识别，正在建立本地直连。"
-                    : "请让镜像设备扫描操作端二维码；镜像端生成应答二维码后，由本机扫描完成直连。"
+                    ? "操作端已收到镜像应答，正在建立本地直连。"
+                    : "操作端二维码已就绪，请让镜像端扫码；镜像端生成应答后，再由本机扫描完成直连。"
               : connected
                 ? "操作端的每次消融状态变化会自动更新本页面。"
                 : hasAnswer
-                  ? "请将此应答二维码展示给操作端扫描，扫描成功后会自动完成直连。"
-                  : "正在处理操作端二维码，请稍候。";
+                  ? "镜像端已完成扫码，请把下方应答二维码给操作端扫描；本机无需再次扫描。"
+                  : "镜像端正在处理操作端二维码，生成应答二维码后会显示在这里。";
           }
           if (syncDirectCodeLabel) syncDirectCodeLabel.textContent = isHost
             ? "本地操作端代码（备用）"
@@ -4342,8 +4422,8 @@
         syncJoinWrap.hidden = !cloudflareLocationPairing;
         syncDirectJoinWrap.hidden = !localLocationPairing;
         if (localLocationPairing) {
-          syncDirectPasteWrap.hidden = false;
-          syncDirectPasteToggle.textContent = "隐藏手动输入";
+          syncDirectPasteWrap.hidden = true;
+          syncDirectPasteToggle.textContent = "手动输入（备用）";
         } else {
           syncDirectPasteWrap.hidden = true;
           syncDirectPasteToggle.textContent = "手动输入（备用）";
@@ -8254,10 +8334,17 @@
       renderMap();
       initializeSyncClient();
       restoreSyncSession();
-      if (syncHashPairing("local") || syncHashPairing("sync")) {
+      const initialLocalPairing = syncHashPairing("local");
+      const initialCloudflarePairing = syncHashPairing("sync");
+      if (initialLocalPairing || initialCloudflarePairing) {
         window.setTimeout(() => {
           openSyncDialog();
-          showToast("已读取扫码配对信息，请确认加入");
+          if (initialLocalPairing) {
+            showToast("已识别操作端二维码，正在生成镜像应答二维码…");
+            void joinLocalDirectPairing(initialLocalPairing);
+          } else {
+            showToast("已读取 Cloudflare 配对信息，请确认加入");
+          }
         }, 0);
       }
     </script>
