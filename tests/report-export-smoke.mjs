@@ -5,6 +5,21 @@ import vm from "node:vm";
 const indexHtml = fs.readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const inlineScripts = [...indexHtml.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)];
 const appScript = inlineScripts.at(-1)?.[1] || "";
+const releaseMatch = indexHtml.match(
+  /<script id="app-release" type="application\/json">([\s\S]*?)<\/script>/,
+);
+assert.ok(releaseMatch, "Missing app release metadata");
+const release = JSON.parse(releaseMatch[1]);
+assert.match(release.version, /^\d+\.\d+\.\d+$/);
+assert.match(release.iteration, /^\d{4}-\d{2}-\d{2}T/);
+assert.ok(release.summary);
+assert.ok(Array.isArray(release.changes));
+const releaseFile = JSON.parse(fs.readFileSync(new URL("../release.json", import.meta.url), "utf8"));
+assert.deepEqual(release, releaseFile);
+const readme = fs.readFileSync(new URL("../README.md", import.meta.url), "utf8");
+assert.match(readme, new RegExp(`当前版本：\\*\\*v${release.version}\\*\\*`));
+const changelog = fs.readFileSync(new URL("../CHANGELOG.md", import.meta.url), "utf8");
+assert.match(changelog, new RegExp(`^## v${release.version} ·`, "m"));
 
 function sourceBetween(startMarker, endMarker) {
   const start = appScript.indexOf(startMarker);
@@ -29,7 +44,7 @@ assert.match(appScript, /startAngle = \(sector - 1\) \* 45 \+ 1\.4/);
 assert.match(appScript, /pdfDrawAblationMap\(pdf, 10, 69, 190, 104, model\)/);
 assert.match(appScript, /orientation:\s*"portrait"/);
 assert.match(appScript, /format:\s*"a4"/);
-assert.match(appScript, /报告版本：v1\.4\.0 · 原生矢量/);
+assert.match(appScript, /报告版本：v\$\{APP_RELEASE\.version\} · 原生矢量/);
 assert.doesNotMatch(appScript, /function pdfDrawClinicalBanner|function pdfDrawAssessmentTable|function pdfDrawPageTwo/);
 
 const vectorPdfSource = sourceBetween(
@@ -84,6 +99,8 @@ const dependencies = [
   "vendor/jspdf.umd.min.js",
   "vendor/noto-sans-sc-regular-vfs.js",
   "vendor/NotoSansSC.OFL.txt",
+  "release.json",
+  "CHANGELOG.md",
 ];
 for (const dependency of dependencies) {
   assert.ok(fs.existsSync(new URL(`../${dependency}`, import.meta.url)), `Missing ${dependency}`);

@@ -4,6 +4,29 @@ VictoryPVI 是一个由独立社区贡献者维护的第三方消融记录辅助
 
 本项目为社区维护的非官方项目，不隶属于、不代表，也未获得任何设备厂商、软件平台或医疗机构的官方背书。页面中出现的产品名称仅用于说明兼容或应用场景，相关商标和产品名称归各自权利人所有。
 
+<!-- release-meta:start -->
+当前版本：**v1.4.1** · 迭代于 **2026-09-04 08:54（UTC+8）**
+
+本次更新：肺静脉消融分布图尽可能还原网页版 SVG 样式，PDF 主图同步调整比例与留白，并继续使用原生矢量文字和图形。完整更新记录见 [CHANGELOG.md](./CHANGELOG.md)。
+<!-- release-meta:end -->
+
+## 发布信息
+
+每次推送前先运行发布元数据脚本，统一更新页面、关于窗口、PDF 报告、README 和 `CHANGELOG.md` 中的版本号、迭代时间与更新内容：
+
+```bash
+node scripts/update-release.mjs \
+  --version 1.4.2 \
+  --summary "本次更新概述。" \
+  --change "具体改动一。" \
+  --change "具体改动二。"
+git add -A
+git commit -m "chore: release v1.4.2"
+git push origin main
+```
+
+不传 `--iteration` 时使用当前本地时间；如需固定发布时间，可传入 ISO 8601 时间戳。
+
 ## 使用方式
 
 直接使用现代浏览器打开 `index.html`，或通过静态文件服务器部署。应用不依赖外部 API，消融记录默认保存在当前浏览器的 `localStorage` 中。
