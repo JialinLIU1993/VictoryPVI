@@ -4,17 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f4f5f8" />
-    <meta name="application-version" content="1.11.0" />
-    <meta name="application-iteration" content="2026-09-05T10:05:57+08:00" />
+    <meta name="application-version" content="1.12.0" />
+    <meta name="application-iteration" content="2026-09-05T10:56:46+08:00" />
     <script id="app-release" type="application/json">
       {
-        "version": "1.11.0",
-        "iteration": "2026-09-05T10:05:57+08:00",
-        "summary": "重新设计纯网页离线多端同步。",
+        "version": "1.12.0",
+        "iteration": "2026-09-05T10:56:46+08:00",
+        "summary": "网页按需下载电脑客户端，手机一次扫码即可跟随。",
         "changes": [
-          "移除在线同步入口与无效短码，简化为邀请扫码和回码确认。",
-          "支持一个操作端连接多台跟随设备，新增分块发送、确认反馈、心跳检测及最新状态补发。",
-          "刷新后保留记录与只读角色，明确提示重新扫码。"
+          "提供 Windows 和 Mac 客户端，GitHub 分发，运行环境随包附带。",
+          "当前网页记录自动带入电脑本地窗口，支持多手机同步、刷新恢复与断线重连。",
+          "电脑持久保存最新记录；PDF 依赖按需加载，减轻手机页面。"
         ]
       }
     </script>
@@ -1471,96 +1471,10 @@
         line-height: 1.6;
       }
 
-      .sync-scan-dialog {
-        width: min(420px, calc(100vw - 28px));
-        max-height: min(720px, calc(100dvh - 28px));
-        padding: 0;
-        border: 0;
-        border-radius: 18px;
-        background: var(--surface);
-        color: var(--ink);
-        box-shadow: 0 30px 90px rgba(24, 20, 32, 0.3);
-      }
-
-      .sync-scan-dialog::backdrop {
-        background: rgba(28, 29, 36, 0.55);
-        backdrop-filter: blur(3px);
-      }
-
-      .sync-scan-card {
-        display: grid;
-        grid-template-rows: auto minmax(0, 1fr) auto;
-        max-height: inherit;
-      }
-
-      .sync-scan-header {
-        padding: 18px 20px;
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 12px;
-        border-bottom: 1px solid var(--line);
-      }
-
-      .sync-scan-header h2 {
-        margin: 0;
-        font-size: 18px;
-      }
-
-      .sync-scan-body {
-        padding: 18px 20px 4px;
-        overflow-y: auto;
-      }
-
-      .sync-scan-viewport {
-        position: relative;
-        aspect-ratio: 1;
-        overflow: hidden;
-        border-radius: 14px;
-        background: #14131a;
-      }
-
-      .sync-scan-viewport video {
-        width: 100%;
-        height: 100%;
-        display: block;
-        object-fit: cover;
-      }
-
-      .sync-scan-frame {
-        position: absolute;
-        inset: 18%;
-        border: 2px solid #fff;
-        border-radius: 18px;
-        box-shadow: 0 0 0 999px rgba(12, 10, 16, 0.26);
-        pointer-events: none;
-      }
-
-      .sync-scan-frame::after {
-        content: "";
-        position: absolute;
-        left: 8%;
-        right: 8%;
-        top: 50%;
-        height: 2px;
-        background: var(--purple-1);
-        box-shadow: 0 0 10px rgba(217, 200, 244, 0.9);
-      }
-
-      .sync-scan-status {
-        margin: 13px 0 0;
-        color: var(--ink);
-        font-size: 12px;
-        font-weight: 700;
-        line-height: 1.45;
-      }
-
-      .sync-scan-help {
-        margin: 6px 0 0;
-        color: var(--muted);
-        font-size: 10px;
-        line-height: 1.6;
-      }
+      a.button { text-decoration: none; display: inline-flex; align-items: center; }
+      body[data-sync-role="mirror"] #settings-button,
+      body[data-sync-role="mirror"] #undo-button,
+      body[data-sync-role="mirror"] #reset-button { display: none; }
 
       body[data-sync-role="mirror"] .map-panel,
       body[data-sync-role="mirror"] .electrode-selector-section {
@@ -2137,12 +2051,6 @@
           text-align: center;
         }
 
-        .sync-scan-header,
-        .sync-scan-body {
-          padding-right: 16px;
-          padding-left: 16px;
-        }
-
         .field.full {
           grid-column: auto;
         }
@@ -2173,12 +2081,12 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>VARIPULSE 消融质控记录</h1>
-            <p class="app-meta" id="app-meta" aria-label="软件版本 1.11.0，独立社区维护的非官方工具，迭代时间 2026年9月5日 10点5分">
-              <span class="app-version" id="app-version">v1.11.0</span>
+            <p class="app-meta" id="app-meta" aria-label="软件版本 1.12.0，独立社区维护的非官方工具，迭代时间 2026年9月5日 10点56分">
+              <span class="app-version" id="app-version">v1.12.0</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
               <span>社区维护 · 非官方</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
-              <time id="app-iteration" datetime="2026-09-05T10:05:57+08:00">迭代于 2026-09-05 10:05</time>
+              <time id="app-iteration" datetime="2026-09-05T10:56:46+08:00">迭代于 2026-09-05 10:56</time>
             </p>
           </div>
         </div>
@@ -2376,118 +2284,59 @@
       <form class="settings-card" id="sync-form">
         <header class="settings-header">
           <div class="sync-dialog-title">
-            <p class="dialog-kicker">设备同步</p>
-            <h2 id="sync-title">让另一台设备实时跟随</h2>
-            <p class="settings-header-help">同一 Wi-Fi / 手机热点 · 无需互联网 · 一台操作，多台跟随</p>
+            <p class="dialog-kicker">多端同步</p>
+            <h2 id="sync-title">电脑操作，手机扫码跟随</h2>
+            <p class="settings-header-help">同一 Wi-Fi / 手机热点 · 一台操作，多台跟随</p>
           </div>
           <button class="dialog-close" id="sync-close" type="button" aria-label="关闭设备同步">×</button>
         </header>
-
         <div class="settings-body">
           <section class="sync-section sync-status-panel">
             <div class="sync-status-panel-top">
               <span class="sync-section-label">当前状态</span>
-              <div class="sync-state-line">
-                <i class="sync-state-dot" id="sync-dialog-dot" data-state="local" aria-hidden="true"></i>
-                <strong id="sync-dialog-status">仅本机保存</strong>
-              </div>
+              <div class="sync-state-line"><i class="sync-state-dot" id="sync-dialog-dot" data-state="local" aria-hidden="true"></i><strong id="sync-dialog-status">仅本机</strong></div>
             </div>
-            <p class="sync-detail" id="sync-dialog-detail">当前记录只保存在本机。配对后，操作端的状态变化会自动同步到镜像设备。</p>
+            <p class="sync-detail" id="sync-dialog-detail"></p>
           </section>
-
           <section class="sync-section" id="sync-local-panel">
-            <div class="sync-action-row">
-              <button class="button primary" id="sync-create-room" type="button">连接其他设备</button>
-              <button class="button" id="sync-show-join" type="button">扫码加入</button>
-            </div>
-            <p class="settings-help">设备连接同一 Wi-Fi 或手机热点，并打开本网页。全程在本地传输，无需账号或同步服务器。</p>
-          </section>
-
-          <section class="sync-section" id="sync-pairing-panel" hidden>
-            <h3 id="sync-pairing-title">让另一台设备扫码</h3>
-            <p class="sync-detail" id="sync-pairing-help"></p>
-            <div class="sync-qr-layout">
-              <div class="sync-qr-frame">
-                <div class="sync-qr" id="sync-pairing-qr" aria-label="本地连接二维码"></div>
-                <span class="sync-qr-caption" id="sync-qr-caption">本地连接信息</span>
-              </div>
-              <div class="sync-qr-copy">
-                <strong id="sync-qr-title">只需交换一次回码</strong>
-                <p id="sync-qr-help">对方点“扫码加入”，扫描此码；再用本机扫描对方生成的回码。</p>
-                <button class="button primary" id="sync-scan-answer" type="button">扫描对方回码</button>
-              </div>
-            </div>
-            <details id="sync-code-details">
-              <summary>无法扫码？使用连接码</summary>
-              <textarea class="sync-code" id="sync-pairing-code" aria-label="完整连接码" rows="3" readonly></textarea>
+            <div id="sync-desktop-downloads">
+              <h3>1. 下载并打开电脑客户端</h3>
               <div class="sync-action-row">
-                <button class="button" id="sync-copy-code" type="button">复制连接码</button>
-                <button class="button" id="sync-compatible-code" type="button">兼容连接码</button>
+                <a class="button" id="sync-download-windows" target="_blank" rel="noopener" href="https://github.com/JialinLIU1993/VictoryPVI/releases/download/desktop-v1.12.0/VictoryPVI-Windows-x64.zip">下载 Windows 版</a>
+                <a class="button" id="sync-download-mac" target="_blank" rel="noopener" href="https://github.com/JialinLIU1993/VictoryPVI/releases/download/desktop-v1.12.0/VictoryPVI-macOS.zip">下载 Mac 版</a>
               </div>
-              <div id="sync-answer-input-wrap">
-                <label class="field full" for="sync-answer-input">粘贴对方回码</label>
-                <textarea class="sync-code" id="sync-answer-input" rows="2" placeholder="粘贴 VPVI2 开头的完整回码"></textarea>
-                <button class="button" id="sync-apply-answer" type="button">完成连接</button>
-              </div>
+              <p class="settings-help">首次使用下载一次，解压后双击 VictoryPVI。下载来自 GitHub，日常同步不需要互联网。</p>
+              <h3>2. 继续当前记录</h3>
+              <button class="button primary" id="sync-open-desktop" type="button">已启动，连接并继续记录</button>
+              <p class="settings-help">当前记录会自动带入本地窗口，再让手机扫码。已下载过客户端可直接打开后连接。</p>
+              <details><summary>启动或下载遇到问题</summary>
+                <p class="settings-help">Windows 首次使用请允许应用通过防火墙。Mac 如被系统拦截，请在“系统设置 → 隐私与安全性”中允许打开，再启动一次。不要直接在压缩包内运行。</p>
+                <a href="https://github.com/JialinLIU1993/VictoryPVI/releases/tag/desktop-v1.12.0" target="_blank" rel="noopener">打开 GitHub 下载页</a>
+              </details>
+            </div>
+            <p class="settings-help" id="sync-phone-help" hidden>手机无需下载。请用手机相机扫描电脑“多端同步”窗口中的二维码，在浏览器中打开。</p>
+          </section>
+          <section class="sync-section" id="sync-pairing-panel" hidden>
+            <div class="sync-qr-layout">
+              <div class="sync-qr-frame"><div class="sync-qr" id="sync-pairing-qr" aria-label="手机连接二维码"></div><span class="sync-qr-caption">手机相机扫码即可</span></div>
+              <div class="sync-qr-copy"><strong>打开相机，扫一扫</strong><p>手机和平板无需安装，也不用输入配对码。多台设备扫描同一个二维码。</p><p>手机刷新、短暂断线后会自动恢复。</p></div>
+            </div>
+            <details><summary>无法扫码 / 切换网络</summary>
+              <label class="field full" for="sync-network">电脑网络</label><select id="sync-network" aria-label="电脑网络"></select>
+              <p class="settings-help">其他电脑也可在浏览器输入下面的短网址。若无法打开，请确认同一网络允许设备互访；也可连接同一手机热点。</p>
+              <input class="sync-code" id="sync-address" aria-label="连接网址" readonly />
+              <button class="button" id="sync-copy-address" type="button">复制网址</button>
             </details>
           </section>
-
-          <section class="sync-section sync-join-wrap" id="sync-join-wrap" hidden>
-            <h3>扫描操作端二维码</h3>
-            <p class="sync-detail">扫码后会显示回码，让操作端再扫一次即可连接。</p>
-            <button class="button primary" id="sync-scan-offer" type="button">打开摄像头扫码</button>
-            <details>
-              <summary>粘贴连接码</summary>
-              <textarea class="sync-code" id="sync-pairing-input" aria-label="操作端连接码" rows="3" placeholder="粘贴 VPVI2 开头的完整连接码"></textarea>
-              <button class="button" id="sync-join-room" type="button">加入并生成回码</button>
-            </details>
-          </section>
-
           <section class="sync-section" id="sync-paired-panel" hidden>
             <div class="sync-device-list" id="sync-device-list"></div>
             <p class="sync-detail" id="sync-last-synced">等待首次同步</p>
-            <div class="sync-action-row">
-              <button class="button" id="sync-add-device" type="button">添加 / 重连设备</button>
-              <button class="button" id="sync-rejoin" type="button">重新扫码连接</button>
-              <button class="button" id="sync-push-now" type="button">立即同步</button>
-              <button class="button" id="sync-disconnect" type="button">退出同步</button>
-            </div>
+            <button class="button" id="sync-shutdown" type="button">退出电脑客户端</button>
           </section>
-
           <p class="sync-error" id="sync-error" hidden></p>
-          <p class="sync-privacy-note">使用期间请保持网页打开。短暂中断会自动补发；刷新、关闭网页或更换网络后，需要重新扫码连接。</p>
+          <p class="sync-privacy-note">同步期间保持电脑客户端运行。记录保存在电脑本地；更换 Wi-Fi 或热点后，请扫描新二维码。</p>
         </div>
-
-        <footer class="settings-footer">
-          <div class="settings-footer-actions">
-            <button class="button" id="sync-cancel" type="button">关闭</button>
-          </div>
-        </footer>
-      </form>
-    </dialog>
-
-    <dialog class="sync-scan-dialog" id="sync-scan-dialog" aria-labelledby="sync-scan-title">
-      <form class="sync-scan-card" id="sync-scan-form">
-        <header class="sync-scan-header">
-          <div>
-            <p class="dialog-kicker">扫码配对</p>
-            <h2 id="sync-scan-title">将二维码放入框内</h2>
-          </div>
-          <button class="dialog-close" id="sync-scan-close" type="button" aria-label="关闭扫码">×</button>
-        </header>
-        <div class="sync-scan-body">
-          <div class="sync-scan-viewport">
-            <video id="sync-qr-video" playsinline muted autoplay></video>
-            <span class="sync-scan-frame" aria-hidden="true"></span>
-          </div>
-          <p class="sync-scan-status" id="sync-qr-scan-status" aria-live="polite">正在请求摄像头权限…</p>
-          <p class="sync-scan-help" id="sync-qr-scan-help">如果当前微信版本无法调用摄像头，请使用微信扫一扫打开操作端二维码，或返回选择“手动输入（备用）”。</p>
-        </div>
-        <footer class="settings-footer">
-          <div class="settings-footer-actions">
-            <button class="button" id="sync-scan-cancel" type="button">取消</button>
-          </div>
-        </footer>
+        <footer class="settings-footer"><div class="settings-footer-actions"><button class="button" id="sync-cancel" type="button">关闭</button></div></footer>
       </form>
     </dialog>
 
@@ -2652,11 +2501,11 @@
           <section class="about-section">
             <h3>当前版本</h3>
             <p>
-              <strong id="about-release-version">v1.11.0</strong>
+              <strong id="about-release-version">v1.12.0</strong>
               <span aria-hidden="true"> · </span>
-              <time id="about-release-iteration" datetime="2026-09-05T10:05:57+08:00">迭代于 2026-09-05 10:05</time>
+              <time id="about-release-iteration" datetime="2026-09-05T10:56:46+08:00">迭代于 2026-09-05 10:56</time>
             </p>
-            <p id="about-release-summary">更新内容：重新设计纯网页离线多端同步。</p>
+            <p id="about-release-summary">更新内容：网页按需下载电脑客户端，手机一次扫码即可跟随。</p>
           </section>
           <section class="about-section">
             <h3>项目身份</h3>
@@ -2682,9 +2531,7 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <div class="remove-cursor" id="remove-cursor" aria-hidden="true"></div>
 
-    <script src="./vendor/jspdf.umd.min.js"></script>
     <script src="./vendor/qrcode-generator.js"></script>
-    <script src="./vendor/jsqr.js"></script>
     <script src="./sync-client.js"></script>
     <script>
       const NS = "http://www.w3.org/2000/svg";
@@ -2703,9 +2550,9 @@
       const PDF_FONT_FAMILY = "NotoSansSC";
       const APP_RELEASE = Object.freeze((() => {
         const fallback = {
-          version: "1.11.0",
-          iteration: "2026-09-05T10:05:57+08:00",
-          summary: "重新设计纯网页离线多端同步。",
+          version: "1.12.0",
+          iteration: "2026-09-05T10:56:46+08:00",
+          summary: "网页按需下载电脑客户端，手机一次扫码即可跟随。",
           changes: [],
         };
         try {
@@ -2829,19 +2676,17 @@
       let syncErrorMessage = "";
       let syncSettings = loadSyncSettings();
       let syncClient = null;
-      let syncQrStream = null;
-      let syncQrAnimationFrame = 0;
-      let syncQrScanTarget = "";
-      let syncBusy = false;
-      let syncSyncedCount = 0;
-      let syncDisconnectedCount = 0;
-      let syncPairingStage = "idle";
-      let syncDisplayedCode = "";
-      let syncLastAckedRevision = 0;
-      let syncScanGeneration = 0;
-      syncRole = syncSettings.role || "local";
-      syncRevision = Number(syncSettings.revision) || 0;
-      syncLastSyncedAt = syncSettings.lastSyncedAt || null;
+      let syncBootstrapping = Boolean(window.VICTORYPVI_DESKTOP);
+      let syncHostOnline = false;
+      let syncUrls = [];
+      let syncNetworkUrl = "";
+      let syncHandoffPending = false;
+      let syncHandoffWindow = null;
+      let syncHandoffId = "";
+      let syncImportReply = null;
+      let syncRestoreStarted = false;
+      syncRole = window.VICTORYPVI_DESKTOP ? (window.VICTORYPVI_DESKTOP.hostAllowed && !new URLSearchParams(location.search).has("join") ? "host" : "mirror") : "local";
+      syncRevision = 1;
 
       const svg = document.getElementById("pv-map");
       let highlightDefs = null;
@@ -2874,48 +2719,20 @@
       const syncDialog = document.getElementById("sync-dialog");
       const syncClose = document.getElementById("sync-close");
       const syncCancel = document.getElementById("sync-cancel");
-      const syncCreateRoomButton = document.getElementById("sync-create-room");
-      const syncShowJoinButton = document.getElementById("sync-show-join");
-      const syncJoinWrap = document.getElementById("sync-join-wrap");
-      const syncPairingInput = document.getElementById("sync-pairing-input");
-      const syncJoinRoomButton = document.getElementById("sync-join-room");
-      const syncScanOfferButton = document.getElementById("sync-scan-offer");
       const syncLocalPanel = document.getElementById("sync-local-panel");
       const syncPairedPanel = document.getElementById("sync-paired-panel");
       const syncPairingPanel = document.getElementById("sync-pairing-panel");
-      const syncPairingTitle = document.getElementById("sync-pairing-title");
-      const syncPairingHelp = document.getElementById("sync-pairing-help");
       const syncPairingQr = document.getElementById("sync-pairing-qr");
-      const syncQrCaption = document.getElementById("sync-qr-caption");
-      const syncQrTitle = document.getElementById("sync-qr-title");
-      const syncQrHelp = document.getElementById("sync-qr-help");
-      const syncScanAnswerButton = document.getElementById("sync-scan-answer");
-      const syncCodeDetails = document.getElementById("sync-code-details");
-      const syncPairingCode = document.getElementById("sync-pairing-code");
-      const syncCopyCodeButton = document.getElementById("sync-copy-code");
-      const syncCompatibleCodeButton = document.getElementById("sync-compatible-code");
-      const syncAnswerInputWrap = document.getElementById("sync-answer-input-wrap");
-      const syncAnswerInput = document.getElementById("sync-answer-input");
-      const syncApplyAnswerButton = document.getElementById("sync-apply-answer");
-      const syncAddDeviceButton = document.getElementById("sync-add-device");
-      const syncRejoinButton = document.getElementById("sync-rejoin");
       const syncDialogDot = document.getElementById("sync-dialog-dot");
       const syncDialogStatus = document.getElementById("sync-dialog-status");
       const syncDialogDetail = document.getElementById("sync-dialog-detail");
-      const syncPushNowButton = document.getElementById("sync-push-now");
-      const syncDisconnectButton = document.getElementById("sync-disconnect");
       const syncDeviceList = document.getElementById("sync-device-list");
       const syncLastSynced = document.getElementById("sync-last-synced");
       const syncError = document.getElementById("sync-error");
-      const syncScanDialog = document.getElementById("sync-scan-dialog");
-      const syncScanClose = document.getElementById("sync-scan-close");
-      const syncScanCancel = document.getElementById("sync-scan-cancel");
-      const syncScanTitle = document.getElementById("sync-scan-title");
-      const syncQrVideo = document.getElementById("sync-qr-video");
-      const syncQrScanStatus = document.getElementById("sync-qr-scan-status");
-      const syncQrScanHelp = document.getElementById("sync-qr-scan-help");
-      const syncQrCanvas = document.createElement("canvas");
-      const syncQrCanvasContext = syncQrCanvas.getContext("2d", { willReadFrequently: true });
+      const syncNetwork = document.getElementById("sync-network");
+      const syncAddress = document.getElementById("sync-address");
+      const syncShutdown = document.getElementById("sync-shutdown");
+      const syncOpenDesktop = document.getElementById("sync-open-desktop");
       const settingsDialog = document.getElementById("settings-dialog");
       const settingsForm = document.getElementById("settings-form");
       const settingsClose = document.getElementById("settings-close");
@@ -2985,63 +2802,67 @@
       }
 
       function createSyncDeviceId() {
-        if (typeof window.crypto?.randomUUID === "function") return window.crypto.randomUUID();
-        return `device-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+        return window.crypto?.randomUUID?.() || `device-${Date.now()}-${Math.random().toString(36).slice(2)}`;
       }
-
       function loadSyncSettings() {
-        const fallback = { mode: "local", roomId: "", role: "local", deviceId: createSyncDeviceId(), deviceName: "VictoryPVI 设备", revision: 0, lastSyncedAt: null };
-        try {
-          const stored = JSON.parse(safeStorageGet(SYNC_SETTINGS_KEY) || "{}");
-          if (stored.mode !== "local") return fallback;
-          return { ...fallback, roomId: stored.roomId || "", role: ["host", "mirror"].includes(stored.role) ? stored.role : "local", deviceId: stored.deviceId || fallback.deviceId, deviceName: stored.deviceName || fallback.deviceName, revision: Number(stored.revision) || 0, lastSyncedAt: stored.lastSyncedAt || null };
-        } catch { return fallback; }
+        const fallback = { mode: "desktop", deviceId: createSyncDeviceId(), roomId: "", pending: false };
+        try { const stored = JSON.parse(safeStorageGet(SYNC_SETTINGS_KEY) || "{}"); return stored.mode === "desktop" ? { ...fallback, ...stored } : fallback; }
+        catch { return fallback; }
       }
-
       function persistSyncSettings(patch = {}) {
         syncSettings = { ...syncSettings, ...patch };
         safeStorageSet(SYNC_SETTINGS_KEY, JSON.stringify(syncSettings));
       }
-
-      function syncTimeLabel(isoTime) {
-        if (!isoTime || Number.isNaN(new Date(isoTime).getTime())) return "尚未同步";
-        return formatOperationTime(new Date(isoTime).toISOString());
-      }
-
-      function syncStatusLabelText() {
-        if (syncRole === "local") return "仅本机";
-        if (syncConnectionState === "error") return "连接未完成";
-        if (syncConnectionState === "offline") return "连接中断";
-        if (syncDisconnectedCount > 0) return `${syncDisconnectedCount} 台已断开`;
-        if (syncPeerCount === 0) return "等待连接";
-        if (syncRole === "mirror") return syncLastSyncedAt ? "本地跟随" : "等待记录";
-        return syncSyncedCount >= syncPeerCount ? `已同步 · ${syncPeerCount} 台` : `同步中 · ${syncPeerCount} 台`;
-      }
-
-      function syncStatusDetail() {
-        if (syncErrorMessage) return syncErrorMessage;
-        if (syncRole === "local") return "本机负责操作，其他设备只读跟随。无需填写服务地址。";
-        if (syncConnectionState === "offline" || syncDisconnectedCount > 0) return "已保留最后记录。确认设备仍在同一网络并回到网页；短暂中断恢复后会自动补发，无法恢复时请重新扫码。";
-        if (!syncPeerCount) return "交换二维码后即可连接。操作端先展示邀请，再扫描对方生成的回码。";
-        return syncRole === "host" ? "本地直连已建立，记录变化会同步到跟随设备。" : "本地直连已建立，此设备只读跟随操作端。";
-      }
-
-      function updateSyncDeviceList() {
+      function updateSyncUi() {
+        const host = syncRole === "host", mirror = syncRole === "mirror";
+        const label = syncRole === "local" ? "仅本机" : syncBootstrapping ? "正在连接" : syncConnectionState === "offline" ? "正在重连" : mirror ? "只读跟随" : syncPeerCount ? `已连接 · ${syncPeerCount} 台` : "等待手机扫码";
+        syncStatusButton.dataset.state = syncConnectionState;
+        syncStatusButton.setAttribute("aria-label", `设备同步：${label}`);
+        syncStatusLabel.textContent = label;
+        syncDialogDot.dataset.state = syncConnectionState;
+        syncDialogStatus.textContent = label;
+        syncDialogDetail.textContent = syncRole === "local" ? "平时直接使用网页；需要连接手机时，打开电脑客户端即可。" : syncBootstrapping ? "正在恢复电脑上的记录，请稍候。" : syncConnectionState === "offline" ? "保留最后记录，网络恢复后自动重连。" : host ? (syncSettings.pending ? "最新操作正在保存到电脑。" : "记录已保存在电脑，手机扫码即可显示。") : syncHostOnline ? "此设备只读，自动跟随电脑上的最新记录。" : "显示电脑最后保存的记录，等待操作窗口恢复。";
+        document.body.dataset.syncRole = mirror ? "mirror" : "";
+        syncLocalPanel.hidden = syncRole !== "local";
+        syncPairedPanel.hidden = syncRole === "local";
+        syncPairingPanel.hidden = !host || !syncNetworkUrl;
+        syncShutdown.hidden = !host;
+        syncShutdown.disabled = syncBootstrapping || Boolean(syncSettings.pending);
+        if (host && syncNetworkUrl) {
+          renderSyncQr(syncPairingQr, syncNetworkUrl, "手机连接二维码");
+          syncAddress.value = syncNetworkUrl;
+        }
+        syncOpenDesktop.disabled = syncHandoffPending;
+        syncLastSynced.textContent = syncLastSyncedAt ? `最近保存：${formatOperationTime(syncLastSyncedAt)}` : "等待首次记录";
+        syncError.hidden = !syncErrorMessage;
+        syncError.textContent = syncErrorMessage;
+        const blocked = mirror || syncBootstrapping || syncHandoffPending;
+        settingsButton.disabled = blocked;
+        resetButton.disabled = blocked;
+        mapModeToggle.disabled = blocked;
+        exportButton.hidden = mirror;
+        document.querySelectorAll(".endpoint-control select").forEach(select => { select.disabled = blocked; });
+        updateUndoButton();
         syncDeviceList.replaceChildren();
-        const devices = [{ deviceId: syncSettings.deviceId, deviceName: "本机", role: syncRole, connected: true }, ...syncPeers];
-        for (const device of devices) {
-          const row = document.createElement("div");
-          row.className = "sync-device-row";
-          row.dataset.connected = device.connected === false ? "false" : "true";
-          const name = document.createElement("span");
-          name.textContent = device.deviceName || "设备";
-          const role = document.createElement("small");
-          role.textContent = device.connected === false ? "已断开" : device.role === "host" ? "操作端" : "跟随设备";
-          row.append(name, role);
-          syncDeviceList.appendChild(row);
+        const devices = new Map(syncPeers.map(peer => [peer.deviceId, peer]));
+        let phone = 0;
+        for (const peer of devices.values()) {
+          const row = document.createElement("div"); row.className = "sync-device-row";
+          const name = document.createElement("span"), state = document.createElement("small");
+          name.textContent = peer.role === "host" ? "操作电脑" : peer.deviceId === syncSettings.deviceId ? "本机" : `跟随设备 ${++phone}`;
+          state.textContent = peer.role === "host" ? "操作中" : peer.appliedRevision >= (syncClient?.appliedRevision || 1) ? "已同步" : "同步中";
+          row.append(name, state); syncDeviceList.append(row);
         }
       }
-
+      function updateSyncUrls(urls = []) {
+        if (JSON.stringify(urls) === JSON.stringify(syncUrls)) return;
+        syncUrls = urls;
+        if (!urls.some(item => item.url === syncNetworkUrl)) syncNetworkUrl = urls[0]?.url || "";
+        syncNetwork.replaceChildren();
+        for (const item of urls) { const option = document.createElement("option"); option.value = item.url; option.textContent = `${new URL(item.url).hostname} · ${item.name}`; syncNetwork.append(option); }
+        syncNetwork.value = syncNetworkUrl;
+        if (syncRole === "host" && !urls.length) syncErrorMessage = "尚未找到局域网，请先连接 Wi-Fi 或手机热点。";
+      }
       function renderSyncQr(container, value, label) {
         if (!container) return false;
         if (value && container.dataset.qrValue === value && container.querySelector("svg")) return true;
@@ -3076,173 +2897,6 @@
         }
       }
 
-      function syncHashPairing(prefix) {
-        const rawHash = String(window.location.hash || "").replace(/^#/, "");
-        if (!rawHash.startsWith(`${prefix}=`)) return "";
-        try {
-          return decodeURIComponent(rawHash.slice(prefix.length + 1));
-        } catch {
-          return rawHash.slice(prefix.length + 1);
-        }
-      }
-
-      function clearSyncPairingHash() {
-        try {
-          const cleanUrl = `${window.location.pathname}${window.location.search}`;
-          window.history.replaceState(null, "", cleanUrl);
-        } catch {
-          // file:// and embedded webviews may not expose history.replaceState.
-        }
-      }
-
-      function closeSyncScanDialog() {
-        stopSyncQrScanner();
-        if (syncScanDialog?.open) syncScanDialog.close();
-        else syncScanDialog?.removeAttribute("open");
-      }
-
-      function stopSyncQrScanner() {
-        syncScanGeneration += 1;
-        if (syncQrAnimationFrame) {
-          window.cancelAnimationFrame?.(syncQrAnimationFrame);
-          syncQrAnimationFrame = 0;
-        }
-        if (syncQrStream) {
-          syncQrStream.getTracks?.().forEach((track) => track.stop());
-          syncQrStream = null;
-        }
-        if (syncQrVideo) syncQrVideo.srcObject = null;
-        syncQrScanTarget = "";
-      }
-
-      function requestSyncQrFrame() {
-        const requestFrame = window.requestAnimationFrame
-          ? (callback) => window.requestAnimationFrame(callback)
-          : (callback) => window.setTimeout(callback, 160);
-        syncQrAnimationFrame = requestFrame(scanSyncQrFrame);
-      }
-
-      async function handleScannedSyncCode(value, target) {
-        if (target === "answer") await applyLocalDirectAnswer(value);
-        else await joinLocalDirectPairing(value);
-      }
-
-      function scanSyncQrFrame() {
-        if (!syncQrStream || !syncQrVideo || !syncQrScanTarget) return;
-        if (syncQrVideo.readyState >= 2 && syncQrVideo.videoWidth && syncQrCanvasContext) {
-          const maxWidth = 960;
-          const width = Math.min(syncQrVideo.videoWidth, maxWidth);
-          const height = Math.max(1, Math.round(syncQrVideo.videoHeight * (width / syncQrVideo.videoWidth)));
-          if (syncQrCanvas.width !== width || syncQrCanvas.height !== height) {
-            syncQrCanvas.width = width;
-            syncQrCanvas.height = height;
-          }
-          syncQrCanvasContext.drawImage(syncQrVideo, 0, 0, width, height);
-          try {
-            const image = syncQrCanvasContext.getImageData(0, 0, width, height);
-            const result = typeof window.jsQR === "function"
-              ? window.jsQR(image.data, image.width, image.height, { inversionAttempts: "attemptBoth" })
-              : null;
-            if (result?.data) {
-              const target = syncQrScanTarget;
-              closeSyncScanDialog();
-              void handleScannedSyncCode(result.data, target);
-              return;
-            }
-          } catch {
-            // Keep scanning; transient camera frames can be incomplete.
-          }
-        }
-        requestSyncQrFrame();
-      }
-
-      async function startSyncQrScanner(target) {
-        syncQrScanTarget = target;
-        const scanGeneration = ++syncScanGeneration;
-        if (syncScanTitle) syncScanTitle.textContent = target === "answer" ? "扫描对方回码" : "扫描操作端二维码";
-        if (syncQrScanHelp) syncQrScanHelp.textContent = target === "answer" ? "对准跟随设备上的回码，识别后自动连接。" : "识别后会显示回码，再让操作端扫描一次。";
-        if (syncQrScanStatus) syncQrScanStatus.textContent = "正在请求摄像头权限…";
-        try {
-          if (typeof syncScanDialog?.showModal === "function" && !syncScanDialog.open) {
-            syncScanDialog.showModal();
-          } else {
-            syncScanDialog?.setAttribute("open", "");
-          }
-        } catch {
-          syncScanDialog?.setAttribute("open", "");
-        }
-        if (typeof window.jsQR !== "function" || !navigator.mediaDevices?.getUserMedia) {
-          if (syncQrScanStatus) syncQrScanStatus.textContent = "当前设备无法调用网页摄像头";
-          showToast("请使用系统浏览器打开网页，或展开连接码进行复制粘贴");
-          return false;
-        }
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            audio: false,
-            video: {
-              facingMode: { ideal: "environment" },
-              width: { ideal: 1280 },
-              height: { ideal: 720 },
-            },
-          });
-          if (scanGeneration !== syncScanGeneration) { stream.getTracks().forEach((track) => track.stop()); return false; }
-          syncQrStream = stream;
-          syncQrVideo.srcObject = syncQrStream;
-          syncQrVideo.muted = true;
-          await syncQrVideo.play();
-          if (scanGeneration !== syncScanGeneration) return false;
-          if (syncQrScanStatus) syncQrScanStatus.textContent = "正在识别二维码…";
-          requestSyncQrFrame();
-          return true;
-        } catch (error) {
-          stopSyncQrScanner();
-          if (syncQrScanStatus) syncQrScanStatus.textContent = "摄像头不可用，请返回使用手动输入（备用）";
-          showToast("无法打开摄像头，请检查权限或使用完整连接码");
-          return false;
-        }
-      }
-
-      function updateSyncUi() {
-        const label = syncStatusLabelText();
-        const displayState = syncDisconnectedCount > 0 ? "offline" : syncConnectionState;
-        syncStatusButton.dataset.state = displayState;
-        syncStatusButton.setAttribute("aria-label", `设备同步：${label}`);
-        syncStatusLabel.textContent = label;
-        syncDialogDot.dataset.state = displayState;
-        syncDialogStatus.textContent = label;
-        syncDialogDetail.textContent = syncStatusDetail();
-        document.body.dataset.syncRole = syncRole === "mirror" ? "mirror" : "";
-        syncLocalPanel.hidden = syncRole !== "local";
-        syncPairedPanel.hidden = syncRole === "local";
-        syncPairingPanel.hidden = !syncDisplayedCode || syncPairingStage === "idle";
-        const host = syncRole === "host";
-        syncPairingTitle.textContent = host ? "让另一台设备扫码" : "请让操作端扫描回码";
-        syncPairingHelp.textContent = syncPairingStage === "finishing" ? "回码已收到，正在建立本地直连…" : host ? "对方打开本网页，点击“扫码加入”。" : "本机已准备好，将此二维码展示给操作端。";
-        syncQrCaption.textContent = host ? "操作端邀请" : "跟随设备回码";
-        syncQrTitle.textContent = host ? "接下来，扫描对方回码" : "等待操作端扫描";
-        syncQrHelp.textContent = host ? "对方扫码后会生成回码，用下面的按钮扫描一次即可。" : "操作端点“扫描对方回码”并扫描此码，随后自动显示最新记录。";
-        syncScanAnswerButton.hidden = !host || syncPairingStage === "finishing";
-        syncAnswerInputWrap.hidden = !host;
-        syncAddDeviceButton.hidden = !host;
-        syncRejoinButton.hidden = host;
-        syncPushNowButton.hidden = !host;
-        for (const button of [syncCreateRoomButton, syncAddDeviceButton, syncJoinRoomButton, syncApplyAnswerButton, syncScanAnswerButton, syncScanOfferButton, syncDisconnectButton]) button.disabled = syncBusy;
-        syncPairingCode.value = syncDisplayedCode;
-        if (syncDisplayedCode) {
-          if (!renderSyncQr(syncPairingQr, syncDisplayedCode, host ? "本地邀请二维码" : "本地回码")) syncCodeDetails.open = true;
-          syncPairingCode.value = syncDisplayedCode;
-        }
-        syncLastSynced.textContent = syncLastSyncedAt ? `最近同步：${syncTimeLabel(syncLastSyncedAt)}` : "等待首次同步";
-        syncError.hidden = !syncErrorMessage;
-        syncError.textContent = syncErrorMessage;
-        settingsButton.disabled = syncRole === "mirror";
-        resetButton.disabled = syncRole === "mirror";
-        mapModeToggle.disabled = syncRole === "mirror";
-        document.querySelectorAll(".endpoint-control select").forEach((select) => { select.disabled = syncRole === "mirror"; });
-        updateUndoButton();
-        updateSyncDeviceList();
-      }
-
       function syncSnapshotPayload() {
         return {
           schemaVersion: SCHEMA_VERSION,
@@ -3263,7 +2917,7 @@
       }
 
       function applySyncedSnapshot(payload, envelope = {}) {
-        if (syncRole !== "mirror") return;
+        if (syncRole !== "mirror" && !envelope.restoreHost) return false;
         if (!payload || typeof payload !== "object") {
           syncErrorMessage = "收到的同步状态无效";
           updateSyncUi();
@@ -3277,6 +2931,7 @@
         const ridgeState = normalizeRidgeState(payload.counts, payload.ridgeApplications);
         syncApplying = true;
         try {
+          if (envelope.restoreHost && JSON.stringify(syncSnapshotPayload()) !== JSON.stringify(payload)) actionHistory = [];
           counts = ridgeState.counts;
           applications = payload.applications && typeof payload.applications === "object"
             ? { ...payload.applications }
@@ -3292,11 +2947,13 @@
           selectedKey = null;
           selectedSector = null;
           selectedRidgeId = null;
-          syncRevision = Math.max(syncRevision, Number(envelope.revision) || 0);
           syncLastSyncedAt = envelope.updatedAt || new Date().toISOString();
           persistSyncSettings({ revision: syncRevision, lastSyncedAt: syncLastSyncedAt });
-          saveCounts();
-          saveHistory();
+          // A same-origin read-only window must not overwrite the operator's pending local edits.
+          if (syncRole !== "mirror" || !window.VICTORYPVI_DESKTOP?.hostAllowed) {
+            saveCounts();
+            saveHistory();
+          }
           renderMap();
           syncErrorMessage = "";
         } finally {
@@ -3307,137 +2964,111 @@
       }
 
       function scheduleSyncSnapshot() {
-        if (syncApplying || syncRole !== "host" || !syncClient || !syncSettings.roomId) return;
-        syncRevision = Math.max(syncRevision + 1, Number(syncSettings.revision || 0) + 1);
-        persistSyncSettings({ revision: syncRevision });
+        if (syncApplying || syncBootstrapping || syncRole !== "host" || !syncClient) return;
+        syncRevision++;
+        persistSyncSettings({ pending: true });
         window.clearTimeout(scheduleSyncSnapshot.timer);
         scheduleSyncSnapshot.timer = window.setTimeout(() => {
           if (syncRole === "host") syncClient.sendSnapshot(syncSnapshotPayload(), syncRevision);
-        }, 120);
-      }
-
-      function handleSyncError(error) {
-        syncErrorMessage = error?.message || "连接未完成，请重新扫码";
-        syncConnectionState = syncPeerCount ? "connected" : "error";
+        }, 100);
         updateSyncUi();
-        showToast(syncErrorMessage);
       }
-
-      async function createLocalDirectPairing() {
-        if (syncBusy || !syncClient) return;
-        syncBusy = true;
-        syncErrorMessage = "";
-        syncRole = "host";
-        syncPairingStage = "offer";
-        syncDisplayedCode = "";
-        syncAnswerInput.value = "";
-        syncJoinWrap.hidden = true;
-        updateSyncUi();
-        try {
-          const details = await syncClient.createLocalOffer({ deviceId: syncSettings.deviceId, deviceName: "操作设备" });
-          syncRevision = Math.max(1, syncRevision);
-          persistSyncSettings({ mode: "local", role: "host", roomId: details.roomId, revision: syncRevision });
-          syncDisplayedCode = details.offerCode;
-          syncClient.sendSnapshot(syncSnapshotPayload(), syncRevision);
-        } catch (error) { handleSyncError(error); }
-        finally { syncBusy = false; updateSyncUi(); }
-      }
-
-      async function joinLocalDirectPairing(providedValue = "") {
-        if (syncBusy || !syncClient) return;
-        const value = typeof providedValue === "string" && providedValue ? providedValue : syncPairingInput.value.trim();
-        syncBusy = true;
-        syncErrorMessage = "";
-        updateSyncUi();
-        try {
-          await window.VictoryPVISyncClient.parseLocalPairingCode(value, "offer");
-          syncRole = "mirror";
-          syncRevision = 0;
-          syncLastSyncedAt = null;
-          syncPairingStage = "answer";
-          syncDisplayedCode = "";
-          persistSyncSettings({ mode: "local", role: "mirror", revision: 0, lastSyncedAt: null });
-          const details = await syncClient.joinLocalOffer(value, { deviceId: syncSettings.deviceId, deviceName: "跟随设备" });
-          persistSyncSettings({ roomId: details.roomId });
-          syncDisplayedCode = details.answerCode;
-          syncJoinWrap.hidden = true;
-          clearSyncPairingHash();
-        } catch (error) { handleSyncError(error); }
-        finally { syncBusy = false; updateSyncUi(); }
-      }
-
-      async function applyLocalDirectAnswer(providedValue = "") {
-        if (syncBusy || !syncClient) return;
-        syncBusy = true;
-        syncErrorMessage = "";
-        updateSyncUi();
-        try {
-          const value = typeof providedValue === "string" && providedValue ? providedValue : syncAnswerInput.value.trim();
-          await syncClient.applyLocalAnswer(value);
-          syncPairingStage = "finishing";
-          syncClient.sendSnapshot(syncSnapshotPayload(), Math.max(1, syncRevision));
-        } catch (error) { handleSyncError(error); }
-        finally { syncBusy = false; updateSyncUi(); }
-      }
-
-      function disconnectSyncSession() {
-        syncClient?.disconnect({ silent: true });
-        window.clearTimeout(scheduleSyncSnapshot.timer);
-        syncRole = "local";
-        syncConnectionState = "local";
-        syncPeerCount = 0;
-        syncPeers = [];
-        syncRevision = 0;
-        syncSyncedCount = 0;
-        syncDisconnectedCount = 0;
-        syncLastSyncedAt = null;
-        syncErrorMessage = "";
-        syncPairingStage = "idle";
-        syncDisplayedCode = "";
-        syncJoinWrap.hidden = true;
-        persistSyncSettings({ mode: "local", roomId: "", role: "local", revision: 0, lastSyncedAt: null });
-        clearSyncPairingHash();
-        updateSyncUi();
-        showToast("已退出同步，本机记录已保留");
-      }
-
       function openSyncDialog() { updateSyncUi(); if (!syncDialog.open) syncDialog.showModal(); }
       function closeSyncDialog() { syncDialog.close(); }
-
       function initializeSyncClient() {
-        if (typeof window.VictoryPVISyncClient !== "function") { handleSyncError(new Error("同步组件未加载，请刷新页面")); return; }
         syncClient = new window.VictoryPVISyncClient({
-          onSnapshot: (payload, envelope) => applySyncedSnapshot(payload, envelope),
-          onStatus: (details = {}) => {
-            syncConnectionState = details.state || "local";
-            if (Number.isInteger(details.peerCount)) syncPeerCount = details.peerCount;
-            if (Number.isInteger(details.syncedCount)) syncSyncedCount = details.syncedCount;
-            if (Number.isInteger(details.disconnectedCount)) syncDisconnectedCount = details.disconnectedCount;
-            if (details.state === "synced" || syncRole === "host" && syncSyncedCount > 0 && syncSyncedCount === syncPeerCount && syncRevision > syncLastAckedRevision) {
-              syncLastAckedRevision = syncRevision;
-              syncLastSyncedAt = new Date().toISOString();
-              persistSyncSettings({ lastSyncedAt: syncLastSyncedAt });
-            }
-            if (syncPeerCount && !syncClient.pendingPeer && syncPairingStage !== "idle") {
-              syncPairingStage = "idle";
-              syncErrorMessage = "";
-              showToast("本地连接已建立，记录会自动同步");
-            }
+          getSnapshot: syncSnapshotPayload,
+          onSnapshot: applySyncedSnapshot,
+          onPresence: peers => { syncPeers = peers; syncPeerCount = new Set(peers.filter(p => p.role === "mirror").map(p => p.deviceId)).size; },
+          onStatus: details => {
+            syncConnectionState = details.state;
+            if (details.roomId) persistSyncSettings({ roomId: details.roomId });
+            if (details.urls && syncRole === "host") updateSyncUrls(details.urls);
+            syncHostOnline = Boolean(details.hostOnline);
+            if (details.state === "connected" && syncUrls.length) syncErrorMessage = "";
+            if (details.error) syncErrorMessage = details.error;
             updateSyncUi();
           },
-          onPresence: (peers) => { syncPeers = peers; },
-          onError: handleSyncError,
+          onSaved: (ack, latest) => {
+            syncLastSyncedAt = ack.updatedAt;
+            // A new UI edit may still be waiting for the debounce timer.
+            if (latest && ack.clientRevision >= syncRevision) persistSyncSettings({ pending: false });
+            if (syncImportReply && !syncSettings.pending) { syncImportReply(); syncImportReply = null; }
+            updateSyncUi();
+          },
+          onSuperseded: () => {
+            syncRole = "mirror"; syncBootstrapping = false;
+            window.clearTimeout(scheduleSyncSnapshot.timer);
+            syncErrorMessage = "已在另一个窗口继续操作，本窗口已停用，请关闭本窗口。";
+            updateSyncUi();
+          },
         });
+        const phone = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+        document.getElementById("sync-desktop-downloads").hidden = phone;
+        document.getElementById("sync-phone-help").hidden = !phone;
+        document.getElementById(/Win/.test(navigator.platform) ? "sync-download-windows" : "sync-download-mac").classList.add("primary");
         updateSyncUi();
       }
-
-      function restoreSyncSession() {
-        if (syncRole !== "local") {
-          syncConnectionState = "offline";
-          syncErrorMessage = "网页已重新打开，记录已保留，请重新扫码连接。";
-          updateSyncUi();
+      async function restoreSyncSession(imported = null) {
+        if (!window.VICTORYPVI_DESKTOP || syncRestoreStarted) return;
+        const query = new URLSearchParams(location.search);
+        if (query.has("import") && !imported) {
+          syncErrorMessage = "正在从原网页接收记录，请保持原网页打开。";
+          updateSyncUi(); openSyncDialog();
+          window.opener?.postMessage({ type: "vpvi-desktop-ready", id: query.get("import") }, "*");
+          return;
         }
+        syncRestoreStarted = true;
+        const initialSnapshot = imported || (syncRole === "host" && syncSettings.pending ? syncSnapshotPayload() : null);
+        if (imported) {
+          if (!applySyncedSnapshot(imported, { restoreHost: true })) { syncRestoreStarted = false; return; }
+          // Keep an interrupted import recoverable across browser refresh.
+          persistSyncSettings({ pending: true });
+        }
+        let delay = 500;
+        while (syncBootstrapping) {
+          try {
+            await syncClient.connect({ role: syncRole, deviceId: syncSettings.deviceId,
+              roomId: syncRole === "mirror" ? query.get("join") : "",
+              initialSnapshot,
+              onRestore: (payload, envelope) => applySyncedSnapshot(payload, { ...envelope, restoreHost: true }) });
+            syncBootstrapping = false;
+            if (syncRole === "host") openSyncDialog();
+          } catch (error) {
+            syncErrorMessage = error.message || "电脑客户端未连接，正在重试。";
+            syncConnectionState = "offline"; updateSyncUi();
+            await new Promise(resolve => window.setTimeout(resolve, delay));
+            delay = Math.min(delay * 2, 5000);
+          }
+        }
+        updateSyncUi();
       }
+      function openDesktopWithRecord() {
+        syncHandoffId = createSyncDeviceId();
+        syncHandoffWindow = window.open(`http://localhost:8787/?host=1&import=${syncHandoffId}`, "vpvi-desktop-import");
+        if (!syncHandoffWindow) { syncErrorMessage = "请允许本网页打开新窗口，再点一次连接。"; updateSyncUi(); return; }
+        syncHandoffPending = true;
+        syncErrorMessage = "正在连接电脑客户端。若新窗口无法打开，请先解压并双击客户端，再回来点一次连接。";
+        updateSyncUi();
+        window.clearTimeout(openDesktopWithRecord.timer);
+        openDesktopWithRecord.timer = window.setTimeout(() => { syncHandoffPending = false; updateSyncUi(); }, 15000);
+      }
+      window.addEventListener("message", event => {
+        if (event.origin === "http://localhost:8787" && event.source === syncHandoffWindow && event.data?.id === syncHandoffId) {
+          if (event.data.type === "vpvi-desktop-ready") event.source.postMessage({ type: "vpvi-desktop-record", id: syncHandoffId, payload: syncSnapshotPayload() }, event.origin);
+          if (event.data.type === "vpvi-desktop-saved") {
+            window.clearTimeout(openDesktopWithRecord.timer);
+            syncHandoffWindow.close();
+            location.href = "http://localhost:8787/?host=1";
+          }
+        }
+        const query = new URLSearchParams(location.search);
+        if (window.VICTORYPVI_DESKTOP?.hostAllowed && query.has("import") && event.source === window.opener && event.data?.type === "vpvi-desktop-record" && event.data.id === query.get("import") && !syncRestoreStarted) {
+          syncImportReply = () => event.source.postMessage({ type: "vpvi-desktop-saved", id: event.data.id }, event.origin === "null" ? "*" : event.origin);
+          history.replaceState(null, "", "/?host=1");
+          void restoreSyncSession(event.data.payload);
+        }
+      });
 
       resetButton.disabled = false;
       exportButton.disabled = false;
@@ -3716,7 +3347,7 @@
       }
 
       function syncWriteBlocked() {
-        if (syncRole !== "mirror") return false;
+        if (syncRole !== "mirror" && !syncBootstrapping && !syncHandoffPending) return false;
         showToast("当前设备为只读实时镜像，请在操作端修改记录");
         return true;
       }
@@ -4301,7 +3932,7 @@
       }
 
       function updateUndoButton() {
-        undoButton.disabled = syncRole === "mirror" || actionHistory.length === 0;
+        undoButton.disabled = syncRole === "mirror" || syncBootstrapping || syncHandoffPending || actionHistory.length === 0;
         const latest = actionHistory[actionHistory.length - 1];
         undoButton.title = latest
           ? `撤回：${normalizeAblationWording(latest.actionLabel)}（⌘/Ctrl + Z）`
@@ -4945,7 +4576,7 @@
           `;
           veinList.appendChild(item);
           const endpointSelect = item.querySelector("select");
-          endpointSelect.disabled = syncRole === "mirror";
+          endpointSelect.disabled = syncRole === "mirror" || syncBootstrapping || syncHandoffPending;
           endpointSelect.addEventListener("change", (event) => {
             if (syncWriteBlocked()) {
               event.target.value = endpoints[vein.id] || "not-assessed";
@@ -7041,7 +6672,13 @@
 
         try {
           if (!window.jspdf?.jsPDF) {
-            throw new Error("PDF 生成组件未加载");
+            await new Promise((resolve, reject) => {
+              const script = document.createElement("script");
+              script.src = "./vendor/jspdf.umd.min.js";
+              script.onload = resolve;
+              script.onerror = () => { script.remove(); reject(new Error("PDF 生成组件未加载")); };
+              document.head.append(script);
+            });
           }
 
           const exportTime = new Date();
@@ -7070,34 +6707,20 @@
       syncDialog.addEventListener("click", (event) => {
         if (event.target === syncDialog) closeSyncDialog();
       });
-      syncShowJoinButton.addEventListener("click", () => { syncJoinWrap.hidden = false; startSyncQrScanner("offer"); });
-      syncRejoinButton.addEventListener("click", () => { syncJoinWrap.hidden = false; startSyncQrScanner("offer"); });
-      syncCreateRoomButton.addEventListener("click", createLocalDirectPairing);
-      syncAddDeviceButton.addEventListener("click", createLocalDirectPairing);
-      syncJoinRoomButton.addEventListener("click", () => joinLocalDirectPairing());
-      syncApplyAnswerButton.addEventListener("click", () => applyLocalDirectAnswer());
-      syncScanOfferButton.addEventListener("click", () => startSyncQrScanner("offer"));
-      syncScanAnswerButton.addEventListener("click", () => startSyncQrScanner("answer"));
-      syncCopyCodeButton.addEventListener("click", async () => {
-        try { await navigator.clipboard.writeText(syncDisplayedCode); showToast("连接码已复制"); }
-        catch { syncPairingCode.focus(); syncPairingCode.select(); showToast("已选中完整连接码，请复制"); }
+      document.getElementById("sync-form").addEventListener("submit", event => event.preventDefault());
+      syncOpenDesktop.addEventListener("click", openDesktopWithRecord);
+      syncNetwork.addEventListener("change", () => { syncNetworkUrl = syncNetwork.value; updateSyncUi(); });
+      document.getElementById("sync-copy-address").addEventListener("click", async () => {
+        try { await navigator.clipboard.writeText(syncNetworkUrl); showToast("网址已复制"); }
+        catch { syncAddress.focus(); syncAddress.select(); showToast("已选中网址，请复制"); }
       });
-      syncCompatibleCodeButton.addEventListener("click", async () => {
-        syncDisplayedCode = await syncClient.compatiblePairingCode();
-        updateSyncUi();
-      });
-      syncPushNowButton.addEventListener("click", () => {
-        if (syncRole === "host") syncClient?.sendSnapshot(syncSnapshotPayload(), Math.max(1, syncRevision));
-      });
-      syncDisconnectButton.addEventListener("click", disconnectSyncSession);
-      syncScanClose.addEventListener("click", closeSyncScanDialog);
-      syncScanCancel.addEventListener("click", closeSyncScanDialog);
-      syncScanDialog.addEventListener("click", (event) => {
-        if (event.target === syncScanDialog) closeSyncScanDialog();
-      });
-      syncScanDialog.addEventListener("cancel", (event) => {
-        event.preventDefault();
-        closeSyncScanDialog();
+      syncShutdown.addEventListener("click", async () => {
+        if (syncSettings.pending || syncBootstrapping) return;
+        try {
+          await syncClient.request("shutdown", {}); syncClient.disconnect();
+          syncConnectionState = "offline"; syncRole = "mirror";
+          syncErrorMessage = "电脑客户端已退出，记录已保存。下次双击客户端即可继续。"; updateSyncUi();
+        } catch { syncErrorMessage = "退出未完成，请检查电脑客户端。"; updateSyncUi(); }
       });
       settingsButton.addEventListener("click", openSettings);
       settingsClose.addEventListener("click", closeSettings);
@@ -7147,10 +6770,6 @@
           event.preventDefault();
           undoLastAction();
         } else if (event.key === "Escape") {
-          if (syncScanDialog.open) {
-            closeSyncScanDialog();
-            return;
-          }
           if (aboutDialog.open || settingsDialog.open || patientInfoDialog.open) return;
           clearSelection();
         }
@@ -7162,8 +6781,6 @@
       renderMap();
       initializeSyncClient();
       restoreSyncSession();
-      const initialLocalPairing = syncHashPairing("local");
-      if (initialLocalPairing) { openSyncDialog(); void joinLocalDirectPairing(initialLocalPairing); }
 
     </script>
   </body>

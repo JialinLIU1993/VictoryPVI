@@ -17,7 +17,7 @@ assert.match(worker, /https:\/\/sync-room\.internal\/snapshot/);
 assert.equal(config.name, "victorypvi-sync");
 assert.equal(config.durable_objects.bindings[0].class_name, "SyncRoom");
 assert.deepEqual(config.migrations[0].new_sqlite_classes, ["SyncRoom"]);
-// The legacy Worker remains available as archived source; the webpage now uses offline WebRTC only.
-assert.doesNotMatch(client, /\bfetch\s*\(|new (?:global\.)?WebSocket/);
-assert.match(client, /iceServers: \[\]/);
+// The legacy Worker remains available as archived source; the webpage now uses the desktop LAN host only.
+assert.doesNotMatch(client, /workers\.dev|stun:|turn:|RTCPeerConnection/);
+assert.match(client, /api\/lan/);
 console.log("sync-worker-smoke: ok");

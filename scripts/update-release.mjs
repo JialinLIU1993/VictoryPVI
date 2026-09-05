@@ -148,6 +148,7 @@ indexHtml = indexHtml
     /(<p id="about-release-summary">)更新内容：[\s\S]*?(<\/p>)/,
     `$1更新内容：${htmlEscape(summary)}$2`,
   )
+  .replace(/releases\/(download|tag)\/desktop-v\d+\.\d+\.\d+/g, `releases/$1/desktop-v${version}`)
   .replace(/报告版本：v\d+\.\d+\.\d+/g, `报告版本：v${version}`);
 fs.writeFileSync(indexPath, indexHtml);
 
