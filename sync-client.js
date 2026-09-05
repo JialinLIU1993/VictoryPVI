@@ -1,867 +1,335 @@
-/*
- * VictoryPVI real-time sync client.
- *
- * The browser owns the room key. Cloudflare (when selected) only receives the
- * access token and already-encrypted snapshots; local WebRTC mode sends the
- * same encrypted envelopes directly between paired devices.
- */
+/* VictoryPVI offline browser sync: no server, fetch, WebSocket, STUN or TURN. */
 (function installVictoryPVISyncClient(global) {
-  "use strict";
-
-  const textEncoder = new TextEncoder();
-  const textDecoder = new TextDecoder();
-  const CLIENT_FORMAT = "victorypvi-sync-link";
-  const CLIENT_VERSION = 1;
-  const LOCAL_CLIENT_FORMAT = "victorypvi-local-sync-link";
-  const LOCAL_CLIENT_VERSION = 1;
-  const SNAPSHOT_MAX_BYTES = 1_500_000;
-  const HTTPS_POLL_INTERVAL_MS = 3_000;
-  const LOCAL_ICE_GATHER_TIMEOUT_MS = 10_000;
-
-  function requireCrypto() {
-    if (!global.crypto?.subtle || typeof global.crypto.getRandomValues !== "function") {
-      throw new Error("当前设备不支持加密同步，请使用 HTTPS 或现代浏览器");
+  'use strict';
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  const MAX_SNAPSHOT_BYTES = 1500000;
+  const CHUNK_CHARS = 12000;
+  const id = () => global.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+  function base64(bytes) {
+    let value = '';
+    for (const byte of bytes) value += String.fromCharCode(byte);
+    return global.btoa(value).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
+  }
+  function unbase64(value) {
+    const normalized = value.replaceAll('-', '+').replaceAll('_', '/');
+    return Uint8Array.from(global.atob(normalized + '='.repeat((4 - normalized.length % 4) % 4)), (char) => char.charCodeAt(0));
+  }
+  async function transform(bytes, Stream) {
+    const reader = new Blob([bytes]).stream().pipeThrough(new Stream('deflate')).getReader();
+    const chunks = [];
+    let size = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > 100000) { await reader.cancel(); throw new Error('连接信息过大，请重新生成'); }
+      chunks.push(value);
     }
-    return global.crypto;
+    const result = new Uint8Array(size);
+    let offset = 0;
+    for (const chunk of chunks) { result.set(chunk, offset); offset += chunk.byteLength; }
+    return result;
   }
-
-  function bytesToBase64Url(bytes) {
-    let binary = "";
-    for (const byte of bytes) binary += String.fromCharCode(byte);
-    return global.btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
-  }
-
-  function base64UrlToBytes(value) {
-    const normalized = String(value).replaceAll("-", "+").replaceAll("_", "/");
-    const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
-    const binary = global.atob(padded);
-    return Uint8Array.from(binary, (character) => character.charCodeAt(0));
-  }
-
-  function randomBytes(length) {
-    const bytes = new Uint8Array(length);
-    requireCrypto().getRandomValues(bytes);
-    return bytes;
-  }
-
-  function randomId() {
-    if (typeof global.crypto?.randomUUID === "function") return global.crypto.randomUUID();
-    return bytesToBase64Url(randomBytes(16));
-  }
-
-  function normalizeWorkerUrl(value) {
-    const raw = String(value || "").trim().replace(/\/+$/, "");
-    if (!raw) throw new Error("请先填写 Cloudflare Worker 地址");
-    let parsed;
-    try {
-      parsed = new URL(raw);
-    } catch {
-      throw new Error("Worker 地址格式不正确");
+  async function encodePairing(details) {
+    const bytes = encoder.encode(JSON.stringify(details));
+    // Plain JSON remains available on browsers without compression streams.
+    if (global.CompressionStream && global.DecompressionStream) {
+      try { return `VPVI2.z.${base64(await transform(bytes, global.CompressionStream))}`; }
+      catch { /* Plain format also works if this browser cannot compress. */ }
     }
-    if (!/^https?:$/.test(parsed.protocol)) {
-      throw new Error("Worker 地址必须使用 HTTPS");
-    }
-    return parsed.toString().replace(/\/+$/, "");
+    return `VPVI2.j.${base64(bytes)}`;
   }
-
-  function toWebSocketUrl(workerUrl) {
-    return normalizeWorkerUrl(workerUrl).replace(/^http:/, "ws:").replace(/^https:/, "wss:");
-  }
-
-  async function sha256Hex(value) {
-    const digest = await requireCrypto().subtle.digest("SHA-256", textEncoder.encode(String(value)));
-    return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
-  }
-
-  async function importRoomKey(roomKey) {
-    const keyBytes = base64UrlToBytes(roomKey);
-    if (keyBytes.length !== 32) throw new Error("同步密钥无效");
-    return requireCrypto().subtle.importKey(
-      "raw",
-      keyBytes,
-      { name: "AES-GCM" },
-      false,
-      ["encrypt", "decrypt"],
-    );
-  }
-
-  async function encryptJson(roomKey, value) {
-    const iv = randomBytes(12);
-    const plaintext = textEncoder.encode(JSON.stringify(value));
-    const ciphertext = await requireCrypto().subtle.encrypt(
-      { name: "AES-GCM", iv },
-      roomKey,
-      plaintext,
-    );
-    if (ciphertext.byteLength > SNAPSHOT_MAX_BYTES) {
-      throw new Error("同步记录过大，请先清理不必要的历史数据");
+  async function parsePairing(value, type = '') {
+    let raw = String(value || '').trim();
+    if (raw.includes('#')) raw = raw.slice(raw.indexOf('#') + 1);
+    try { raw = decodeURIComponent(raw).replace(/^local=/, ''); } catch { throw new Error('连接码无法识别'); }
+    const match = raw.match(/^VPVI2\.([jz])\.([A-Za-z0-9_-]+)$/);
+    if (!match) throw new Error('请扫描新版本地连接二维码，或粘贴完整连接码');
+    if (raw.length > 140000) throw new Error('连接码过长');
+    let bytes = unbase64(match[2]);
+    if (match[1] === 'z') {
+      if (!global.DecompressionStream) throw new Error('此浏览器不支持压缩连接码，请让对方选择“兼容连接码”');
+      bytes = await transform(bytes, global.DecompressionStream);
     }
-    return {
-      iv: bytesToBase64Url(iv),
-      ciphertext: bytesToBase64Url(new Uint8Array(ciphertext)),
-    };
+    let data;
+    try { data = JSON.parse(decoder.decode(bytes)); } catch { throw new Error('连接码已损坏，请重新扫描'); }
+    if (!data || !['offer', 'answer'].includes(data.type) || (type && data.type !== type) || typeof data.sdp !== 'string' || !data.sdp.startsWith('v=0') || !data.roomId || !data.pairId || !data.deviceId) throw new Error('连接码类型不匹配，请扫描对方当前显示的二维码');
+    return data;
   }
-
-  async function decryptJson(roomKey, iv, ciphertext) {
-    const plaintext = await requireCrypto().subtle.decrypt(
-      { name: "AES-GCM", iv: base64UrlToBytes(iv) },
-      roomKey,
-      base64UrlToBytes(ciphertext),
-    );
-    return JSON.parse(textDecoder.decode(plaintext));
-  }
-
-  function encodePairingPayload(payload) {
-    return `VPVI1.${bytesToBase64Url(textEncoder.encode(JSON.stringify(payload)))}`;
-  }
-
-  function decodePairingPayload(value) {
-    let raw = String(value || "").trim();
-    if (!raw) throw new Error("请输入配对码");
-    if (raw.includes("#")) {
-      try {
-        raw = new URL(raw).hash.replace(/^#/, "");
-      } catch {
-        raw = raw.slice(raw.indexOf("#") + 1);
-      }
-    }
-    raw = decodeURIComponent(raw).replace(/^sync=/, "");
-    if (!raw.startsWith("VPVI1.")) throw new Error("配对码格式不正确");
-    let payload;
-    try {
-      payload = JSON.parse(textDecoder.decode(base64UrlToBytes(raw.slice("VPVI1.".length))));
-    } catch {
-      throw new Error("配对码无法解析或已损坏");
-    }
-    if (
-      payload?.format !== CLIENT_FORMAT ||
-      payload.version !== CLIENT_VERSION ||
-      typeof payload.workerUrl !== "string" ||
-      typeof payload.roomId !== "string" ||
-      typeof payload.accessToken !== "string" ||
-      typeof payload.roomKey !== "string"
-    ) {
-      throw new Error("配对码版本不兼容");
-    }
-    normalizeWorkerUrl(payload.workerUrl);
-    if (!/^[A-Za-z0-9_-]{16,80}$/.test(payload.roomId)) throw new Error("配对码中的同步空间无效");
-    if (base64UrlToBytes(payload.accessToken).length !== 32) throw new Error("配对码中的访问令牌无效");
-    if (base64UrlToBytes(payload.roomKey).length !== 32) throw new Error("配对码中的同步密钥无效");
-    return {
-      format: CLIENT_FORMAT,
-      version: CLIENT_VERSION,
-      workerUrl: normalizeWorkerUrl(payload.workerUrl),
-      roomId: payload.roomId,
-      accessToken: payload.accessToken,
-      roomKey: payload.roomKey,
-    };
-  }
-
-  function encodeLocalPairingPayload(payload) {
-    return `VPVI-LAN1.${bytesToBase64Url(textEncoder.encode(JSON.stringify(payload)))}`;
-  }
-
-  function decodeLocalPairingPayload(value, expectedType = "") {
-    let raw = String(value || "").trim();
-    if (!raw) throw new Error("请输入本地配对码");
-    if (raw.includes("#")) {
-      try {
-        raw = new URL(raw).hash.replace(/^#/, "");
-      } catch {
-        raw = raw.slice(raw.indexOf("#") + 1);
-      }
-    }
-    try {
-      raw = decodeURIComponent(raw).replace(/^local=/, "");
-    } catch {
-      throw new Error("本地配对码无法解析或已损坏");
-    }
-    if (!raw.startsWith("VPVI-LAN1.")) throw new Error("这不是本地直连配对码");
-    let payload;
-    try {
-      payload = JSON.parse(textDecoder.decode(base64UrlToBytes(raw.slice("VPVI-LAN1.".length))));
-    } catch {
-      throw new Error("本地配对码无法解析或已损坏");
-    }
-    if (
-      payload?.format !== LOCAL_CLIENT_FORMAT ||
-      payload.version !== LOCAL_CLIENT_VERSION ||
-      !["offer", "answer"].includes(payload.type) ||
-      (expectedType && payload.type !== expectedType) ||
-      typeof payload.roomId !== "string" ||
-      typeof payload.roomKey !== "string" ||
-      typeof payload.sdp !== "string"
-    ) {
-      throw new Error("本地配对码版本不兼容");
-    }
-    if (!/^[A-Za-z0-9_-]{16,80}$/.test(payload.roomId)) throw new Error("本地配对码中的同步空间无效");
-    if (base64UrlToBytes(payload.roomKey).length !== 32) throw new Error("本地配对码中的同步密钥无效");
-    if (payload.sdp.length < 20 || payload.sdp.length > 100_000 || !payload.sdp.includes("v=0")) {
-      throw new Error("本地配对码中的连接信息无效");
-    }
-    return {
-      format: LOCAL_CLIENT_FORMAT,
-      version: LOCAL_CLIENT_VERSION,
-      type: payload.type,
-      roomId: payload.roomId,
-      roomKey: payload.roomKey,
-      sdp: payload.sdp,
-    };
-  }
-
-  function requireLocalPeerConnection() {
-    const PeerConnection = global.RTCPeerConnection || global.webkitRTCPeerConnection;
-    if (typeof PeerConnection !== "function") {
-      throw new Error("当前微信浏览器不支持本地直连，请改用 iOS Safari 或 Cloudflare 同步");
-    }
-    return PeerConnection;
-  }
-
-  function waitForIceGathering(peerConnection) {
-    if (peerConnection.iceGatheringState === "complete") return Promise.resolve();
-    return new Promise((resolve) => {
-      let settled = false;
-      const finish = () => {
-        if (settled) return;
-        settled = true;
-        global.clearTimeout(timeout);
-        peerConnection.removeEventListener?.("icegatheringstatechange", checkState);
-        resolve();
+  function gatherIce(pc) {
+    return new Promise((resolve, reject) => {
+      let timer;
+      const finish = (error) => {
+        global.clearTimeout(timer);
+        pc.removeEventListener('icegatheringstatechange', check);
+        pc.removeEventListener('signalingstatechange', check);
+        if (error) reject(error); else resolve();
       };
-      const checkState = () => {
-        if (peerConnection.iceGatheringState === "complete") finish();
+      const check = () => {
+        if (pc.signalingState === 'closed') finish(new Error('连接已取消'));
+        else if (pc.iceGatheringState === 'complete') finish();
       };
-      const timeout = global.setTimeout(finish, LOCAL_ICE_GATHER_TIMEOUT_MS);
-      peerConnection.addEventListener?.("icegatheringstatechange", checkState);
-      checkState();
+      timer = global.setTimeout(() => finish(new Error('收集本地网络信息超时，请确认 Wi-Fi 已连接后重试')), 12000);
+      pc.addEventListener('icegatheringstatechange', check);
+      pc.addEventListener('signalingstatechange', check);
+      check();
     });
   }
 
   class VictoryPVISyncClient {
     constructor({ onSnapshot, onStatus, onError, onPresence } = {}) {
-      this.onSnapshot = typeof onSnapshot === "function" ? onSnapshot : () => {};
-      this.onStatus = typeof onStatus === "function" ? onStatus : () => {};
-      this.onError = typeof onError === "function" ? onError : () => {};
-      this.onPresence = typeof onPresence === "function" ? onPresence : () => {};
-      this.socket = null;
+      this.onSnapshot = onSnapshot || (() => {});
+      this.onStatus = onStatus || (() => {});
+      this.onError = onError || (() => {});
+      this.onPresence = onPresence || (() => {});
+      this.peers = new Map();
       this.connection = null;
-      this.roomKey = null;
-      this.pendingSnapshot = null;
-      this.sendQueue = Promise.resolve();
-      this.reconnectTimer = null;
-      this.reconnectAttempts = 0;
-      this.manualDisconnect = false;
-      this.transport = "websocket";
-      this.pollTimer = null;
-      this.pollInFlight = false;
-      this.pollErrorShown = false;
-      this.lastReceivedRevision = 0;
-      this.localPeer = null;
-      this.dataChannel = null;
-      this.localPairingCode = "";
-      this.localOfferPayload = null;
-    }
-
-    static parsePairingCode(value) {
-      return decodePairingPayload(value);
-    }
-
-    static makePairingCode(details) {
-      return encodePairingPayload({
-        format: CLIENT_FORMAT,
-        version: CLIENT_VERSION,
-        workerUrl: normalizeWorkerUrl(details.workerUrl),
-        roomId: details.roomId,
-        accessToken: details.accessToken,
-        roomKey: details.roomKey,
-      });
-    }
-
-    static parseLocalPairingCode(value, expectedType = "") {
-      return decodeLocalPairingPayload(value, expectedType);
-    }
-
-    static makeLocalPairingCode(details) {
-      const type = details.type === "answer" ? "answer" : "offer";
-      if (!/^[A-Za-z0-9_-]{16,80}$/.test(String(details.roomId || ""))) {
-        throw new Error("本地同步空间无效");
-      }
-      if (base64UrlToBytes(details.roomKey).length !== 32) throw new Error("本地同步密钥无效");
-      if (typeof details.sdp !== "string" || !details.sdp.includes("v=0")) throw new Error("本地连接信息无效");
-      return encodeLocalPairingPayload({
-        format: LOCAL_CLIENT_FORMAT,
-        version: LOCAL_CLIENT_VERSION,
-        type,
-        roomId: details.roomId,
-        roomKey: details.roomKey,
-        sdp: details.sdp,
-      });
-    }
-
-    static makePairingLink(code, pageUrl = global.location?.href || "") {
-      try {
-        const url = new URL(pageUrl);
-        url.hash = `sync=${code}`;
-        return url.toString();
-      } catch {
-        return code;
-      }
-    }
-
-    static makeLocalPairingLink(code, pageUrl = global.location?.href || "") {
-      try {
-        const url = new URL(pageUrl);
-        url.hash = `local=${code}`;
-        return url.toString();
-      } catch {
-        return code;
-      }
-    }
-
-    get isConnected() {
-      if (this.transport === "poll") return Boolean(this.connection) && !this.manualDisconnect;
-      if (this.transport === "webrtc-local") {
-        return this.dataChannel?.readyState === "open" && Boolean(this.connection) && !this.manualDisconnect;
-      }
-      return this.socket?.readyState === global.WebSocket?.OPEN;
-    }
-
-    get pairingCode() {
-      if (!this.connection) return "";
-      if (this.connection.mode === "local") return this.localPairingCode;
-      return encodePairingPayload({
-        format: CLIENT_FORMAT,
-        version: CLIENT_VERSION,
-        workerUrl: this.connection.workerUrl,
-        roomId: this.connection.roomId,
-        accessToken: this.connection.accessToken,
-        roomKey: this.connection.roomKey,
-      });
-    }
-
-    async createRoom(workerUrl) {
-      const normalizedWorkerUrl = normalizeWorkerUrl(workerUrl);
-      const roomId = randomId();
-      const accessToken = bytesToBase64Url(randomBytes(32));
-      const roomKey = bytesToBase64Url(randomBytes(32));
-      const response = await fetch(`${normalizedWorkerUrl}/api/rooms`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ roomId, tokenHash: await sha256Hex(accessToken) }),
-      });
-      if (!response.ok) {
-        let message = "无法创建同步空间";
-        try {
-          message = (await response.json()).error || message;
-        } catch {
-          // Keep the safe generic message.
+      this.latestSnapshot = null;
+      this.pendingPeer = null;
+      this.manualDisconnect = true;
+      this.generation = 0;
+      this.receivedRevision = 0;
+      this.pairingData = null;
+      this.localPairingCode = '';
+      this.timer = null;
+      this.wake = () => {
+        if (!this.manualDisconnect && global.document?.visibilityState !== 'hidden') {
+          for (const peer of this.peers.values()) this.send(peer, { type: 'hello', deviceId: this.connection.deviceId, deviceName: this.connection.deviceName, revision: this.receivedRevision });
+          this.tick();
         }
-        throw new Error(message);
-      }
-      const details = { workerUrl: normalizedWorkerUrl, roomId, accessToken, roomKey };
-      await this.connect({ ...details, role: "host" });
-      return details;
+      };
+      global.addEventListener?.('online', this.wake);
+      global.addEventListener?.('pageshow', this.wake);
+      global.document?.addEventListener('visibilitychange', this.wake);
     }
-
-    prepareLocalConnection({ role, roomId, roomKey, deviceId, deviceName }) {
-      this.stopPolling();
+    static parseLocalPairingCode(value, type) { return parsePairing(value, type); }
+    static makeLocalPairingLink(code, pageUrl) {
+      try { const url = new URL(pageUrl); url.hash = `local=${code}`; return url.toString(); }
+      catch { return code; }
+    }
+    get pairingCode() { return this.localPairingCode; }
+    get isConnected() { return this.connectedPeers().length > 0; }
+    connectedPeers() { return [...this.peers.values()].filter((peer) => peer.channel?.readyState === 'open' && Date.now() - peer.lastSeen < 20000); }
+    async compatiblePairingCode() {
+      return this.pairingData ? `VPVI2.j.${base64(encoder.encode(JSON.stringify(this.pairingData)))}` : '';
+    }
+    start(role, roomId, deviceId, deviceName) {
       this.disconnect({ silent: true });
-      this.socket = null;
-      this.pendingSnapshot = null;
-      this.sendQueue = Promise.resolve();
-      this.roomKey = null;
-      this.connection = {
-        mode: "local",
-        workerUrl: "",
-        roomId: String(roomId || ""),
-        accessToken: "",
-        roomKey: String(roomKey || ""),
-        role: role === "host" ? "host" : "mirror",
-        deviceId: String(deviceId || randomId()).slice(0, 80),
-        deviceName: String(deviceName || "未命名设备").slice(0, 80),
-      };
       this.manualDisconnect = false;
-      this.reconnectAttempts = 0;
-      this.transport = "webrtc-local";
-      this.lastReceivedRevision = 0;
-      this.localPairingCode = "";
-      this.localOfferPayload = null;
-      return importRoomKey(this.connection.roomKey).then((roomKeyObject) => {
-        this.roomKey = roomKeyObject;
-        return this.connection;
-      });
+      this.connection = { mode: 'local', role, roomId, deviceId, deviceName };
+      this.receivedRevision = 0;
+      this.latestSnapshot = null;
+      this.tick();
     }
-
-    makeLocalPeerConnection() {
-      const PeerConnection = requireLocalPeerConnection();
-      const peerConnection = new PeerConnection({ iceServers: [] });
-      this.localPeer = peerConnection;
-      peerConnection.addEventListener?.("datachannel", (event) => {
-        if (event.channel) this.attachLocalDataChannel(event.channel);
-      });
-      peerConnection.addEventListener?.("connectionstatechange", () => {
-        const state = peerConnection.connectionState;
-        if (["failed", "disconnected"].includes(state) && !this.manualDisconnect) {
-          this.onStatus({ state: "offline", role: this.connection?.role, transport: "webrtc-local" });
-        }
-      });
-      return peerConnection;
+    status() {
+      if (this.manualDisconnect) return;
+      const live = this.connectedPeers();
+      const known = [...this.peers.values()].filter((peer) => peer.deviceId);
+      const syncedCount = live.filter((peer) => peer.ackedRevision >= (this.latestSnapshot?.revision || Infinity)).length;
+      const disconnectedCount = known.filter((peer) => !live.includes(peer)).length;
+      this.onPresence(known.map((peer) => ({ deviceId: peer.deviceId, deviceName: peer.deviceName || '设备', role: this.connection.role === 'host' ? 'mirror' : 'host', connected: live.includes(peer), revision: peer.ackedRevision || 0 })));
+      this.onStatus({ state: live.length ? 'connected' : known.length && !this.pendingPeer ? 'offline' : 'connecting', transport: 'webrtc-local', peerCount: live.length, disconnectedCount, syncedCount, pending: Boolean(this.latestSnapshot && syncedCount < live.length), pairing: Boolean(this.pendingPeer) });
     }
-
-    attachLocalDataChannel(channel) {
-      this.dataChannel = channel;
+    makePeer(pairId) {
+      const PC = global.RTCPeerConnection || global.webkitRTCPeerConnection;
+      if (!PC) throw new Error('此浏览器不支持本地直连，请用 Safari、Chrome 或 Edge 打开网页');
+      const pc = new PC({ iceServers: [] });
+      const peer = { pc, pairId, channel: null, deviceId: '', deviceName: '', lastSeen: Date.now(), ackedRevision: 0, sentAt: 0, transfer: null, incoming: null, receiveQueue: Promise.resolve() };
+      this.peers.set(pairId, peer);
+      pc.addEventListener('datachannel', ({ channel }) => { if (this.active(peer)) this.attachChannel(peer, channel); });
+      pc.addEventListener('connectionstatechange', () => {
+        if (!this.active(peer)) return;
+        if (pc.connectionState === 'connected') { peer.sentAt = 0; this.flushPeer(peer); }
+        this.status();
+      });
+      return peer;
+    }
+    active(peer) { return !this.manualDisconnect && this.peers.get(peer.pairId) === peer; }
+    async createLocalOffer({ deviceId = id(), deviceName = '操作设备' } = {}) {
+      if (this.connection?.role !== 'host' || this.manualDisconnect) this.start('host', id(), deviceId, deviceName);
+      // Replacing an unused invitation never closes already paired devices.
+      if (this.pendingPeer && !this.pendingPeer.deviceId) this.dropPeer(this.pendingPeer);
+      const peer = this.makePeer(id());
+      this.pendingPeer = peer;
+      this.pairingData = null;
+      this.localPairingCode = '';
+      this.attachChannel(peer, peer.pc.createDataChannel('victorypvi-sync', { ordered: true }));
       try {
-        channel.binaryType = "arraybuffer";
-      } catch {
-        // Some older WebRTC implementations expose a read-only binaryType.
-      }
-      channel.addEventListener?.("open", () => {
-        if (this.dataChannel !== channel || this.manualDisconnect) return;
-        this.reconnectAttempts = 0;
-        this.onStatus({ state: "connected", role: this.connection?.role, transport: "webrtc-local", peerCount: 1 });
-        try {
-          channel.send(JSON.stringify({ type: "hello", cursor: 0 }));
-        } catch {
-          // The data channel may close between the state check and send.
-        }
-        this.flushSnapshot();
-      });
-      channel.addEventListener?.("message", (event) => this.handleMessage(event.data));
-      channel.addEventListener?.("error", () => {
-        if (!this.manualDisconnect) this.onStatus({ state: "error", role: this.connection?.role, transport: "webrtc-local" });
-      });
-      channel.addEventListener?.("close", () => {
-        if (this.dataChannel !== channel) return;
-        this.dataChannel = null;
-        if (!this.manualDisconnect) this.onStatus({ state: "offline", role: this.connection?.role, transport: "webrtc-local" });
-      });
-      return channel;
+        await peer.pc.setLocalDescription(await peer.pc.createOffer());
+        await gatherIce(peer.pc);
+        if (!this.active(peer)) throw new Error('连接已取消');
+        const data = { ...this.connection, type: 'offer', pairId: peer.pairId, sdp: peer.pc.localDescription.sdp };
+        const code = await encodePairing(data);
+        if (!this.active(peer)) throw new Error('连接已取消');
+        this.pairingData = data;
+        this.localPairingCode = code;
+        this.status();
+        return { roomId: this.connection.roomId, offerCode: code };
+      } catch (error) { if (this.active(peer)) { this.dropPeer(peer); this.pendingPeer = null; this.status(); } throw error; }
     }
-
-    async createLocalOffer({ deviceId = randomId(), deviceName = "操作设备" } = {}) {
-      const roomId = randomId();
-      const roomKey = bytesToBase64Url(randomBytes(32));
-      await this.prepareLocalConnection({ role: "host", roomId, roomKey, deviceId, deviceName });
-      this.onStatus({ state: "connecting", role: "host", transport: "webrtc-local" });
-      const peerConnection = this.makeLocalPeerConnection();
-      const dataChannel = peerConnection.createDataChannel("victorypvi-sync", { ordered: true });
-      this.attachLocalDataChannel(dataChannel);
-      const offer = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offer);
-      await waitForIceGathering(peerConnection);
-      const description = peerConnection.localDescription;
-      if (!description?.sdp) throw new Error("无法生成本地配对信息");
-      const payload = {
-        format: LOCAL_CLIENT_FORMAT,
-        version: LOCAL_CLIENT_VERSION,
-        type: "offer",
-        roomId,
-        roomKey,
-        sdp: description.sdp,
-      };
-      this.localOfferPayload = payload;
-      this.localPairingCode = encodeLocalPairingPayload(payload);
-      return { roomId, roomKey, offerCode: this.localPairingCode };
+    async joinLocalOffer(value, { deviceId = id(), deviceName = '跟随设备' } = {}) {
+      const offer = await parsePairing(value, 'offer');
+      this.start('mirror', offer.roomId, deviceId, deviceName);
+      const peer = this.makePeer(offer.pairId);
+      peer.deviceId = offer.deviceId;
+      peer.deviceName = offer.deviceName;
+      this.pendingPeer = peer;
+      try {
+        await peer.pc.setRemoteDescription({ type: 'offer', sdp: offer.sdp });
+        await peer.pc.setLocalDescription(await peer.pc.createAnswer());
+        await gatherIce(peer.pc);
+        if (!this.active(peer)) throw new Error('连接已取消');
+        const data = { ...this.connection, type: 'answer', pairId: offer.pairId, sdp: peer.pc.localDescription.sdp };
+        const code = await encodePairing(data);
+        if (!this.active(peer)) throw new Error('连接已取消');
+        this.pairingData = data;
+        this.localPairingCode = code;
+        this.status();
+        return { roomId: offer.roomId, answerCode: code };
+      } catch (error) { if (this.active(peer)) this.dropPeer(peer); throw error; }
     }
-
-    async joinLocalOffer(offerCode, { deviceId = randomId(), deviceName = "镜像设备" } = {}) {
-      const offer = decodeLocalPairingPayload(offerCode, "offer");
-      await this.prepareLocalConnection({
-        role: "mirror",
-        roomId: offer.roomId,
-        roomKey: offer.roomKey,
-        deviceId,
-        deviceName,
-      });
-      this.onStatus({ state: "connecting", role: "mirror", transport: "webrtc-local" });
-      const peerConnection = this.makeLocalPeerConnection();
-      await peerConnection.setRemoteDescription({ type: "offer", sdp: offer.sdp });
-      const answer = await peerConnection.createAnswer();
-      await peerConnection.setLocalDescription(answer);
-      await waitForIceGathering(peerConnection);
-      const description = peerConnection.localDescription;
-      if (!description?.sdp) throw new Error("无法生成本地应答信息");
-      const payload = {
-        format: LOCAL_CLIENT_FORMAT,
-        version: LOCAL_CLIENT_VERSION,
-        type: "answer",
-        roomId: offer.roomId,
-        roomKey: offer.roomKey,
-        sdp: description.sdp,
-      };
-      this.localOfferPayload = offer;
-      this.localPairingCode = encodeLocalPairingPayload(payload);
-      return { roomId: offer.roomId, roomKey: offer.roomKey, answerCode: this.localPairingCode };
-    }
-
-    async applyLocalAnswer(answerCode) {
-      if (!this.connection || this.connection.mode !== "local" || this.connection.role !== "host" || !this.localPeer) {
-        throw new Error("请先在操作端创建本地配对");
-      }
-      const answer = decodeLocalPairingPayload(answerCode, "answer");
-      if (answer.roomId !== this.connection.roomId || answer.roomKey !== this.connection.roomKey) {
-        throw new Error("应答码与当前操作端配对不匹配");
-      }
-      await this.localPeer.setRemoteDescription({ type: "answer", sdp: answer.sdp });
-      this.onStatus({ state: "connecting", role: "host", transport: "webrtc-local" });
+    async applyLocalAnswer(value) {
+      const answer = await parsePairing(value, 'answer');
+      const peer = this.pendingPeer;
+      if (!peer || this.connection?.role !== 'host' || answer.roomId !== this.connection.roomId || answer.pairId !== peer.pairId) throw new Error('回码与当前邀请不匹配，请扫描这次连接生成的回码');
+      if (!this.active(peer)) throw new Error('此邀请已关闭，请重新添加设备');
+      if (peer.pc.remoteDescription) return true;
+      peer.deviceId = answer.deviceId;
+      peer.deviceName = answer.deviceName;
+      await peer.pc.setRemoteDescription({ type: 'answer', sdp: answer.sdp });
+      // Re-pairing the same device replaces its stale channel only after the answer is accepted.
+      for (const other of [...this.peers.values()]) if (other !== peer && other.deviceId === peer.deviceId) this.dropPeer(other);
+      this.status();
       return true;
     }
-
-    async connect({ workerUrl, roomId, accessToken, roomKey, role = "mirror", deviceId = randomId(), deviceName = "未命名设备" }) {
-      this.stopPolling();
-      this.disconnect({ silent: true });
-      const normalizedWorkerUrl = normalizeWorkerUrl(workerUrl);
-      const normalizedRoomId = String(roomId || "");
-      if (!/^[A-Za-z0-9_-]{16,80}$/.test(normalizedRoomId)) throw new Error("同步空间无效");
-      if (base64UrlToBytes(accessToken).length !== 32) throw new Error("访问令牌无效");
-      const normalizedRoomKey = String(roomKey || "");
-      this.roomKey = await importRoomKey(normalizedRoomKey);
-      this.connection = {
-        workerUrl: normalizedWorkerUrl,
-        roomId: normalizedRoomId,
-        accessToken,
-        roomKey: normalizedRoomKey,
-        role: role === "host" ? "host" : "mirror",
-        deviceId: String(deviceId || randomId()).slice(0, 80),
-        deviceName: String(deviceName || "未命名设备").slice(0, 80),
-      };
-      this.manualDisconnect = false;
-      this.reconnectAttempts = 0;
-      this.transport = "websocket";
-      this.lastReceivedRevision = 0;
-      try {
-        return await this.openSocket();
-      } catch (error) {
-        if (!this.connection || this.manualDisconnect) throw error;
-        const failedSocket = this.socket;
-        this.socket = null;
-        try {
-          if (failedSocket && failedSocket.readyState < global.WebSocket.CLOSING) failedSocket.close(1000, "use https fallback");
-        } catch {
-          // The socket may not have completed its handshake.
-        }
-        await this.startPolling();
-      }
-    }
-
-    openSocket() {
-      if (!this.connection) throw new Error("尚未配置同步空间");
-      this.transport = "websocket";
-      this.onStatus({ state: "connecting", role: this.connection.role, transport: "websocket" });
-      const { workerUrl, roomId, accessToken, role, deviceId, deviceName } = this.connection;
-      const endpoint = `${toWebSocketUrl(workerUrl)}/api/rooms/${encodeURIComponent(roomId)}/ws?token=${encodeURIComponent(accessToken)}&role=${encodeURIComponent(role)}&device=${encodeURIComponent(deviceId)}&name=${encodeURIComponent(deviceName)}`;
-      const socket = new WebSocket(endpoint);
-      this.socket = socket;
-      return new Promise((resolve, reject) => {
-        let settled = false;
-        socket.addEventListener("open", () => {
-          settled = true;
-          this.reconnectAttempts = 0;
-          this.onStatus({ state: "connected", role: this.connection?.role, transport: "websocket" });
-          socket.send(JSON.stringify({ type: "hello", cursor: 0 }));
-          this.flushSnapshot();
-          resolve();
-        }, { once: true });
-        socket.addEventListener("message", (event) => this.handleMessage(event.data));
-        socket.addEventListener("error", () => {
-          if (!settled) {
-            settled = true;
-            reject(new Error("无法连接 Cloudflare 同步服务"));
-          }
-          this.onStatus({ state: "error", role: this.connection?.role, transport: "websocket" });
-        });
-        socket.addEventListener("close", (event) => {
-          if (!settled) {
-            settled = true;
-            reject(new Error(event.reason || "同步连接被关闭"));
-          }
-          this.socket = null;
-          if (!this.manualDisconnect && this.connection && this.transport === "websocket") {
-            this.onStatus({ state: "offline", role: this.connection.role, transport: "websocket" });
-            this.scheduleReconnect();
-          }
-        });
+    attachChannel(peer, channel) {
+      peer.channel = channel;
+      channel.bufferedAmountLowThreshold = 64000;
+      channel.addEventListener('bufferedamountlow', () => this.pump(peer));
+      channel.addEventListener('open', () => {
+        if (!this.active(peer)) return;
+        peer.lastSeen = Date.now();
+        if (this.pendingPeer === peer) this.pendingPeer = null;
+        this.send(peer, { type: 'hello', deviceId: this.connection.deviceId, deviceName: this.connection.deviceName, revision: this.receivedRevision });
+        this.flushPeer(peer);
+        this.status();
       });
+      channel.addEventListener('message', ({ data }) => {
+        if (!this.active(peer)) return;
+        peer.lastSeen = Date.now();
+        peer.receiveQueue = peer.receiveQueue.then(() => this.receive(peer, data)).catch((error) => { if (this.active(peer)) this.onError(error); });
+      });
+      const offline = () => { if (this.active(peer)) { peer.transfer = null; this.status(); } };
+      channel.addEventListener('close', offline);
+      channel.addEventListener('error', offline);
     }
-
-    snapshotEndpoint() {
-      if (!this.connection) throw new Error("尚未配置同步空间");
-      const { workerUrl, roomId, accessToken, role, deviceId, deviceName } = this.connection;
-      return `${workerUrl}/api/rooms/${encodeURIComponent(roomId)}/snapshot?token=${encodeURIComponent(accessToken)}&role=${encodeURIComponent(role)}&device=${encodeURIComponent(deviceId)}&name=${encodeURIComponent(deviceName)}`;
+    send(peer, message) {
+      if (!this.active(peer) || peer.channel?.readyState !== 'open') return false;
+      try { peer.channel.send(JSON.stringify(message)); return true; }
+      catch { return false; }
     }
-
-    async startPolling() {
-      if (!this.connection) throw new Error("尚未配置同步空间");
-      if (this.reconnectTimer) {
-        global.clearTimeout(this.reconnectTimer);
-        this.reconnectTimer = null;
-      }
-      this.transport = "poll";
-      this.reconnectAttempts = 0;
-      this.pollErrorShown = false;
-      this.onStatus({ state: "connecting", role: this.connection.role, transport: "https-poll" });
-      await this.pollSnapshot({ reportError: true });
-      if (!this.manualDisconnect && this.connection && !this.pollTimer) {
-        this.onStatus({ state: "connected", role: this.connection.role, transport: "https-poll" });
-        this.pollTimer = global.setInterval(() => this.pollSnapshot(), HTTPS_POLL_INTERVAL_MS);
-        this.flushSnapshot();
-      }
-    }
-
-    stopPolling() {
-      if (this.pollTimer) {
-        global.clearInterval(this.pollTimer);
-        this.pollTimer = null;
-      }
-      this.pollInFlight = false;
-    }
-
-    async pollSnapshot({ reportError = false } = {}) {
-      if (!this.connection || this.manualDisconnect || this.pollInFlight) return;
-      this.pollInFlight = true;
-      try {
-        const response = await fetch(this.snapshotEndpoint(), {
-          method: "GET",
-          cache: "no-store",
-        });
-        if (!response.ok) {
-          let message = "无法通过 HTTPS 访问 Cloudflare 同步服务";
-          try {
-            message = (await response.json()).error || message;
-          } catch {
-            // Keep the safe generic message.
-          }
-          throw new Error(message);
-        }
-        const body = await response.json();
-        this.onPresence(body.peers || []);
-        if (body.snapshot && Number(body.snapshot.revision) > this.lastReceivedRevision) {
-          await this.handleSnapshotEnvelope({ type: "snapshot", ...body.snapshot });
-        }
-        this.pollErrorShown = false;
-        this.onStatus({
-          state: "connected",
-          role: this.connection?.role,
-          transport: "https-poll",
-          peerCount: Array.isArray(body.peers) ? body.peers.length : 0,
-        });
-        if (this.connection?.role === "host" && this.pendingSnapshot) this.flushSnapshot();
-      } catch (error) {
-        this.onStatus({ state: "offline", role: this.connection?.role, transport: "https-poll" });
-        if (reportError || !this.pollErrorShown) {
-          this.pollErrorShown = true;
-          this.onError(error);
-        }
-      } finally {
-        this.pollInFlight = false;
-      }
-    }
-
-    async handleMessage(rawMessage) {
-      let message;
-      try {
-        message = JSON.parse(typeof rawMessage === "string" ? rawMessage : textDecoder.decode(rawMessage));
-      } catch {
-        this.onError(new Error("同步服务返回了无法识别的消息"));
-        return;
-      }
-      if (message.type === "ready") {
-        this.onPresence(message.peers || []);
-        return;
-      }
-      if (message.type === "presence") {
-        this.onPresence(message.peers || []);
-        return;
-      }
-      if (message.type === "ack") {
-        this.onStatus({
-          state: "synced",
-          role: this.connection?.role,
-          revision: message.revision,
-          peerCount: message.peerCount,
-          transport: this.transport === "webrtc-local" ? "webrtc-local" : undefined,
-        });
-        return;
-      }
-      if (message.type === "error") {
-        this.onError(new Error(message.error || "同步服务处理失败"));
-        return;
-      }
-      if (message.type !== "snapshot" || !this.roomKey) return;
-      await this.handleSnapshotEnvelope(message);
-    }
-
-    async handleSnapshotEnvelope(message) {
-      const revision = Number(message.revision) || 0;
-      if (revision && revision <= this.lastReceivedRevision) return;
-      try {
-        const payload = await decryptJson(this.roomKey, message.iv, message.ciphertext);
-        this.lastReceivedRevision = Math.max(this.lastReceivedRevision, revision);
-        this.onSnapshot(payload, message);
-      } catch {
-        this.onError(new Error("同步数据解密失败，请重新配对"));
-      }
-    }
-
     sendSnapshot(payload, revision) {
-      if (!this.connection || this.connection.role !== "host") return;
-      this.pendingSnapshot = {
-        payload,
-        revision: Math.max(1, Number(revision) || 1),
-      };
-      this.flushSnapshot();
+      if (this.connection?.role !== 'host' || this.manualDisconnect) return;
+      const value = JSON.stringify(payload);
+      if (encoder.encode(value).byteLength > MAX_SNAPSHOT_BYTES) { this.onError(new Error('记录过大，无法同步；本机记录仍已保留')); return; }
+      revision = Math.max(1, Number(revision) || 1);
+      if (revision < (this.latestSnapshot?.revision || 0)) return;
+      this.latestSnapshot = { value, revision, updatedAt: new Date().toISOString() };
+      for (const peer of this.peers.values()) this.flushPeer(peer, true);
+      this.status();
     }
-
-    flushSnapshot() {
-      if (!this.pendingSnapshot || !this.connection || this.connection.role !== "host") return;
-      if (this.transport === "poll") {
-        this.flushHttpSnapshot();
-        return;
+    flushPeer(peer, force = false) {
+      const next = this.latestSnapshot;
+      if (!this.active(peer) || !next || peer.channel?.readyState !== 'open' || peer.ackedRevision >= next.revision && !force) return;
+      if (peer.transfer?.revision === next.revision) { this.pump(peer); return; }
+      if (!force && Date.now() - peer.sentAt < 3000) return;
+      const transferId = id();
+      const chunks = [];
+      for (let i = 0; i < next.value.length; i += CHUNK_CHARS) chunks.push(next.value.slice(i, i + CHUNK_CHARS));
+      peer.transfer = { revision: next.revision, messages: [{ type: 'begin', id: transferId, revision: next.revision, updatedAt: next.updatedAt, count: chunks.length }, ...chunks.map((data, index) => ({ type: 'chunk', id: transferId, index, data })), { type: 'end', id: transferId }], index: 0 };
+      peer.sentAt = Date.now();
+      this.pump(peer);
+    }
+    pump(peer) {
+      if (!this.active(peer)) return;
+      const transfer = peer.transfer;
+      if (!transfer) return;
+      while (transfer.index < transfer.messages.length && peer.channel?.readyState === 'open' && peer.channel.bufferedAmount < 128000) {
+        if (!this.send(peer, transfer.messages[transfer.index])) return;
+        transfer.index += 1;
       }
-      if (this.transport === "webrtc-local") {
-        this.flushLocalSnapshot();
-        return;
+      if (transfer.index === transfer.messages.length) peer.transfer = null;
+    }
+    async receive(peer, raw) {
+      if (!this.active(peer)) return;
+      let message;
+      try { message = JSON.parse(raw); } catch { throw new Error('收到无法识别的同步消息'); }
+      if (message.type === 'hello') {
+        peer.deviceId = message.deviceId || peer.deviceId;
+        peer.deviceName = message.deviceName || peer.deviceName;
+        if (this.connection.role === 'host') {
+          peer.ackedRevision = Number(message.revision) || 0;
+          peer.sentAt = 0;
+          this.flushPeer(peer);
+        }
+        this.send(peer, { type: 'pong' });
+        this.status();
+      } else if (message.type === 'ping') this.send(peer, { type: 'pong' });
+      else if (message.type === 'ack' && this.connection.role === 'host') {
+        peer.ackedRevision = Math.max(peer.ackedRevision, Number(message.revision) || 0);
+        this.status();
+      } else if (message.type === 'begin' && this.connection.role === 'mirror') {
+        if (!Number.isInteger(message.count) || message.count < 1 || message.count > 200 || !Number.isSafeInteger(message.revision) || message.revision < 1) return;
+        peer.incoming = { ...message, chunks: [], size: 0, startedAt: Date.now() };
+      } else if (message.type === 'chunk' && this.connection.role === 'mirror') {
+        const incoming = peer.incoming;
+        if (!incoming || incoming.id !== message.id || message.index !== incoming.chunks.length || typeof message.data !== 'string') return;
+        incoming.size += encoder.encode(message.data).byteLength;
+        if (incoming.size > MAX_SNAPSHOT_BYTES + 1200 || incoming.chunks.length >= incoming.count) { peer.incoming = null; return; }
+        incoming.chunks.push(message.data);
+      } else if (message.type === 'end' && this.connection.role === 'mirror') {
+        const incoming = peer.incoming;
+        peer.incoming = null;
+        if (!incoming || incoming.id !== message.id || incoming.chunks.length !== incoming.count) return;
+        if (incoming.revision > this.receivedRevision) {
+          const result = await this.onSnapshot(JSON.parse(incoming.chunks.join('')), incoming);
+          if (!this.active(peer) || result === false) return;
+          this.receivedRevision = incoming.revision;
+          this.onStatus({ state: 'synced', transport: 'webrtc-local', revision: incoming.revision, peerCount: 1 });
+        }
+        this.send(peer, { type: 'ack', revision: this.receivedRevision });
       }
-      if (!this.isConnected) return;
-      this.sendQueue = this.sendQueue.then(async () => {
-        if (!this.pendingSnapshot || !this.isConnected || !this.connection) return;
-        const next = this.pendingSnapshot;
-        this.pendingSnapshot = null;
-        const encrypted = await encryptJson(this.roomKey, next.payload);
-        if (!this.isConnected) {
-          this.pendingSnapshot = next;
-          return;
+    }
+    tick() {
+      global.clearTimeout(this.timer);
+      if (this.manualDisconnect) return;
+      for (const peer of this.peers.values()) {
+        if (peer.channel?.readyState === 'open') {
+          this.send(peer, { type: 'ping' });
+          this.flushPeer(peer);
         }
-        this.socket.send(JSON.stringify({
-          type: "snapshot",
-          revision: next.revision,
-          updatedAt: new Date().toISOString(),
-          ...encrypted,
-        }));
-      }).catch((error) => this.onError(error));
+        if (peer.incoming && Date.now() - peer.incoming.startedAt > 20000) peer.incoming = null;
+      }
+      this.status();
+      this.timer = global.setTimeout(() => this.tick(), 3000);
     }
-
-    flushLocalSnapshot() {
-      if (!this.pendingSnapshot || !this.isConnected || !this.connection || this.connection.role !== "host") return;
-      this.sendQueue = this.sendQueue.then(async () => {
-        if (!this.pendingSnapshot || !this.isConnected || !this.connection || this.transport !== "webrtc-local") return;
-        const next = this.pendingSnapshot;
-        this.pendingSnapshot = null;
-        try {
-          const encrypted = await encryptJson(this.roomKey, next.payload);
-          if (!this.isConnected) {
-            this.pendingSnapshot = next;
-            return;
-          }
-          this.dataChannel.send(JSON.stringify({
-            type: "snapshot",
-            revision: next.revision,
-            updatedAt: new Date().toISOString(),
-            ...encrypted,
-          }));
-          this.onStatus({
-            state: "synced",
-            role: this.connection?.role,
-            revision: next.revision,
-            peerCount: 1,
-            transport: "webrtc-local",
-          });
-        } catch (error) {
-          if (!this.pendingSnapshot || this.pendingSnapshot.revision < next.revision) {
-            this.pendingSnapshot = next;
-          }
-          this.onError(error);
-        }
-      }).catch((error) => this.onError(error));
+    dropPeer(peer) {
+      this.peers.delete(peer.pairId);
+      if (this.pendingPeer === peer) this.pendingPeer = null;
+      try { peer.channel?.close(); peer.pc.close(); } catch { /* Already closed. */ }
     }
-
-    flushHttpSnapshot() {
-      if (!this.pendingSnapshot || !this.isConnected || !this.connection || this.connection.role !== "host") return;
-      this.sendQueue = this.sendQueue.then(async () => {
-        if (!this.pendingSnapshot || !this.isConnected || !this.connection || this.transport !== "poll") return;
-        const next = this.pendingSnapshot;
-        this.pendingSnapshot = null;
-        try {
-          const encrypted = await encryptJson(this.roomKey, next.payload);
-          const response = await fetch(this.snapshotEndpoint(), {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            cache: "no-store",
-            body: JSON.stringify({
-              type: "snapshot",
-              revision: next.revision,
-              updatedAt: new Date().toISOString(),
-              ...encrypted,
-            }),
-          });
-          if (!response.ok) {
-            let message = "无法通过 HTTPS 发送同步状态";
-            try {
-              message = (await response.json()).error || message;
-            } catch {
-              // Keep the safe generic message.
-            }
-            throw new Error(message);
-          }
-          const ack = await response.json();
-          this.onStatus({
-            state: "synced",
-            role: this.connection?.role,
-            revision: ack.revision,
-            peerCount: ack.peerCount,
-            transport: "https-poll",
-          });
-        } catch (error) {
-          if (!this.pendingSnapshot || this.pendingSnapshot.revision < next.revision) {
-            this.pendingSnapshot = next;
-          }
-          this.onError(error);
-        }
-      }).catch((error) => this.onError(error));
-    }
-
-    scheduleReconnect() {
-      if (this.reconnectTimer || !this.connection || this.manualDisconnect || this.transport !== "websocket") return;
-      const delay = Math.min(30_000, 1_000 * (2 ** Math.min(this.reconnectAttempts, 5)));
-      this.reconnectAttempts += 1;
-      this.reconnectTimer = global.setTimeout(() => {
-        this.reconnectTimer = null;
-        if (!this.connection || this.manualDisconnect) return;
-        this.openSocket().catch(() => {
-          // If the WebSocket path is unavailable, keep the session alive over HTTPS.
-          if (this.connection && !this.manualDisconnect && this.transport === "websocket") this.startPolling();
-        });
-      }, delay);
-    }
-
     disconnect({ silent = false } = {}) {
       this.manualDisconnect = true;
-      this.stopPolling();
-      if (this.reconnectTimer) {
-        global.clearTimeout(this.reconnectTimer);
-        this.reconnectTimer = null;
-      }
-      const socket = this.socket;
-      this.socket = null;
-      const closingState = global.WebSocket?.CLOSING ?? 2;
-      if (socket && socket.readyState < closingState) socket.close(1000, "client disconnect");
-      const dataChannel = this.dataChannel;
-      this.dataChannel = null;
-      try {
-        if (dataChannel && dataChannel.readyState !== "closed") dataChannel.close();
-      } catch {
-        // The data channel may already be closed.
-      }
-      const localPeer = this.localPeer;
-      this.localPeer = null;
-      try {
-        localPeer?.close();
-      } catch {
-        // The peer connection may already be closed.
-      }
-      if (!silent) this.onStatus({ state: "disconnected", role: this.connection?.role, transport: this.transport });
+      this.generation += 1;
+      global.clearTimeout(this.timer);
+      for (const peer of [...this.peers.values()]) this.dropPeer(peer);
+      this.pendingPeer = null;
+      this.latestSnapshot = null;
+      this.pairingData = null;
+      this.localPairingCode = '';
+      if (!silent) this.onStatus({ state: 'disconnected', transport: 'webrtc-local' });
     }
   }
-
   global.VictoryPVISyncClient = VictoryPVISyncClient;
 })(window);

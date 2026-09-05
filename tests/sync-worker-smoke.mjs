@@ -17,11 +17,7 @@ assert.match(worker, /https:\/\/sync-room\.internal\/snapshot/);
 assert.equal(config.name, "victorypvi-sync");
 assert.equal(config.durable_objects.bindings[0].class_name, "SyncRoom");
 assert.deepEqual(config.migrations[0].new_sqlite_classes, ["SyncRoom"]);
-assert.match(client, /AES-GCM/);
-assert.match(client, /VPVI1\./);
-assert.match(client, /sendSnapshot\(payload, revision\)/);
-assert.match(client, /scheduleReconnect\(\)/);
-assert.match(client, /startPolling\(\)/);
-assert.match(client, /flushHttpSnapshot\(\)/);
-assert.match(client, /https-poll/);
+// The legacy Worker remains available as archived source; the webpage now uses offline WebRTC only.
+assert.doesNotMatch(client, /\bfetch\s*\(|new (?:global\.)?WebSocket/);
+assert.match(client, /iceServers: \[\]/);
 console.log("sync-worker-smoke: ok");

@@ -1,7 +1,8 @@
 # Privacy and local data
 
-VictoryPVI is a local-first application. Cloud synchronization is optional and
-only starts after the user configures a Cloudflare Worker and creates a pairing.
+VictoryPVI is a local-first application. Optional device synchronization uses
+offline browser-to-browser connections on the same Wi-Fi or hotspot. The current
+webpage does not connect to a cloud synchronization service.
 
 - It does not include analytics, advertising, or tracking pixels.
 - Ablation records and settings are stored in the current browser using
@@ -11,8 +12,8 @@ only starts after the user configures a Cloudflare Worker and creates a pairing.
   storage.
 - When synchronization is enabled, only ablation quality-control state,
   procedure settings, endpoint records, and sync metadata are sent. The browser
-  encrypts the payload with AES-GCM before sending it; the Worker stores and
-  broadcasts ciphertext.
+  sends state directly over WebRTC DataChannels without application-level room
+  keys or an online relay.
 - Patient names, medical record numbers, report notes, and generated PDF files
   are intentionally excluded from synchronization.
 - PDF reports are generated directly on the current device without using a
