@@ -13,7 +13,7 @@ const release = JSON.parse(await fs.readFile(path.join(root, 'release.json'), 'u
 const legalFiles = ['LICENSE', 'NOTICE', 'ADDITIONAL_TERMS.md', 'TRADEMARKS.md', 'PRIVACY.md'];
 async function copyApp(destination) {
   await fs.mkdir(path.join(destination, 'desktop'), { recursive: true });
-  for (const name of ['index.html', 'sync-client.js', 'release.json', 'README.md', 'SYNC_DESIGN.md', ...legalFiles]) await fs.copyFile(path.join(root, name), path.join(destination, name));
+  for (const name of ['index.html', 'sync-client.js', 'direct-sync-client.js', 'direct-sync-ui.js', 'release.json', 'README.md', 'SYNC_DESIGN.md', ...legalFiles]) await fs.copyFile(path.join(root, name), path.join(destination, name));
   await fs.cp(path.join(root, 'vendor'), path.join(destination, 'vendor'), { recursive: true });
   // Include the editable host and launcher sources with the distribution.
   for (const name of ['server.mjs', 'build.mjs', 'launcher-windows.c']) await fs.copyFile(path.join(root, 'desktop', name), path.join(destination, 'desktop', name));

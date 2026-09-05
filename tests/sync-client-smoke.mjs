@@ -66,12 +66,12 @@ try {
   secondHost.disconnect();
   assert.equal((await request('snapshot', { writerId: secondHost.writerId, clientRevision: 1, payload: record(1) })).status, 409);
   assert.equal((await fetch(base + '/desktop/server.mjs')).status, 404);
-  assert.match(await (await fetch(base)).text(), /window.VICTORYPVI_DESKTOP=\{hostAllowed:true\}/);
+  assert.match(await (await fetch(base)).text(), /window.VICTORYPVI_DESKTOP=\{isLocalComputer:true\}/);
   assert.ok(errors.length, 'Disconnection is visible');
   const beforeDuplicate = await fs.readFile(path.join(dataDir, 'record.json'), 'utf8');
   await assert.rejects(createLanServer({ dataDir, port: app.port, bind: '127.0.0.1' }), /EADDRINUSE/);
   assert.equal(await fs.readFile(path.join(dataDir, 'record.json'), 'utf8'), beforeDuplicate, 'Duplicate launch cannot overwrite live state');
-  const writer = (await (await request('host', { deviceId: 'computer' })).json()).writerId;
+  const writer = (await (await request('host', { deviceId: 'computer', sessionId: 'final-host', roomId, takeover: true, expectedOperatorRevision: (await (await request('info')).json()).operatorRevision, claimId: 'final-claim' })).json()).writerId;
   assert.equal((await request('snapshot', { writerId: writer, clientRevision: 1, payload: { ...record(10), sequenceEvents: ['x'.repeat(2200000)] } })).status, 413);
   assert.equal(JSON.parse(await fs.readFile(path.join(dataDir, 'record.json'), 'utf8')).snapshot.payload.counts.test, 5);
   const corruptDir = await fs.mkdtemp(path.join(os.tmpdir(), 'vpvi-corrupt-test-'));

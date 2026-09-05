@@ -55,6 +55,8 @@ assert.match(indexHtml, /vendor\/qrcode-generator\.js/);
 assert.doesNotMatch(indexHtml, /<script src="\.\/vendor\/jsqr/);
 assert.match(indexHtml, /id="sync-pairing-qr"/);
 assert.match(indexHtml, /id="sync-open-desktop"/);
+assert.match(indexHtml, /id="sync-take-control"/);
+assert.match(indexHtml, /id="sync-open-direct"/);
 assert.doesNotMatch(indexHtml, /id="sync-worker-url"|id="sync-direct-short-code"/);
 assert.match(appScript, /function renderSyncQr/);
 assert.match(appScript, /function openDesktopWithRecord/);
@@ -117,6 +119,8 @@ const dependencies = [
   "release.json",
   "CHANGELOG.md",
   "sync-client.js",
+  "direct-sync-client.js",
+  "direct-sync-ui.js",
   "vendor/qrcode-generator.js",
   "vendor/jsqr.js",
   "vendor/jsqr.LICENSE.txt",

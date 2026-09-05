@@ -89,7 +89,7 @@ export async function createLanServer({ root = ROOT, dataDir = defaultDataDir(),
       hostOnline: [...peers.values()].some(p => p.writerId === state.writerId && p.role === 'host'),
       peers: [...peers.values()].filter(p => p.role === 'mirror' || p.writerId === state.writerId)
         .map(({ deviceId, role, appliedRevision }) => ({ deviceId, role, appliedRevision })),
-      urls: host ? lanUrls(actualPort, state.roomId) : [] };
+      operatorRevision: state.operatorRevision || 0, urls: lanUrls(actualPort, state.roomId) };
   }
   const timer = setInterval(() => {
     let changed = false;
@@ -104,20 +104,35 @@ export async function createLanServer({ root = ROOT, dataDir = defaultDataDir(),
       const url = new URL(req.url, 'http://localhost');
       if (url.pathname === '/api/lan/info' && req.method === 'GET') {
         return json(res, { service: SERVICE, version: release.version, roomId: state.roomId,
-          hostAllowed: loopback(req), urls: lanUrls(actualPort, state.roomId) });
+          isLocalComputer: loopback(req), mobileOperator: true, operatorRevision: state.operatorRevision || 0, urls: lanUrls(actualPort, state.roomId) });
       }
       if (url.pathname === '/api/lan/host' && req.method === 'POST') {
-        if (!loopback(req)) throw failure('请在主机电脑上操作，手机只读跟随。', 403);
         const body = await readBody(req);
-        if (!body.deviceId) throw failure('设备信息缺失。');
+        if (!body.deviceId || !body.sessionId) throw failure('设备信息缺失。');
+        if (body.roomId !== state.roomId) throw failure('连接已变化，请重新扫码。', 404);
         return await mutate(async () => {
-          await persist({ ...state, writerId: randomUUID(), clientRevision: 0 });
-          notify();
-          json(res, { writerId: state.writerId, roomId: state.roomId, snapshot: state.snapshot });
+          const resumed = body.writerId && body.writerId === state.writerId
+            && body.deviceId === state.writerDeviceId && body.sessionId === state.writerSessionId;
+          const repeated = body.claimId && body.claimId === state.claimId
+            && body.deviceId === state.writerDeviceId && body.sessionId === state.writerSessionId;
+          if (!resumed && !repeated) {
+            if (body.takeover && body.expectedOperatorRevision !== (state.operatorRevision || 0)) {
+              throw failure('操作端已切换，请稍后重新点击“改为本机操作”。', 409);
+            }
+            const canStart = body.autoStart && (!state.writerId || (!state.writerSessionId && loopback(req)));
+            if (body.takeover || canStart) {
+              await persist({ ...state, writerId: randomUUID(), clientRevision: 0,
+                writerDeviceId: body.deviceId, writerSessionId: body.sessionId, claimId: body.claimId,
+                operatorRevision: (state.operatorRevision || 0) + 1 });
+              notify();
+            } else return json(res, { role: 'mirror', roomId: state.roomId, snapshot: state.snapshot,
+              operatorRevision: state.operatorRevision || 0 });
+          }
+          json(res, { role: 'host', writerId: state.writerId, roomId: state.roomId, snapshot: state.snapshot,
+            clientRevision: state.clientRevision, resumed: Boolean(resumed || repeated), operatorRevision: state.operatorRevision });
         });
       }
       if (url.pathname === '/api/lan/snapshot' && req.method === 'POST') {
-        if (!loopback(req)) throw failure('请在主机电脑上操作。', 403);
         const body = await readBody(req);
         return await mutate(async () => {
           if (!body.writerId || body.writerId !== state.writerId) throw failure('已在另一个窗口继续操作，本窗口转为只读。', 409);
@@ -159,12 +174,12 @@ export async function createLanServer({ root = ROOT, dataDir = defaultDataDir(),
       if (req.method !== 'GET' && req.method !== 'HEAD') throw failure('不支持此操作。', 405);
       const relative = decodeURIComponent(url.pathname).replace(/^\/+/, '') || 'index.html';
       // Serve the distributed application only; never the data directory or development files.
-      if (!['index.html', 'sync-client.js', 'release.json', 'LICENSE', 'NOTICE', 'PRIVACY.md', 'ADDITIONAL_TERMS.md', 'TRADEMARKS.md']
+      if (!['index.html', 'sync-client.js', 'direct-sync-client.js', 'direct-sync-ui.js', 'release.json', 'LICENSE', 'NOTICE', 'PRIVACY.md', 'ADDITIONAL_TERMS.md', 'TRADEMARKS.md']
         .includes(relative) && !/^vendor\/[\w.-]+$/.test(relative)) throw failure('页面不存在。', 404);
       let content = await fs.readFile(path.join(root, relative));
       const types = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.svg': 'image/svg+xml' };
       if (relative === 'index.html') content = Buffer.from(content.toString().replace('<head>',
-        `<head><script>window.VICTORYPVI_DESKTOP={hostAllowed:${loopback(req)}};</script>`));
+        `<head><script>window.VICTORYPVI_DESKTOP={isLocalComputer:${loopback(req)}};</script>`));
       res.writeHead(200, { 'Content-Type': `${types[path.extname(relative)] || 'text/plain'}; charset=utf-8`,
         'Cache-Control': 'no-cache', 'Content-Length': content.length });
       res.end(req.method === 'HEAD' ? undefined : content);
@@ -191,7 +206,21 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const address = `http://localhost:${port}/?host=1`;
   try {
     // Check before touching the state file: duplicate launches must not overwrite live writes.
-    const existing = await fetch(`http://localhost:${port}/api/lan/info`, { signal: AbortSignal.timeout(1000) }).then(r => r.json()).catch(() => null);
+    const probe = () => fetch(`http://localhost:${port}/api/lan/info`, { signal: AbortSignal.timeout(1000) }).then(r => r.json()).catch(() => null);
+    let existing = await probe();
+    const requested = JSON.parse(await fs.readFile(path.join(ROOT, 'release.json'), 'utf8')).version.split('.').map(Number);
+    const running = String(existing?.version || '0.0.0').split('.').map(Number);
+    const difference = requested.map((part, index) => part - (running[index] || 0)).find(part => part !== 0) || 0;
+    // Explicitly launching an updated client replaces the old local process after its writes finish.
+    if (existing?.service === SERVICE && difference > 0) {
+      const stopped = await fetch(`http://localhost:${port}/api/lan/shutdown`, { method: 'POST', signal: AbortSignal.timeout(10000) });
+      if (!stopped.ok) throw new Error('请先退出旧版电脑客户端，再打开新版。');
+      for (let attempt = 0; attempt < 20; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, 150));
+        existing = await probe();
+        if (!existing || existing.version !== running.join('.')) break;
+      }
+    }
     if (existing?.service === SERVICE) { if (process.argv.includes('--open')) openBrowser(address); }
     else {
       const app = await createLanServer({ port });

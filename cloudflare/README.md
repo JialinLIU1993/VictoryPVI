@@ -1,6 +1,6 @@
 # Cloudflare 免费层同步服务（历史版本）
 
-当前网页已改为电脑客户端提供的局域网同步，不再使用本目录服务。本目录保留供旧版网页使用。
+当前网页已改为电脑客户端提供的局域网同步或纯手机直连，不再使用本目录服务。本目录保留供旧版网页使用。
 
 该 Worker 使用 Durable Objects 的 SQLite 存储和 WebSocket 连接，为 VictoryPVI 提供配对后的实时状态广播。Cloudflare Workers Free 目前支持 SQLite-backed Durable Objects；免费层的 Worker 请求和 Durable Object 存储/请求有每日额度，适合小规模设备同步。实际额度以 Cloudflare 控制台为准。
 

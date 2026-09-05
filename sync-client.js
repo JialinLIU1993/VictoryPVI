@@ -5,7 +5,7 @@
     constructor(options = {}) {
       this.options = options;
       this.fetch = options.fetch || global.fetch.bind(global);
-      this.sessionId = global.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
+      this.sessionId = options.sessionId || global.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
       this.controllers = new Set();
       this.generation = 0;
       this.appliedRevision = 0;
@@ -25,30 +25,52 @@
       } finally { clearTimeout(timer); this.controllers.delete(controller); }
     }
     status(state, details = {}) { this.options.onStatus?.(state === 'connected' && this.uploadError ? { ...details, state: 'offline', error: this.uploadError } : { state, ...details }); }
-    async connect({ role, deviceId, roomId, onRestore, initialSnapshot }) {
+    async connect({ role = 'mirror', deviceId, roomId, onRestore, initialSnapshot, resumeWriterId = '', draft,
+      autoStart = false, claimId = '', expectedOperatorRevision }) {
       this.disconnect();
       const generation = this.generation;
-      this.role = role; this.deviceId = deviceId; this.roomId = roomId;
+      this.role = 'mirror'; this.deviceId = deviceId; this.roomId = roomId;
       this.status('connecting');
       const info = await this.request('info');
       if (generation !== this.generation) return;
-      if (info.service !== 'VictoryPVI-LAN-1') throw new Error('请启动 VictoryPVI 电脑客户端。');
+      if (!info.mobileOperator) throw new Error('请先更新电脑客户端，再使用手机操作功能。');
       if (roomId && roomId !== info.roomId) throw new Error('连接对应另一台电脑，请重新扫码。');
       this.roomId = info.roomId;
-      if (role === 'host') {
-        const claim = await this.request('host', { deviceId });
+      this.operatorRevision = info.operatorRevision;
+      const claim = await this.request('host', { deviceId, sessionId: this.sessionId, roomId: this.roomId,
+        writerId: resumeWriterId, autoStart, takeover: role === 'host',
+        claimId: claimId || `${this.sessionId}:${Date.now()}:${Math.random()}`,
+        expectedOperatorRevision: expectedOperatorRevision ?? info.operatorRevision });
+      if (generation !== this.generation) return;
+      this.role = claim.role;
+      this.writerId = claim.writerId || '';
+      this.operatorRevision = claim.operatorRevision;
+      const pendingDraft = claim.role === 'host' && claim.resumed && draft?.writerId === claim.writerId
+        && draft.clientRevision > claim.clientRevision ? draft : null;
+      const initial = claim.role === 'host' && !claim.resumed && (initialSnapshot || !claim.snapshot)
+        ? { payload: initialSnapshot || this.options.getSnapshot(), clientRevision: 1 } : null;
+      const pending = pendingDraft || initial;
+      this.options.onRole?.({ ...claim, clientRevision: pending?.clientRevision || claim.clientRevision || 0 });
+      const snapshot = pending ? { payload: pending.payload, revision: claim.snapshot?.revision || 0 } : claim.snapshot;
+      if (snapshot) {
+        const apply = this.role === 'host' ? onRestore : this.options.onSnapshot;
+        if (await apply?.(snapshot.payload, snapshot) === false) throw new Error('无法恢复记录，请更新网页和客户端。');
         if (generation !== this.generation) return;
-        this.writerId = claim.writerId;
-        if (!initialSnapshot && claim.snapshot) {
-          if (await onRestore?.(claim.snapshot.payload, claim.snapshot) === false) throw new Error('无法恢复电脑记录，请更新网页和客户端。');
-          this.appliedRevision = claim.snapshot.revision;
-        }
-        this.active = true;
-        if (initialSnapshot || !claim.snapshot) this.sendSnapshot(initialSnapshot || this.options.getSnapshot(), 1);
-      } else this.active = true;
+        this.appliedRevision = snapshot.revision;
+      }
+      this.active = true;
+      if (pending) this.sendSnapshot(pending.payload, pending.clientRevision);
+      else if (this.role === 'host' && claim.snapshot) this.options.onSaved?.({ ...claim.snapshot, clientRevision: claim.clientRevision }, true);
       this.status('connected', { roomId: this.roomId, urls: info.urls });
       void this.poll(generation);
-      return info;
+      return claim;
+    }
+    becomeMirror() {
+      this.disconnect();
+      this.role = 'mirror'; this.active = true;
+      this.options.onRole?.({ role: 'mirror', roomId: this.roomId });
+      this.options.onSuperseded?.();
+      void this.poll(this.generation);
     }
     async pause(ms) { await new Promise(resolve => setTimeout(resolve, ms)); }
     async poll(generation) {
@@ -60,14 +82,14 @@
           const data = await this.request(`state?${query}`);
           if (generation !== this.generation) return;
           if (data.superseded && this.role === 'host') {
-            this.role = 'mirror'; this.disconnect();
-            this.options.onSuperseded?.(); return;
+            this.becomeMirror(); return;
           }
           if (this.role === 'mirror' && data.snapshot) {
             if (await this.options.onSnapshot?.(data.snapshot.payload, data.snapshot) === false) throw new Error('收到的记录无法应用，请更新客户端。');
             if (generation !== this.generation) return;
             this.appliedRevision = data.snapshot.revision;
           }
+          this.operatorRevision = data.operatorRevision;
           this.cursor = data.cursor;
           this.options.onPresence?.(data.peers);
           this.status('connected', data);
@@ -84,6 +106,7 @@
       if (this.role !== 'host') return;
       if (this.pending && clientRevision <= this.pending.clientRevision) return;
       this.pending = { payload, clientRevision };
+      this.options.onPending?.({ ...this.pending, writerId: this.writerId, roomId: this.roomId });
       if (this.active && !this.uploading) void this.upload(this.generation);
     }
     async upload(generation) {
@@ -103,7 +126,7 @@
           } catch (error) {
             if (generation !== this.generation) return;
             if (error.status === 409) {
-              this.role = 'mirror'; this.disconnect(); this.options.onSuperseded?.(); break;
+              this.becomeMirror(); break;
             }
             this.uploadError = error.status ? error.message : '正在重新连接，未发送的操作保留在本机。';
             this.status('offline', { error: this.uploadError });

@@ -1,7 +1,8 @@
 # Privacy and local data
 
 VictoryPVI is a local-first application. Optional device synchronization uses
-a local desktop host on the same Wi-Fi or hotspot. The current
+either a local desktop host or direct phone-to-phone WebRTC connections on the
+same Wi-Fi or hotspot. The current
 webpage does not connect to a cloud synchronization service.
 
 - Desktop downloads are hosted on GitHub Releases; downloading requires access
@@ -16,7 +17,9 @@ webpage does not connect to a cloud synchronization service.
 - When synchronization is enabled, only ablation quality-control state,
   procedure settings, endpoint records, and sync metadata are sent. The browser
   sends state to the desktop over local HTTP. Mobile browsers receive that saved
-  state from the same desktop. No cloud relay or account is used.
+  state from the same desktop. Phones can also operate and send updates to the
+  desktop. In phone-only mode, state travels directly between browsers using
+  WebRTC DataChannels with no STUN/TURN servers. No cloud relay or account is used.
 - Patient names, medical record numbers, report notes, and generated PDF files
   are intentionally excluded from synchronization.
 - PDF reports are generated directly on the current device without using a
