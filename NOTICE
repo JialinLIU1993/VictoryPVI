@@ -1,0 +1,19 @@
+VictoryPVI
+Copyright (C) 2026 VictoryPVI Community
+
+VictoryPVI is an independent, third-party community project. It is not an
+official product of, affiliated with, endorsed by, or sponsored by any medical
+device manufacturer, software platform provider, healthcare institution, or
+employer.
+
+The tool is described by its purpose: recording pulmonary vein ablation. It does
+not designate a particular device brand or model. All third-party names and
+trademarks remain the property of their respective owners.
+
+Redistributions and modified versions must preserve this project-origin notice
+and provide users with a readily accessible About or Legal notice as described
+in ADDITIONAL_TERMS.md.
+
+PDF export includes jsPDF 4.2.1 under the MIT License. Device-sync QR support
+includes QR Code Generator for JavaScript 1.4.4 and jsQR 1.4.0 under the MIT
+License. Their license notices are available in the vendor directory.
