@@ -4,22 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f4f5f8" />
-    <meta name="application-version" content="1.16.0" />
-    <meta name="application-iteration" content="2026-09-09T09:29:29+08:00" />
+    <meta name="application-version" content="1.17.0" />
+    <meta name="application-iteration" content="2026-09-09T09:42:15+08:00" />
     <script id="app-release" type="application/json">
       {
-        "version": "1.16.0",
-        "iteration": "2026-09-09T09:29:29+08:00",
-        "summary": "VictoryPVI plus：新增分区标识，优化上下肺静脉间距。",
+        "version": "1.17.0",
+        "iteration": "2026-09-09T09:42:15+08:00",
+        "summary": "分区统一为 A–H，优化图谱与全局视觉层次。",
         "changes": [
-          "肺静脉外沿标注 1区–8区，与圈内覆盖次数区分；同步更新 PDF 报告。",
-          "增加上下肺静脉间距及手机视图高度，避免分区标签拥挤和裁切。",
-          "新版发布至 /VictoryPVI/plus/，后续仅更新新版，旧版地址冻结保留。"
+          "图谱、操作提示和 PDF 报告统一使用 A–H 分区，圈内数字继续表示累计覆盖次数。",
+          "图例独立成行，统一文字对比度、间距、概览列表和控件样式，优化手机底栏与视图切换。",
+          "保留原有记录和消融判定，网页仅发布至 VictoryPVI plus。"
         ]
       }
     </script>
     <link rel="icon" href="data:," />
-    <title>肺静脉消融记录</title>
+    <title>VictoryPVI plus · 肺静脉消融记录</title>
     <style>
       :root {
         color-scheme: light;
@@ -2268,6 +2268,60 @@
         .quick-dialog .quality-metric span { font-size: 10px; }
       }
 
+      /* Plus visual system: map first, quiet surfaces, explicit reading hierarchy. */
+      :root { --muted: #596579; --canvas: #f5f6f9; --line: #e3e6ed; --shadow: 0 4px 20px rgba(31, 39, 58, .045); }
+      .topbar { background: #fff; backdrop-filter: none; }
+      .plus-mark { display: inline-block; margin-left: 5px; color: var(--purple-3); font-size: 10px; font-weight: 800; letter-spacing: .08em; vertical-align: middle; }
+      .app-meta { line-height: 1.5; }
+      .stage-header { align-items: center; flex-wrap: wrap; gap: 12px 24px; }
+      .stage-title h2 { font-size: 21px; font-weight: 750; }
+      .stage-title p { line-height: 1.6; }
+      .legend { flex-wrap: wrap; gap: 8px 14px; font-size: 11px; }
+      .map-panel { border-radius: 14px; }
+      .map-toolbar { min-height: 56px; padding: 10px 18px; background: #fff; flex-wrap: wrap; gap: 10px 20px; }
+      .layer-key { flex-wrap: wrap; gap: 14px; flex-shrink: 0; }
+      .map-reading-key { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; padding: 11px 18px; background: #f8f9fc; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; line-height: 1.5; }
+      .map-reading-key > span { display: inline-flex; align-items: center; gap: 8px; }
+      .sector-key-sample { color: #445269; font-size: 12px; letter-spacing: .08em; }
+      .count-key-sample { color: var(--purple-3); font-weight: 650; }
+      .sector-label { fill: #445269; font-size: 12px; font-weight: 750; stroke: #fff; stroke-width: 2px; }
+      .segment-count, .ridge-count, .quality-metric strong, .vein-summary-count { font-variant-numeric: tabular-nums; }
+      .anatomy-field { fill: #fafafd; stroke: #e9ebf1; }
+      .atrium-label { fill: #7b8698; font-weight: 600; letter-spacing: .03em; }
+      .side-title { fill: #445269; font-size: 15px; font-weight: 650; }
+      .inspector-section { margin-top: 26px; }
+      .section-kicker, .summary-kicker { font-size: 12px; letter-spacing: .04em; }
+      .quality-row { gap: 12px; }
+      .quality-metric strong { font-weight: 750; line-height: 1.2; }
+      .quality-metric span { line-height: 1.5; }
+      .vein-list { gap: 0; }
+      .vein-summary { padding: 14px 0; border-bottom: 1px solid var(--line); row-gap: 9px; }
+      .vein-summary:last-child { border-bottom: 0; }
+      .ablation-criteria span, .endpoint-control span { font-size: 11px; }
+      .ablation-criteria strong { font-size: 11px; line-height: 1.6; }
+      .endpoint-control select { min-height: 36px; font-size: 12px; border-radius: 8px; }
+      .button { min-height: 38px; border-radius: 9px; transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease; }
+      .settings-dialog { border: 1px solid var(--line); box-shadow: 0 20px 70px #17203326; }
+      .settings-header-help, .settings-help { line-height: 1.7; }
+      input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--purple-2); outline-offset: 2px; }
+      .operation-status-bar { background: #fafbfc; line-height: 1.6; }
+      @media (min-width: 951px) { .inspector { padding: 28px 24px; } }
+      @media (max-width: 720px) {
+        .stage-header { gap: 10px; }
+        .stage-title h2 { font-size: 18px; }
+        .map-toolbar { padding: 10px 12px; display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; }
+        .record-hint { width: auto; white-space: normal; line-height: 1.6; }
+        .map-reading-key { padding: 9px 12px; gap: 5px 16px; font-size: 10px; }
+        .map-reading-key > span { gap: 6px; }
+        .map-panel { border-radius: 12px; box-shadow: none; }
+        .map-view-switch button { min-height: 46px; transition: color 160ms ease, background-color 160ms ease; }
+        .map-view-switch button[aria-pressed="true"] { background: #f7f3fc; }
+        .mobile-dock { background: rgba(255,255,255,.97); border-top: 1px solid #dce1ea; box-shadow: 0 -4px 16px #17203306; }
+        .mobile-dock button { min-height: 48px; }
+        .endpoint-control select { min-height: 44px; font-size: 16px; }
+        .quick-dialog .vein-summary { padding: 16px 0; }
+      }
+
       @media (prefers-reduced-motion: reduce) {
         *,
         *::before,
@@ -2285,13 +2339,13 @@
         <div class="brand">
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
-            <h1>肺静脉消融记录</h1>
-            <p class="app-meta" id="app-meta" aria-label="软件版本 1.16.0，独立社区维护的非官方工具，迭代时间 2026年9月9日 9点29分">
-              <span class="app-version" id="app-version">v1.16.0</span>
+            <h1>肺静脉消融记录 <span class="plus-mark">PLUS</span></h1>
+            <p class="app-meta" id="app-meta" aria-label="软件版本 1.17.0，独立社区维护的非官方工具，迭代时间 2026年9月9日 9点42分">
+              <span class="app-version" id="app-version">v1.17.0</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
               <span>社区维护 · 非官方</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
-              <time id="app-iteration" datetime="2026-09-09T09:29:29+08:00">迭代于 2026-09-09 09:29</time>
+              <time id="app-iteration" datetime="2026-09-09T09:42:15+08:00">迭代于 2026-09-09 09:42</time>
             </p>
           </div>
         </div>
@@ -2344,7 +2398,6 @@
               <div class="layer-key">
                 <span><i class="ring-icon"></i>前庭</span>
                 <span><i class="ring-icon inner"></i>口部</span>
-                <span>圈外 1区–8区：分区 · 圈内数字：覆盖次数</span>
               </div>
               <div class="map-action-row">
                 <button
@@ -2360,6 +2413,10 @@
                 </button>
                 <span class="record-hint" id="record-hint">选择电极后，点击本次 1–10 gap 所在扇区</span>
               </div>
+            </div>
+            <div class="map-reading-key" aria-label="图谱阅读说明">
+              <span><b class="sector-key-sample">A–H</b>圈外分区 · 内外圈共用</span>
+              <span><b class="count-key-sample">次数</b>圈内数字为累计覆盖次数</span>
             </div>
             <div class="map-view-switch" role="group" aria-label="图谱显示范围">
               <button type="button" data-map-view="left" aria-pressed="true">左侧</button>
@@ -2545,8 +2602,8 @@
             <div id="sync-desktop-downloads">
               <h3>1. 下载并打开电脑客户端</h3>
               <div class="sync-action-row">
-                <a class="button" id="sync-download-windows" target="_blank" rel="noopener" href="https://github.com/JialinLIU1993/VictoryPVI/releases/download/desktop-v1.16.0/VictoryPVI-Windows-x64.zip">下载 Windows 版</a>
-                <a class="button" id="sync-download-mac" target="_blank" rel="noopener" href="https://github.com/JialinLIU1993/VictoryPVI/releases/download/desktop-v1.16.0/VictoryPVI-macOS.zip">下载 Mac 版</a>
+                <a class="button" id="sync-download-windows" target="_blank" rel="noopener" href="https://github.com/JialinLIU1993/VictoryPVI/releases/download/desktop-v1.17.0/VictoryPVI-Windows-x64.zip">下载 Windows 版</a>
+                <a class="button" id="sync-download-mac" target="_blank" rel="noopener" href="https://github.com/JialinLIU1993/VictoryPVI/releases/download/desktop-v1.17.0/VictoryPVI-macOS.zip">下载 Mac 版</a>
               </div>
               <p class="settings-help">首次使用下载一次，解压后双击 VictoryPVI。下载来自 GitHub，日常同步不需要互联网。</p>
               <h3>2. 继续当前记录</h3>
@@ -2554,7 +2611,7 @@
               <p class="settings-help">当前记录会自动带入本地窗口，再让手机扫码。已下载过客户端可直接打开后连接。</p>
               <details><summary>启动或下载遇到问题</summary>
                 <p class="settings-help">Windows 首次使用请允许应用通过防火墙。Mac 如被系统拦截，请在“系统设置 → 隐私与安全性”中允许打开，再启动一次。不要直接在压缩包内运行。</p>
-                <a href="https://github.com/JialinLIU1993/VictoryPVI/releases/tag/desktop-v1.16.0" target="_blank" rel="noopener">打开 GitHub 下载页</a>
+                <a href="https://github.com/JialinLIU1993/VictoryPVI/releases/tag/desktop-v1.17.0" target="_blank" rel="noopener">打开 GitHub 下载页</a>
               </details>
             </div>
             <p class="settings-help" id="sync-phone-help" hidden>在电脑网页中展开此项，下载并启动客户端。再用手机相机扫描电脑上的二维码，即可加入；手机仍可作为操作端。</p>
@@ -2747,11 +2804,11 @@
           <section class="about-section">
             <h3>当前版本</h3>
             <p>
-              <strong id="about-release-version">v1.16.0</strong>
+              <strong id="about-release-version">v1.17.0</strong>
               <span aria-hidden="true"> · </span>
-              <time id="about-release-iteration" datetime="2026-09-09T09:29:29+08:00">迭代于 2026-09-09 09:29</time>
+              <time id="about-release-iteration" datetime="2026-09-09T09:42:15+08:00">迭代于 2026-09-09 09:42</time>
             </p>
-            <p id="about-release-summary">更新内容：VictoryPVI plus：新增分区标识，优化上下肺静脉间距。</p>
+            <p id="about-release-summary">更新内容：分区统一为 A–H，优化图谱与全局视觉层次。</p>
           </section>
           <section class="about-section">
             <h3>项目身份</h3>
@@ -2778,8 +2835,8 @@
     <div class="remove-cursor" id="remove-cursor" aria-hidden="true"></div>
 
     <script src="./vendor/qrcode-generator.js"></script>
-    <script src="./sync-client.js?v=1.16.0"></script>
-    <script src="./direct-sync-ui.js?v=1.16.0"></script>
+    <script src="./sync-client.js?v=1.17.0"></script>
+    <script src="./direct-sync-ui.js?v=1.17.0"></script>
     <script>
       const NS = "http://www.w3.org/2000/svg";
       // Historical storage identifiers are retained so existing records, undo history,
@@ -2799,9 +2856,9 @@
       const PDF_FONT_FAMILY = "NotoSansSC";
       const APP_RELEASE = Object.freeze((() => {
         const fallback = {
-          version: "1.16.0",
-          iteration: "2026-09-09T09:29:29+08:00",
-          summary: "VictoryPVI plus：新增分区标识，优化上下肺静脉间距。",
+          version: "1.17.0",
+          iteration: "2026-09-09T09:42:15+08:00",
+          summary: "分区统一为 A–H，优化图谱与全局视觉层次。",
           changes: [],
         };
         try {
@@ -4442,7 +4499,7 @@
                 role: "button",
                 "data-key": key,
                 "data-sector": sector,
-                "aria-label": `${vein.name} ${layer.name} ${sector}区，完成判定需${completionRequiredCount}次；点击将该区记录为本次 1–10 gap`,
+                "aria-label": `${vein.name} ${layer.name} ${sectorLabel(sector)}区，完成判定需${completionRequiredCount}次；点击将该区记录为本次 1–10 gap`,
               },
               ringGroup,
             );
@@ -4534,7 +4591,7 @@
             x: point.x, y: point.y, class: "sector-label",
             "aria-hidden": "true",
           }, group);
-          label.textContent = `${sector}区`;
+          label.textContent = sectorLabel(sector);
         }
 
         createSvgElement(
@@ -4601,7 +4658,7 @@
         }
 
         const ringName = `${parsed.vein.name}${parsed.layer.name}`;
-        pushHistory(`${ringName}${sector}区消融次数减 1`);
+        pushHistory(`${ringName}${sectorLabel(sector)}区消融次数减 1`);
         if (currentCount === 1) {
           delete counts[keyForSector];
         } else {
@@ -4612,7 +4669,7 @@
         selectedRidgeId = null;
         saveCounts();
         updateAll();
-        showToast(`${sector} 区消融次数已减至 ${currentCount - 1}`);
+        showToast(`${sectorLabel(sector)} 区消融次数已减至 ${currentCount - 1}`);
       }
 
       function removeRidgeCoverage(site) {
@@ -4673,7 +4730,7 @@
           .reverse()
           .find((event) => event.type === "ring");
         pushHistory(
-          `${ringName}消融，${excludedSector} 区为 1–10 gap，${activeElectrodes.length} 个电极`,
+          `${ringName}消融，${sectorLabel(excludedSector)} 区为 1–10 gap，${activeElectrodes.length} 个电极`,
         );
 
         sequenceEvents.push({
@@ -4790,7 +4847,7 @@
             : "点击将该区记录为本次 1–10 gap";
           segment.setAttribute(
             "aria-label",
-            `${parsed.vein.name} ${parsed.layer.name} ${sector}区，累计覆盖${count}次，显示阈值${threshold}次${increasedByLastAblation ? "，最近一次消融已增加该区计数" : ""}；${actionLabel}`,
+            `${parsed.vein.name} ${parsed.layer.name} ${sectorLabel(sector)}区，累计覆盖${count}次，显示阈值${threshold}次${increasedByLastAblation ? "，最近一次消融已增加该区计数" : ""}；${actionLabel}`,
           );
 
           const text = document.querySelector(`[data-count-for="${keyForSector}"]`);
@@ -5249,11 +5306,11 @@
             end = sector;
             return;
           }
-          ranges.push(start === end ? `${start}` : `${start}–${end}`);
+          ranges.push(start === end ? `${sectorLabel(start)}` : `${sectorLabel(start)}–${sectorLabel(end)}`);
           start = sector;
           end = sector;
         });
-        ranges.push(start === end ? `${start}` : `${start}–${end}`);
+        ranges.push(start === end ? `${sectorLabel(start)}` : `${sectorLabel(start)}–${sectorLabel(end)}`);
         return `${ranges.join("、")}区`;
       }
 
@@ -5681,6 +5738,11 @@
         return points;
       }
 
+      // Display labels only: numeric sector keys remain compatible with saved records and sync.
+      function sectorLabel(sector) {
+        return "ABCDEFGH"[sector - 1] || "";
+      }
+
       function pdfDrawVein(pdf, vein, mapGeometry) {
         const ringGeometry = {
           outer: { inner: 82, outer: 116 },
@@ -5725,8 +5787,8 @@
 
         for (let sector = 1; sector <= 8; sector += 1) {
           const point = pdfPolarPoint(vein.x, vein.y, 130, (sector - 0.5) * 45);
-          pdfDrawMapText(pdf, `${sector}区`, mapGeometry, point.x, point.y, {
-            fontSizePx: 11, color: "#596579", align: "center", baseline: "middle",
+          pdfDrawMapText(pdf, sectorLabel(sector), mapGeometry, point.x, point.y, {
+            fontSizePx: 12, color: "#445269", align: "center", baseline: "middle",
           });
         }
 
@@ -5797,7 +5859,7 @@
         const geometry = pdfMapGeometry(x + 2, y + 1, width - 4, height - footerHeight - 1);
         pdfDrawWebAnatomy(pdf, geometry);
         veins.forEach(vein => pdfDrawVein(pdf, vein, geometry));
-        pdfDrawMapText(pdf, "圈外 1区–8区：分区（内外圈共用） · 圈内数字：累计覆盖次数", geometry, 490, 624, {
+        pdfDrawMapText(pdf, "圈外 A–H：分区（内外圈共用） · 圈内数字：累计覆盖次数", geometry, 490, 624, {
           fontSizePx: 12, color: PDF_COLORS.muted, align: "center",
         });
         pdfDrawRidges(pdf, geometry);
@@ -6468,6 +6530,7 @@
         dominant-baseline: central;
         opacity: 0;
       }
+      .report-map-svg .sector-label { font-size: 12px; font-weight: 750; fill: #445269; }
       .report-map-svg .segment-count.visible { opacity: 1; }
       .report-map-svg .vein-center { fill: #fff; stroke: #cbd1db; stroke-width: 2; }
       .report-map-svg .vein-code {
@@ -6848,7 +6911,7 @@
               </div>
             </div>
             <div class="map-surface">${mapMarkup}</div>
-            <p>圈外 1区–8区：分区（内外圈共用） · 圈内数字：累计覆盖次数</p>
+            <p>圈外 A–H：分区（内外圈共用） · 圈内数字：累计覆盖次数</p>
             <div class="last-operation">
               <strong>最近操作</strong>
               <span>${escapeHtml(latestOperation)}</span>
