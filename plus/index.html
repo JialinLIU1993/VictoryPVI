@@ -4,17 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f4f5f8" />
-    <meta name="application-version" content="1.17.0" />
-    <meta name="application-iteration" content="2026-09-09T09:42:15+08:00" />
+    <meta name="application-version" content="1.18.0" />
+    <meta name="application-iteration" content="2026-09-09T09:58:07+08:00" />
     <script id="app-release" type="application/json">
       {
-        "version": "1.17.0",
-        "iteration": "2026-09-09T09:42:15+08:00",
-        "summary": "分区统一为 A–H，优化图谱与全局视觉层次。",
+        "version": "1.18.0",
+        "iteration": "2026-09-09T09:58:07+08:00",
+        "summary": "新增节段消融模式，支持单个扇区独立记录。",
         "changes": [
-          "图谱、操作提示和 PDF 报告统一使用 A–H 分区，圈内数字继续表示累计覆盖次数。",
-          "图例独立成行，统一文字对比度、间距、概览列表和控件样式，优化手机底栏与视图切换。",
-          "保留原有记录和消融判定，网页仅发布至 VictoryPVI plus。"
+          "模式改为消融、节段、去除三个直接选项，窄屏下保持完整可见。",
+          "节段模式点击目标扇区 +1 次，同时累计该圈与总消融次数，无需选择电极。",
+          "节段记录支持保存、同步和撤回，最近一次高亮仅标记实际增加的扇区。"
         ]
       }
     </script>
@@ -2322,6 +2322,25 @@
         .quick-dialog .vein-summary { padding: 16px 0; }
       }
 
+      /* Direct mode selection keeps all three actions visible on narrow screens. */
+      #map-mode-toggle { display: grid; grid-template-columns: repeat(3, 1fr); width: 180px; height: 40px; padding: 3px; gap: 2px; border-radius: 10px; background: #eef0f5; cursor: default; }
+      #map-mode-toggle button { border: 0; border-radius: 7px; padding: 0 8px; background: transparent; color: var(--muted); font: inherit; cursor: pointer; transition: background-color 160ms ease, color 160ms ease; }
+      #map-mode-toggle button[aria-pressed="true"] { background: var(--purple-3); color: #fff; }
+      #map-mode-toggle button[data-edit-mode="remove"][aria-pressed="true"] { background: #b83228; }
+      #map-mode-toggle button:focus-visible { outline: 2px solid var(--purple-2); outline-offset: 1px; }
+      #map-mode-toggle button:disabled { opacity: .5; cursor: default; }
+      .map-action-row { grid-template-columns: 180px minmax(0, 270px); }
+      .segment-mode .ridge-segment { opacity: .45; cursor: default; }
+      @media (max-width: 720px) {
+        #map-mode-toggle { width: 174px; height: 44px; }
+        .map-toolbar .layer-key { gap: 8px; }
+        .map-toolbar { column-gap: 8px; }
+      }
+      @media (max-width: 360px) {
+        .map-toolbar { grid-template-columns: 1fr; }
+        #map-mode-toggle { width: 100%; }
+      }
+
       @media (prefers-reduced-motion: reduce) {
         *,
         *::before,
@@ -2340,12 +2359,12 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>肺静脉消融记录 <span class="plus-mark">PLUS</span></h1>
-            <p class="app-meta" id="app-meta" aria-label="软件版本 1.17.0，独立社区维护的非官方工具，迭代时间 2026年9月9日 9点42分">
-              <span class="app-version" id="app-version">v1.17.0</span>
+            <p class="app-meta" id="app-meta" aria-label="软件版本 1.18.0，独立社区维护的非官方工具，迭代时间 2026年9月9日 9点58分">
+              <span class="app-version" id="app-version">v1.18.0</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
               <span>社区维护 · 非官方</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
-              <time id="app-iteration" datetime="2026-09-09T09:42:15+08:00">迭代于 2026-09-09 09:42</time>
+              <time id="app-iteration" datetime="2026-09-09T09:58:07+08:00">迭代于 2026-09-09 09:58</time>
             </p>
           </div>
         </div>
@@ -2400,17 +2419,11 @@
                 <span><i class="ring-icon inner"></i>口部</span>
               </div>
               <div class="map-action-row">
-                <button
-                  class="map-mode-toggle"
-                  id="map-mode-toggle"
-                  type="button"
-                  data-mode="ablate"
-                  aria-pressed="false"
-                >
-                  <i class="map-mode-slider" aria-hidden="true"></i>
-                  <span class="map-mode-option ablate">消融</span>
-                  <span class="map-mode-option remove">去除</span>
-                </button>
+                <div class="map-mode-toggle" id="map-mode-toggle" data-mode="ablate" role="group" aria-label="消融记录模式">
+                  <button type="button" data-edit-mode="ablate" aria-pressed="true">消融</button>
+                  <button type="button" data-edit-mode="segment" aria-pressed="false">节段</button>
+                  <button type="button" data-edit-mode="remove" aria-pressed="false">去除</button>
+                </div>
                 <span class="record-hint" id="record-hint">选择电极后，点击本次 1–10 gap 所在扇区</span>
               </div>
             </div>
@@ -2602,8 +2615,8 @@
             <div id="sync-desktop-downloads">
               <h3>1. 下载并打开电脑客户端</h3>
               <div class="sync-action-row">
-                <a class="button" id="sync-download-windows" target="_blank" rel="noopener" href="https://github.com/JialinLIU1993/VictoryPVI/releases/download/desktop-v1.17.0/VictoryPVI-Windows-x64.zip">下载 Windows 版</a>
-                <a class="button" id="sync-download-mac" target="_blank" rel="noopener" href="https://github.com/JialinLIU1993/VictoryPVI/releases/download/desktop-v1.17.0/VictoryPVI-macOS.zip">下载 Mac 版</a>
+                <a class="button" id="sync-download-windows" target="_blank" rel="noopener" href="https://github.com/JialinLIU1993/VictoryPVI/releases/download/desktop-v1.18.0/VictoryPVI-Windows-x64.zip">下载 Windows 版</a>
+                <a class="button" id="sync-download-mac" target="_blank" rel="noopener" href="https://github.com/JialinLIU1993/VictoryPVI/releases/download/desktop-v1.18.0/VictoryPVI-macOS.zip">下载 Mac 版</a>
               </div>
               <p class="settings-help">首次使用下载一次，解压后双击 VictoryPVI。下载来自 GitHub，日常同步不需要互联网。</p>
               <h3>2. 继续当前记录</h3>
@@ -2611,7 +2624,7 @@
               <p class="settings-help">当前记录会自动带入本地窗口，再让手机扫码。已下载过客户端可直接打开后连接。</p>
               <details><summary>启动或下载遇到问题</summary>
                 <p class="settings-help">Windows 首次使用请允许应用通过防火墙。Mac 如被系统拦截，请在“系统设置 → 隐私与安全性”中允许打开，再启动一次。不要直接在压缩包内运行。</p>
-                <a href="https://github.com/JialinLIU1993/VictoryPVI/releases/tag/desktop-v1.17.0" target="_blank" rel="noopener">打开 GitHub 下载页</a>
+                <a href="https://github.com/JialinLIU1993/VictoryPVI/releases/tag/desktop-v1.18.0" target="_blank" rel="noopener">打开 GitHub 下载页</a>
               </details>
             </div>
             <p class="settings-help" id="sync-phone-help" hidden>在电脑网页中展开此项，下载并启动客户端。再用手机相机扫描电脑上的二维码，即可加入；手机仍可作为操作端。</p>
@@ -2804,11 +2817,11 @@
           <section class="about-section">
             <h3>当前版本</h3>
             <p>
-              <strong id="about-release-version">v1.17.0</strong>
+              <strong id="about-release-version">v1.18.0</strong>
               <span aria-hidden="true"> · </span>
-              <time id="about-release-iteration" datetime="2026-09-09T09:42:15+08:00">迭代于 2026-09-09 09:42</time>
+              <time id="about-release-iteration" datetime="2026-09-09T09:58:07+08:00">迭代于 2026-09-09 09:58</time>
             </p>
-            <p id="about-release-summary">更新内容：分区统一为 A–H，优化图谱与全局视觉层次。</p>
+            <p id="about-release-summary">更新内容：新增节段消融模式，支持单个扇区独立记录。</p>
           </section>
           <section class="about-section">
             <h3>项目身份</h3>
@@ -2835,8 +2848,8 @@
     <div class="remove-cursor" id="remove-cursor" aria-hidden="true"></div>
 
     <script src="./vendor/qrcode-generator.js"></script>
-    <script src="./sync-client.js?v=1.17.0"></script>
-    <script src="./direct-sync-ui.js?v=1.17.0"></script>
+    <script src="./sync-client.js?v=1.18.0"></script>
+    <script src="./direct-sync-ui.js?v=1.18.0"></script>
     <script>
       const NS = "http://www.w3.org/2000/svg";
       // Historical storage identifiers are retained so existing records, undo history,
@@ -2856,9 +2869,9 @@
       const PDF_FONT_FAMILY = "NotoSansSC";
       const APP_RELEASE = Object.freeze((() => {
         const fallback = {
-          version: "1.17.0",
-          iteration: "2026-09-09T09:42:15+08:00",
-          summary: "分区统一为 A–H，优化图谱与全局视觉层次。",
+          version: "1.18.0",
+          iteration: "2026-09-09T09:58:07+08:00",
+          summary: "新增节段消融模式，支持单个扇区独立记录。",
           changes: [],
         };
         try {
@@ -3182,7 +3195,7 @@
         const blocked = mirror || syncBootstrapping || syncHandoffPending;
         settingsButton.disabled = blocked;
         resetButton.disabled = blocked;
-        mapModeToggle.disabled = blocked;
+        mapModeToggle.querySelectorAll("button").forEach(button => { button.disabled = blocked; });
         exportButton.hidden = mirror;
         document.querySelectorAll(".endpoint-control select").forEach(select => { select.disabled = blocked; });
         updateUndoButton();
@@ -3804,31 +3817,30 @@
       function updateMapEditMode() {
         const removeMode = mapEditMode === "remove";
         mapModeToggle.dataset.mode = mapEditMode;
-        mapModeToggle.setAttribute("aria-pressed", String(removeMode));
-        mapModeToggle.setAttribute(
-          "aria-label",
-          removeMode
-            ? "当前为去除状态，点击切换为消融状态"
-            : "当前为消融状态，点击切换为去除状态",
-        );
+        mapModeToggle.querySelectorAll("[data-edit-mode]").forEach(button => {
+          button.setAttribute("aria-pressed", String(button.dataset.editMode === mapEditMode));
+        });
         recordHint.textContent = removeMode
           ? "点击扇区或脊部，将该位置消融次数减 1"
-          : "选择电极后，点击本次 1–10 gap 所在扇区";
+          : mapEditMode === "segment"
+            ? "点击目标扇区，仅该区 +1 次；无需选择电极"
+            : "选择电极后，点击本次 1–10 gap 所在扇区";
         mapPanel.classList.toggle("remove-mode", removeMode);
-        electrodeSelectorSection.classList.toggle("is-inactive", removeMode);
-        electrodeSelectorSection.setAttribute("aria-disabled", String(removeMode));
+        mapPanel.classList.toggle("segment-mode", mapEditMode === "segment");
+        electrodeSelectorSection.classList.toggle("is-inactive", mapEditMode !== "ablate");
+        electrodeSelectorSection.setAttribute("aria-disabled", String(mapEditMode !== "ablate"));
         if (!removeMode) hideRemoveCursor();
       }
 
-      function toggleMapEditMode() {
-        if (syncWriteBlocked()) return;
-        mapEditMode = mapEditMode === "ablate" ? "remove" : "ablate";
+      function toggleMapEditMode(mode) {
+        if (syncWriteBlocked() || !["ablate", "segment", "remove"].includes(mode)) return;
+        mapEditMode = mode;
         selectedKey = null;
         selectedSector = null;
         selectedRidgeId = null;
         updateMapEditMode();
         updateAll();
-        showToast(mapEditMode === "remove" ? "已切换为去除状态" : "已切换为消融状态");
+        showToast(mapEditMode === "remove" ? "已切换为去除状态" : mapEditMode === "segment" ? "已切换为节段模式：点击单个扇区 +1 次" : "已切换为消融状态");
       }
 
       function moveRemoveCursor(event) {
@@ -4016,11 +4028,15 @@
       function normalizeSequenceEvents(source) {
         if (!Array.isArray(source)) return [];
         return source.flatMap((event) => {
-          if (!event || (event.type !== "ring" && event.type !== "ridge")) return [];
+          if (!event || !["ring", "ridge", "segment"].includes(event.type)) return [];
           if (
             Object.prototype.hasOwnProperty.call(event, "status") &&
             event.status !== "complete"
           ) return [];
+          if (event.type === "segment" && (
+            typeof event.key !== "string" || !parseKey(event.key).vein || !parseKey(event.key).layer ||
+            !Number.isInteger(event.sector) || event.sector < 1 || event.sector > 8
+          )) return [];
           const normalized = { ...event };
           delete normalized.status;
           if (Array.isArray(normalized.activeElectrodes)) {
@@ -4711,12 +4727,33 @@
         showToast(`${site.ridgeName}消融次数已减至 ${nextCount}`);
       }
 
+      function applySegment(key, sector) {
+        if (syncWriteBlocked()) return;
+        const parsed = parseKey(key);
+        if (!parsed.vein || !parsed.layer || !Number.isInteger(sector) || sector < 1 || sector > 8) return;
+        pushHistory(`${parsed.vein.name}${parsed.layer.name} ${sectorLabel(sector)}区节段消融 +1 次`);
+        const countKey = sectorKey(key, sector);
+        counts[countKey] = Number(counts[countKey] || 0) + 1;
+        applications[key] = Number(applications[key] || 0) + 1;
+        sequenceEvents.push({ type: "segment", key, sector, recordedAt: new Date().toISOString() });
+        selectedKey = key;
+        selectedSector = null;
+        selectedRidgeId = null;
+        saveCounts();
+        updateAll();
+        showToast(`${sectorLabel(sector)} 区 +1 次 · 累计 ${counts[countKey]} 次`);
+      }
+
       function applyRingExcluding(key, excludedSector) {
         if (syncWriteBlocked()) return;
         const parsed = parseKey(key);
         if (!parsed.vein || !parsed.layer) return;
         if (mapEditMode === "remove") {
           removeSectorCoverage(key, excludedSector);
+          return;
+        }
+        if (mapEditMode === "segment") {
+          applySegment(key, excludedSector);
           return;
         }
         const activeElectrodes = activeElectrodeNumbers();
@@ -4762,6 +4799,10 @@
         if (syncWriteBlocked()) return;
         const site = getRidgeSite(ridgeId);
         if (!site || !settings.ridgeEnabled) return;
+        if (mapEditMode === "segment") {
+          showToast("节段模式仅记录肺静脉扇区；记录脊部请切换到消融模式");
+          return;
+        }
         if (mapEditMode === "remove") {
           removeRidgeCoverage(site);
           return;
@@ -4794,10 +4835,13 @@
         const latestAblation = sequenceEvents[sequenceEvents.length - 1];
         if (
           !latestAblation ||
-          latestAblation.type !== "ring" ||
+          !["ring", "segment"].includes(latestAblation.type) ||
           typeof latestAblation.key !== "string"
         ) {
           return null;
+        }
+        if (latestAblation.type === "segment") {
+          return { key: latestAblation.key, sector: latestAblation.sector };
         }
         const excludedSector = Number(latestAblation.excludedSector);
         if (!Number.isInteger(excludedSector) || excludedSector < 1 || excludedSector > 8) {
@@ -4828,7 +4872,7 @@
           if (level) segment.classList.add(`level-${level}`);
           const increasedByLastAblation =
             lastIncrease?.key === key &&
-            lastIncrease.excludedSector !== sector &&
+            (lastIncrease.sector ? lastIncrease.sector === sector : lastIncrease.excludedSector !== sector) &&
             count > 0;
           const innerHighlight = document.querySelector(
             `[data-inner-highlight-for="${keyForSector}"]`,
@@ -4844,6 +4888,7 @@
           const parsed = parseKey(key);
           const actionLabel = mapEditMode === "remove"
             ? "点击将该区消融次数减 1"
+            : mapEditMode === "segment" ? "点击仅将该区消融次数加 1"
             : "点击将该区记录为本次 1–10 gap";
           segment.setAttribute(
             "aria-label",
@@ -4874,7 +4919,7 @@
           }
           segment.setAttribute(
             "aria-label",
-            `${site.ridgeName}，累计${count}次消融，显示阈值${settings.ridgeTarget}次；${mapEditMode === "remove" ? "点击将脊部消融次数减 1" : "点击记录一次消融"}`,
+            `${site.ridgeName}，累计${count}次消融，显示阈值${settings.ridgeTarget}次；${mapEditMode === "remove" ? "点击将脊部消融次数减 1" : mapEditMode === "segment" ? "节段模式不记录脊部，请切换到消融模式" : "点击记录一次消融"}`,
           );
 
           const countText = document.querySelector(`[data-ridge-count-for="${ridgeId}"]`);
@@ -7150,7 +7195,9 @@
       undoButton.addEventListener("click", undoLastAction);
       resetButton.addEventListener("click", resetRecord);
       exportButton.addEventListener("click", openPatientInfoDialog);
-      mapModeToggle.addEventListener("click", toggleMapEditMode);
+      mapModeToggle.querySelectorAll("[data-edit-mode]").forEach(button => {
+        button.addEventListener("click", () => toggleMapEditMode(button.dataset.editMode));
+      });
       mapWrap.addEventListener("pointerenter", moveRemoveCursor);
       mapWrap.addEventListener("pointerover", moveRemoveCursor);
       mapWrap.addEventListener("pointermove", moveRemoveCursor);

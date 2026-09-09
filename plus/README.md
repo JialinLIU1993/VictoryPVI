@@ -2,7 +2,7 @@
 
 肺静脉消融记录辅助工具，由 VictoryPVI Community 维护。用于整理消融记录及在本机生成 PDF 报告。
 
-当前网页版本：v1.17.0。
+当前网页版本：v1.18.0。
 
 - [打开新版](https://jialinliu1993.github.io/VictoryPVI/plus/)
 - [打开旧版（停止更新）](https://jialinliu1993.github.io/VictoryPVI/)
