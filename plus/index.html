@@ -4,16 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f4f5f8" />
-    <meta name="application-version" content="1.18.6" />
-    <meta name="application-iteration" content="2026-10-19T22:13:23+08:00" />
+    <meta name="application-version" content="1.18.7" />
+    <meta name="application-iteration" content="2026-10-20T16:01:58+08:00" />
     <script id="app-release" type="application/json">
       {
-        "version": "1.18.6",
-        "iteration": "2026-10-19T22:13:23+08:00",
-        "summary": "消融完成后中心圆显示绿色填充及白色名称。",
+        "version": "1.18.7",
+        "iteration": "2026-10-20T16:01:58+08:00",
+        "summary": "消融完成中心圆改为亮绿色。",
         "changes": [
-          "单支肺静脉达到既有消融完成条件后，中心圆绿色填充，中英文名称均为白色。",
-          "网页、报告预览和 PDF 保持一致，未完成状态及达标判定不变。"
+          "已完成肺静脉中心圆使用亮绿色 #16A34A，保留白色中英文名称，网页和 PDF 同步。"
         ]
       }
     </script>
@@ -36,6 +35,7 @@
         --in-progress: #f28c18;
         --in-progress-dark: #a94d00;
         --complete: #11745c;
+        --complete-center: #16a34a;
         --complete-dark: #075744;
         --shadow: 0 20px 55px rgba(31, 39, 58, 0.1);
         font-family:
@@ -826,8 +826,8 @@
       }
 
       .plan-complete .vein-center {
-        fill: var(--complete);
-        stroke: var(--complete);
+        fill: var(--complete-center);
+        stroke: var(--complete-center);
         stroke-width: 3;
       }
 
@@ -2360,12 +2360,12 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>肺静脉消融记录 <span class="plus-mark">PLUS</span></h1>
-            <p class="app-meta" id="app-meta" aria-label="软件版本 1.18.6，独立社区维护的非官方工具，迭代时间 2026年10月19日 22点13分">
-              <span class="app-version" id="app-version">v1.18.6</span>
+            <p class="app-meta" id="app-meta" aria-label="软件版本 1.18.7，独立社区维护的非官方工具，迭代时间 2026年10月20日 16点1分">
+              <span class="app-version" id="app-version">v1.18.7</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
               <span>社区维护 · 非官方</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
-              <time id="app-iteration" datetime="2026-10-19T22:13:23+08:00">迭代于 2026-10-19 22:13</time>
+              <time id="app-iteration" datetime="2026-10-20T16:01:58+08:00">迭代于 2026-10-20 16:01</time>
             </p>
           </div>
         </div>
@@ -2617,8 +2617,8 @@
             <div id="sync-desktop-downloads">
               <h3>1. 下载并打开电脑客户端</h3>
               <div class="sync-action-row">
-                <a class="button" id="sync-download-windows" target="_blank" rel="noopener" href="https://github.com/JialinLIU1993/VictoryPVI/releases/download/desktop-v1.18.6/VictoryPVI-Windows-x64.zip">下载 Windows 版</a>
-                <a class="button" id="sync-download-mac" target="_blank" rel="noopener" href="https://github.com/JialinLIU1993/VictoryPVI/releases/download/desktop-v1.18.6/VictoryPVI-macOS.zip">下载 Mac 版</a>
+                <a class="button" id="sync-download-windows" target="_blank" rel="noopener" href="https://github.com/JialinLIU1993/VictoryPVI/releases/download/desktop-v1.18.7/VictoryPVI-Windows-x64.zip">下载 Windows 版</a>
+                <a class="button" id="sync-download-mac" target="_blank" rel="noopener" href="https://github.com/JialinLIU1993/VictoryPVI/releases/download/desktop-v1.18.7/VictoryPVI-macOS.zip">下载 Mac 版</a>
               </div>
               <p class="settings-help">首次使用下载一次，解压后双击 VictoryPVI。下载来自 GitHub，日常同步不需要互联网。</p>
               <h3>2. 继续当前记录</h3>
@@ -2626,7 +2626,7 @@
               <p class="settings-help">当前记录会自动带入本地窗口，再让手机扫码。已下载过客户端可直接打开后连接。</p>
               <details><summary>启动或下载遇到问题</summary>
                 <p class="settings-help">Windows 首次使用请允许应用通过防火墙。Mac 如被系统拦截，请在“系统设置 → 隐私与安全性”中允许打开，再启动一次。不要直接在压缩包内运行。</p>
-                <a href="https://github.com/JialinLIU1993/VictoryPVI/releases/tag/desktop-v1.18.6" target="_blank" rel="noopener">打开 GitHub 下载页</a>
+                <a href="https://github.com/JialinLIU1993/VictoryPVI/releases/tag/desktop-v1.18.7" target="_blank" rel="noopener">打开 GitHub 下载页</a>
               </details>
             </div>
             <p class="settings-help" id="sync-phone-help" hidden>在电脑网页中展开此项，下载并启动客户端。再用手机相机扫描电脑上的二维码，即可加入；手机仍可作为操作端。</p>
@@ -2814,11 +2814,11 @@
           <section class="about-section">
             <h3>当前版本</h3>
             <p>
-              <strong id="about-release-version">v1.18.6</strong>
+              <strong id="about-release-version">v1.18.7</strong>
               <span aria-hidden="true"> · </span>
-              <time id="about-release-iteration" datetime="2026-10-19T22:13:23+08:00">迭代于 2026-10-19 22:13</time>
+              <time id="about-release-iteration" datetime="2026-10-20T16:01:58+08:00">迭代于 2026-10-20 16:01</time>
             </p>
-            <p id="about-release-summary">更新内容：消融完成后中心圆显示绿色填充及白色名称。</p>
+            <p id="about-release-summary">更新内容：消融完成中心圆改为亮绿色。</p>
           </section>
           <section class="about-section">
             <h3>项目身份</h3>
@@ -2845,8 +2845,8 @@
     <div class="remove-cursor" id="remove-cursor" aria-hidden="true"></div>
 
     <script src="./vendor/qrcode-generator.js"></script>
-    <script src="./sync-client.js?v=1.18.6"></script>
-    <script src="./direct-sync-ui.js?v=1.18.6"></script>
+    <script src="./sync-client.js?v=1.18.7"></script>
+    <script src="./direct-sync-ui.js?v=1.18.7"></script>
     <script>
       const NS = "http://www.w3.org/2000/svg";
       // Historical storage identifiers are retained so existing records, undo history,
@@ -2866,9 +2866,9 @@
       const PDF_FONT_FAMILY = "NotoSansSC";
       const APP_RELEASE = Object.freeze((() => {
         const fallback = {
-          version: "1.18.6",
-          iteration: "2026-10-19T22:13:23+08:00",
-          summary: "消融完成后中心圆显示绿色填充及白色名称。",
+          version: "1.18.7",
+          iteration: "2026-10-20T16:01:58+08:00",
+          summary: "消融完成中心圆改为亮绿色。",
           changes: [],
         };
         try {
@@ -5400,6 +5400,7 @@
         orange: "#f28c18",
         orangePale: "#fff4dd",
         green: "#11745c",
+        greenCenter: "#16a34a",
         greenPale: "#e8f5f0",
       });
 
@@ -5831,11 +5832,11 @@
 
         const status = getVeinAblationStatus(vein);
         const statusColor = status.ablationComplete
-          ? PDF_COLORS.green
+          ? PDF_COLORS.greenCenter
           : status.hasAblation
             ? PDF_COLORS.orange
             : "#cbd1db";
-        pdfSetColor(pdf, "setFillColor", status.ablationComplete ? PDF_COLORS.green : PDF_COLORS.surface);
+        pdfSetColor(pdf, "setFillColor", status.ablationComplete ? PDF_COLORS.greenCenter : PDF_COLORS.surface);
         pdfSetColor(pdf, "setDrawColor", statusColor);
         pdf.setLineWidth((status.hasAblation || status.ablationComplete ? 3 : 2) * mapGeometry.scale);
         pdf.circle(center.x, center.y, 40 * mapGeometry.scale, "FD");
@@ -6589,7 +6590,7 @@
         font-weight: 750;
         text-anchor: middle;
       }
-      .report-map-svg .plan-complete .vein-center { fill: #11745c; stroke: #11745c; stroke-width: 3; }
+      .report-map-svg .plan-complete .vein-center { fill: #16a34a; stroke: #16a34a; stroke-width: 3; }
       .report-map-svg .plan-complete .vein-code,
       .report-map-svg .plan-complete .vein-cn { fill: #ffffff; }
       .report-map-svg .plan-in-progress .vein-center { stroke: #f28c18; stroke-width: 3; }
