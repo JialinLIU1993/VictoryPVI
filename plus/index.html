@@ -3766,6 +3766,7 @@
       }
 
       function toggleElectrode(electrode) {
+        if (mapEditMode !== "ablate") return;
         if (syncWriteBlocked()) return;
         if (selectedElectrodes.has(electrode)) {
           const closeTowardOne = electrode - 1 <= 10 - electrode;
@@ -3797,6 +3798,7 @@
       }
 
       function toggleAllElectrodes() {
+        if (mapEditMode !== "ablate") return;
         if (syncWriteBlocked()) return;
         if (selectedElectrodes.size === ELECTRODE_NUMBERS.length) {
           selectedElectrodes.clear();
