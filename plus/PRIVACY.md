@@ -22,8 +22,8 @@ webpage does not connect to a cloud synchronization service.
   WebRTC DataChannels with no STUN/TURN servers. No cloud relay or account is used.
 - Patient names, medical record numbers, report notes, and generated PDF files
   are intentionally excluded from synchronization.
-- PDF reports are generated directly on the current device without using a
-  browser print service or sending report content to a network service.
+- The report preview uses installed system fonts. Choose Save as PDF in the
+  system print dialog to save a local copy. Returning to the record clears the preview.
 - An exported PDF report may contain the information entered by the user.
 
 Users are responsible for deciding what information they are authorized to

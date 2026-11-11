@@ -4,15 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f4f5f8" />
-    <meta name="application-version" content="1.18.7" />
-    <meta name="application-iteration" content="2026-10-20T16:01:58+08:00" />
+    <meta name="application-version" content="1.19.0" />
+    <meta name="application-iteration" content="2026-11-11T15:43:12+08:00" />
     <script id="app-release" type="application/json">
       {
-        "version": "1.18.7",
-        "iteration": "2026-10-20T16:01:58+08:00",
-        "summary": "消融完成中心圆改为亮绿色。",
+        "version": "1.19.0",
+        "iteration": "2026-11-11T15:43:12+08:00",
+        "summary": "报告改用设备字体，网页发布包缩小至约 0.66 MB。",
         "changes": [
-          "已完成肺静脉中心圆使用亮绿色 #16A34A，保留白色中英文名称，网页和 PDF 同步。"
+          "从系统打印面板存储 A4 PDF，支持离线导出和长备注分页。",
+          "Windows 和 macOS 下载链接指向已发布的 v1.15.0 桌面客户端。"
         ]
       }
     </script>
@@ -2187,10 +2188,19 @@
       .quick-dialog[data-panel="electrodes"] .electrode-selector-header .section-kicker { display: none; }
       .quick-dialog #electrode-selector { width: min(100%, 300px); max-height: 40dvh; }
       .quick-dialog .settings-footer .button { width: 100%; min-height: 44px; }
-      .report-progress { display: none; position: fixed; left: 50%; bottom: 28px; translate: -50% 0; z-index: 45; align-items: center; gap: 10px; padding: 14px 18px; width: max-content; max-width: calc(100vw - 24px); background: var(--purple-dark); color: white; border-radius: 12px; font-size: 13px; box-shadow: 0 8px 28px #35105326; }
-      body:has(#export-button[data-busy="true"]) .report-progress { display: flex; }
-      .report-progress i { width: 15px; height: 15px; border: 2px solid #ffffff55; border-top-color: white; border-radius: 50%; animation: progress-spin 800ms linear infinite; }
-      @keyframes progress-spin { to { rotate: 360deg; } }
+      #print-report { display: none; }
+      body.report-open > :not(#print-report) { display: none !important; }
+      body.report-open #print-report { display: block; }
+      .print-actions { position: sticky; top: 0; z-index: 1; display: flex; justify-content: center; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px; background: white; border-bottom: 1px solid var(--line); }
+      .print-actions p { margin: 0; color: var(--muted); font-size: 13px; }
+      .report-sheet { display: block; width: min(100%, 210mm); height: auto; margin: 12px auto; background: white; }
+      @page { size: A4 portrait; margin: 0; }
+      @media print {
+        body.report-open { min-width: 0; min-height: 0; background: white; }
+        #print-report .print-actions { display: none; }
+        .report-sheet { width: 210mm; height: 297mm; margin: 0; break-inside: avoid; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+        .report-sheet + .report-sheet { break-before: page; }
+      }
       body[data-sync-role="mirror"] #more-settings, body[data-sync-role="mirror"] #more-export, body[data-sync-role="mirror"] #reset-button, body[data-sync-role="mirror"] #mobile-undo { display: none; }
       @media (min-width: 721px) and (max-width: 1180px) {
         .topbar { flex-wrap: wrap; height: auto; min-height: 72px; padding: 12px 20px; gap: 12px; }
@@ -2257,7 +2267,7 @@
         .mobile-total strong small { font-size: 9px; }
         .mobile-total > span { font-size: 9px; color: var(--muted); }
         .mobile-total[data-storage="memory"] > span { color: #a94d00; }
-        .toast, .report-progress { bottom: calc(88px + env(safe-area-inset-bottom)); }
+        .toast { bottom: calc(88px + env(safe-area-inset-bottom)); }
         .toast { width: max-content; max-width: calc(100vw - 24px); line-height: 1.5; }
         .settings-dialog { width: calc(100vw - 24px); max-height: calc(100dvh - 24px); }
         .settings-dialog input, .settings-dialog select, .settings-dialog textarea, .endpoint-control select { font-size: 16px; min-height: 44px; }
@@ -2360,12 +2370,12 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>肺静脉消融记录 <span class="plus-mark">PLUS</span></h1>
-            <p class="app-meta" id="app-meta" aria-label="软件版本 1.18.7，独立社区维护的非官方工具，迭代时间 2026年10月20日 16点1分">
-              <span class="app-version" id="app-version">v1.18.7</span>
+            <p class="app-meta" id="app-meta" aria-label="软件版本 1.19.0，独立社区维护的非官方工具，迭代时间 2026年11月11日 15点43分">
+              <span class="app-version" id="app-version">v1.19.0</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
               <span>社区维护 · 非官方</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
-              <time id="app-iteration" datetime="2026-10-20T16:01:58+08:00">迭代于 2026-10-20 16:01</time>
+              <time id="app-iteration" datetime="2026-11-11T15:43:12+08:00">迭代于 2026-11-11 15:43</time>
             </p>
           </div>
         </div>
@@ -2567,7 +2577,14 @@
       <button type="button" id="mobile-undo" disabled><strong>↶ 撤回</strong><small>上一步</small></button>
       <button type="button" id="mobile-overview" aria-haspopup="dialog"><strong>概览</strong><small>PVI 终点</small></button>
     </div>
-    <div class="report-progress" id="report-progress" role="status"><i aria-hidden="true"></i>正在生成报告，请稍候…</div>
+    <section id="print-report" aria-label="报告预览">
+      <div class="print-actions">
+        <button id="report-back" type="button" class="button">返回记录</button>
+        <button id="report-print" type="button" class="button primary">打印 / 存储为 PDF</button>
+        <p id="report-print-help">在系统打印面板选择“存储为 PDF”。</p>
+      </div>
+      <div id="report-pages"></div>
+    </section>
 
     <dialog class="settings-dialog actions-dialog" id="actions-dialog" aria-labelledby="actions-title">
       <div class="settings-card">
@@ -2617,8 +2634,8 @@
             <div id="sync-desktop-downloads">
               <h3>1. 下载并打开电脑客户端</h3>
               <div class="sync-action-row">
-                <a class="button" id="sync-download-windows" target="_blank" rel="noopener" href="https://github.com/JialinLIU1993/VictoryPVI/releases/download/desktop-v1.18.7/VictoryPVI-Windows-x64.zip">下载 Windows 版</a>
-                <a class="button" id="sync-download-mac" target="_blank" rel="noopener" href="https://github.com/JialinLIU1993/VictoryPVI/releases/download/desktop-v1.18.7/VictoryPVI-macOS.zip">下载 Mac 版</a>
+                <a class="button" id="sync-download-windows" target="_blank" rel="noopener" href="https://github.com/JialinLIU1993/VictoryPVI/releases/download/desktop-v1.15.0/VictoryPVI-Windows-x64.zip">下载 Windows 版</a>
+                <a class="button" id="sync-download-mac" target="_blank" rel="noopener" href="https://github.com/JialinLIU1993/VictoryPVI/releases/download/desktop-v1.15.0/VictoryPVI-macOS.zip">下载 Mac 版</a>
               </div>
               <p class="settings-help">首次使用下载一次，解压后双击 VictoryPVI。下载来自 GitHub，日常同步不需要互联网。</p>
               <h3>2. 继续当前记录</h3>
@@ -2626,7 +2643,7 @@
               <p class="settings-help">当前记录会自动带入本地窗口，再让手机扫码。已下载过客户端可直接打开后连接。</p>
               <details><summary>启动或下载遇到问题</summary>
                 <p class="settings-help">Windows 首次使用请允许应用通过防火墙。Mac 如被系统拦截，请在“系统设置 → 隐私与安全性”中允许打开，再启动一次。不要直接在压缩包内运行。</p>
-                <a href="https://github.com/JialinLIU1993/VictoryPVI/releases/tag/desktop-v1.18.7" target="_blank" rel="noopener">打开 GitHub 下载页</a>
+                <a href="https://github.com/JialinLIU1993/VictoryPVI/releases/tag/desktop-v1.15.0" target="_blank" rel="noopener">打开 GitHub 下载页</a>
               </details>
             </div>
             <p class="settings-help" id="sync-phone-help" hidden>在电脑网页中展开此项，下载并启动客户端。再用手机相机扫描电脑上的二维码，即可加入；手机仍可作为操作端。</p>
@@ -2789,13 +2806,13 @@
               <textarea id="patient-other-info" name="otherInfo" maxlength="1000" placeholder="可补充诊断、术式备注或其它需要写入报告的信息"></textarea>
             </label>
           </div>
-          <p class="patient-privacy-note">报告在本机生成，常规记录单页呈现，长内容自动续页。填写的信息只用于本次报告，不保存到浏览器。</p>
+          <p class="patient-privacy-note">报告在本机生成，常规记录单页呈现，长内容自动续页。填写的信息只用于本次报告。请在打印面板选择“存储为 PDF”。</p>
         </div>
 
         <footer class="settings-footer">
           <div class="settings-footer-actions">
             <button class="button" id="patient-info-cancel" type="button">取消</button>
-            <button class="button primary" type="submit">生成 PDF</button>
+            <button class="button primary" type="submit">继续打印 / 存储为 PDF</button>
           </div>
         </footer>
       </form>
@@ -2814,11 +2831,11 @@
           <section class="about-section">
             <h3>当前版本</h3>
             <p>
-              <strong id="about-release-version">v1.18.7</strong>
+              <strong id="about-release-version">v1.19.0</strong>
               <span aria-hidden="true"> · </span>
-              <time id="about-release-iteration" datetime="2026-10-20T16:01:58+08:00">迭代于 2026-10-20 16:01</time>
+              <time id="about-release-iteration" datetime="2026-11-11T15:43:12+08:00">迭代于 2026-11-11 15:43</time>
             </p>
-            <p id="about-release-summary">更新内容：消融完成中心圆改为亮绿色。</p>
+            <p id="about-release-summary">更新内容：报告改用设备字体，网页发布包缩小至约 0.66 MB。</p>
           </section>
           <section class="about-section">
             <h3>项目身份</h3>
@@ -2845,8 +2862,8 @@
     <div class="remove-cursor" id="remove-cursor" aria-hidden="true"></div>
 
     <script src="./vendor/qrcode-generator.js"></script>
-    <script src="./sync-client.js?v=1.18.7"></script>
-    <script src="./direct-sync-ui.js?v=1.18.7"></script>
+    <script src="./sync-client.js?v=1.19.0"></script>
+    <script src="./direct-sync-ui.js?v=1.19.0"></script>
     <script>
       const NS = "http://www.w3.org/2000/svg";
       // Historical storage identifiers are retained so existing records, undo history,
@@ -2861,14 +2878,11 @@
       const HISTORY_LIMIT = 100;
       const APPLICATIONS_PER_SEQUENCE = 3;
       const MIN_SINGLE_VEIN_TOTAL_APPLICATIONS = 4;
-      const PDF_FONT_ASSET = "./vendor/noto-sans-sc-regular-vfs.js";
-      const PDF_FONT_VFS_FILE = "NotoSansSC-Regular.ttf";
-      const PDF_FONT_FAMILY = "NotoSansSC";
       const APP_RELEASE = Object.freeze((() => {
         const fallback = {
-          version: "1.18.7",
-          iteration: "2026-10-20T16:01:58+08:00",
-          summary: "消融完成中心圆改为亮绿色。",
+          version: "1.19.0",
+          iteration: "2026-11-11T15:43:12+08:00",
+          summary: "报告改用设备字体，网页发布包缩小至约 0.66 MB。",
           changes: [],
         };
         try {
@@ -2980,8 +2994,7 @@
       let selectedRidgeId = null;
       let mapEditMode = "ablate";
       let toastTimer = null;
-      let pdfExportInProgress = false;
-      let pdfFontLoadPromise = null;
+      const appTitle = document.title;
       let syncRole = "local";
       let syncApplying = false;
       let syncRevision = 0;
@@ -4357,7 +4370,7 @@
         document.getElementById("mobile-save-state").textContent = syncRole === "mirror" ? "只读跟随" : saveState.dataset.storage === "memory" ? "仅当前页面" : "本机保存";
         document.querySelector(".mobile-total").dataset.storage = saveState.dataset.storage || "local";
         document.getElementById("more-settings").disabled = blocked;
-        document.getElementById("more-export").disabled = blocked || pdfExportInProgress;
+        document.getElementById("more-export").disabled = blocked;
         document.getElementById("reset-confirm").disabled = blocked;
         document.getElementById("actions-save-state").textContent = syncRole === "mirror" ? "本机只读跟随操作端" : saveState.textContent;
         document.getElementById("quick-help").textContent = syncRole === "mirror" ? "本机只读跟随，内容由操作端更新。" : quickDialog.dataset.panel === "electrodes" ? "点选电极调整范围，完成后返回图谱记录。" : "查看消融进度并记录 PVI 终点。";
@@ -5459,19 +5472,74 @@
         };
       }
 
-      function pdfRgb(hex) {
-        const value = Number.parseInt(hex.slice(1), 16);
-        return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
-      }
+      const REPORT_FONT = 'system-ui, "PingFang SC", "Microsoft YaHei", sans-serif';
 
-      function pdfSetColor(pdf, method, hex) {
-        pdf[method](...pdfRgb(hex));
+      class PrintReport {
+        constructor(metrics) {
+          this.metrics = metrics;
+          this.stroke = "none";
+          this.lineWidth = 0;
+          this.pages = [];
+          this.addPage();
+        }
+
+        addPage() {
+          this.page = [];
+          this.pages.push(this.page);
+        }
+
+        getTextWidth(text) {
+          this.metrics.font = `${this.fontSize}pt ${REPORT_FONT}`;
+          return this.metrics.measureText(text).width * 25.4 / 96;
+        }
+
+        splitTextToSize(paragraph, width) {
+          const lines = [];
+          let line = "";
+          for (const character of paragraph) {
+            if (line && this.getTextWidth(line + character) > width) {
+              lines.push(line);
+              line = "";
+            }
+            line += character;
+          }
+          lines.push(line);
+          return lines;
+        }
+
+        text(value, x, y, { align }) {
+          const anchor = { left: "start", center: "middle", right: "end" }[align];
+          this.page.push(`<text x="${x}" y="${y}" font-size="${this.fontSize * 25.4 / 72}" text-anchor="${anchor}" fill="${this.textColor}" xml:space="preserve">${escapeHtml(value)}</text>`);
+        }
+
+        paint(style) {
+          const fill = style.includes("F") ? this.fill : "none";
+          const stroke = style === "F" ? "none" : this.stroke;
+          return `fill="${fill}" stroke="${stroke}" stroke-width="${this.lineWidth}"`;
+        }
+
+        rect(x, y, width, height, style) {
+          this.page.push(`<rect x="${x}" y="${y}" width="${width}" height="${height}" ${this.paint(style)}/>`);
+        }
+
+        circle(x, y, radius, style) {
+          this.page.push(`<circle cx="${x}" cy="${y}" r="${radius}" ${this.paint(style)}/>`);
+        }
+
+        line(x1, y1, x2, y2) {
+          this.page.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${this.paint("S")}/>`);
+        }
+
+        markup() {
+          return this.pages.map((page, i) =>
+            `<svg class="report-sheet" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 297" font-family='${REPORT_FONT}' aria-label="报告第 ${i + 1} 页">${page.join("")}</svg>`
+          ).join("");
+        }
       }
 
       function pdfWrappedLines(pdf, text, width, fontSize = 8) {
-        pdf.setFont(PDF_FONT_FAMILY, "normal");
-        pdf.setFontSize(fontSize);
-        return String(text ?? "").replace(/[\u2010-\u2015]/g, "-")
+        pdf.fontSize = fontSize;
+        return String(text ?? "")
           .split(/\r?\n/)
           .flatMap((paragraph) => paragraph
             ? pdf.splitTextToSize(paragraph, width)
@@ -5489,11 +5557,10 @@
         } = options;
         const lines = (width
           ? pdfWrappedLines(pdf, text, width, fontSize)
-          : [String(text ?? "").replace(/[\u2010-\u2015]/g, "-")]
+          : [String(text ?? "")]
         ).slice(0, maxLines);
-        pdf.setFont(PDF_FONT_FAMILY, "normal");
-        pdf.setFontSize(fontSize);
-        pdfSetColor(pdf, "setTextColor", color);
+        pdf.fontSize = fontSize;
+        pdf.textColor = color;
         lines.forEach((line, index) => {
           pdf.text(line, x, y + index * lineHeight, { align });
         });
@@ -5504,9 +5571,9 @@
       }
 
       function pdfDrawHeader(pdf, title, subtitle, metadata) {
-        pdfSetColor(pdf, "setFillColor", PDF_COLORS.purple3);
+        pdf.fill = PDF_COLORS.purple3;
         pdf.circle(14, 14.5, 3.7, "F");
-        pdfSetColor(pdf, "setFillColor", PDF_COLORS.surface);
+        pdf.fill = PDF_COLORS.surface;
         pdf.circle(14, 14.5, 2, "F");
         pdfDrawText(pdf, title, 22, 15, { fontSize: 18 });
         pdfDrawText(pdf, subtitle, 22, 21, { fontSize: 8, color: PDF_COLORS.muted });
@@ -5515,8 +5582,8 @@
             fontSize: 7, color: PDF_COLORS.muted, align: "right",
           });
         });
-        pdfSetColor(pdf, "setDrawColor", PDF_COLORS.purple3);
-        pdf.setLineWidth(0.6);
+        pdf.stroke = PDF_COLORS.purple3;
+        pdf.lineWidth = 0.6;
         pdf.line(10, 25.5, 200, 25.5);
       }
 
@@ -5548,9 +5615,9 @@
           const height = Math.max(13.5, 11 + (Math.max(...row.map(cell => cell.lines.length)) - 1) * 4.2);
           row.forEach((cell, column) => {
             const x = 10 + column * width;
-            pdfSetColor(pdf, "setFillColor", PDF_COLORS.canvas);
-            pdfSetColor(pdf, "setDrawColor", PDF_COLORS.line);
-            pdf.setLineWidth(0.2);
+            pdf.fill = PDF_COLORS.canvas;
+            pdf.stroke = PDF_COLORS.line;
+            pdf.lineWidth = 0.2;
             pdf.rect(x, y, width, height, "FD");
             pdfDrawText(pdf, cell.label, x + 3.5, y + 4, { fontSize: 6.8, color: PDF_COLORS.muted });
             cell.lines.forEach((line, index) => pdfDrawText(pdf, line, x + 3.5, y + 8.8 + index * 4.2, { fontSize: 8.5 }));
@@ -5561,7 +5628,7 @@
       }
 
       function pdfStartContinuation(pdf, model, subtitle) {
-        pdf.addPage("a4", "portrait");
+        pdf.addPage();
         pdfDrawHeader(pdf, "肺静脉消融记录报告", subtitle, [
           `生成：${model.formattedTime}`, `版本：v${APP_RELEASE.version}`,
         ]);
@@ -5582,28 +5649,9 @@
 
       function pdfDrawPolygon(pdf, points, style = "FD", closed = true) {
         if (points.length < 2) return;
-        const vectors = points.slice(1).map((point, index) => [
-          point.x - points[index].x,
-          point.y - points[index].y,
-        ]);
-        pdf.lines(vectors, points[0].x, points[0].y, [1, 1], style, closed);
-      }
-
-      function pdfDrawAnnularSector(pdf, cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill) {
-        const steps = 18;
-        const points = [];
-        for (let index = 0; index <= steps; index += 1) {
-          const angle = startAngle + ((endAngle - startAngle) * index) / steps;
-          points.push(pdfPolarPoint(cx, cy, outerRadius, angle));
-        }
-        for (let index = steps; index >= 0; index -= 1) {
-          const angle = startAngle + ((endAngle - startAngle) * index) / steps;
-          points.push(pdfPolarPoint(cx, cy, innerRadius, angle));
-        }
-        pdfSetColor(pdf, "setFillColor", fill);
-        pdfSetColor(pdf, "setDrawColor", PDF_COLORS.surface);
-        pdf.setLineWidth(0.3);
-        pdfDrawPolygon(pdf, points, "FD");
+        const tag = closed ? "polygon" : "polyline";
+        const coordinates = points.map(({ x, y }) => x.toFixed(3) + "," + y.toFixed(3)).join(" ");
+        pdf.page.push(`<${tag} points="${coordinates}" ${pdf.paint(style)} stroke-dasharray="${pdf.dash || "none"}"/>`);
       }
 
       const PDF_MAP_VIEWBOX = Object.freeze({ width: 980, height: 650 });
@@ -5660,15 +5708,11 @@
 
       function pdfDrawMapPolyline(pdf, geometry, points, color, lineWidth, dash = []) {
         if (points.length < 2) return;
-        pdfSetColor(pdf, "setDrawColor", color);
-        pdf.setLineWidth(lineWidth);
-        if (typeof pdf.setLineDashPattern === "function") {
-          pdf.setLineDashPattern(dash, 0);
-        }
+        pdf.stroke = color;
+        pdf.lineWidth = lineWidth;
+        pdf.dash = dash.join(" ");
         pdfDrawPolygon(pdf, pdfTransformMapPoints(geometry, points), "S", false);
-        if (typeof pdf.setLineDashPattern === "function") {
-          pdf.setLineDashPattern([], 0);
-        }
+        pdf.dash = "";
       }
 
       function pdfCubicBezierPoints(start, controlOne, controlTwo, end, steps = 16) {
@@ -5698,9 +5742,9 @@
         anatomySegments.forEach(([start, controlOne, controlTwo, end]) => {
           anatomyPoints.push(...pdfCubicBezierPoints(start, controlOne, controlTwo, end));
         });
-        pdfSetColor(pdf, "setFillColor", "#f8f8fa");
-        pdfSetColor(pdf, "setDrawColor", "#e1e4ea");
-        pdf.setLineWidth(2 * geometry.scale);
+        pdf.fill = "#f8f8fa";
+        pdf.stroke = "#e1e4ea";
+        pdf.lineWidth = 2 * geometry.scale;
         pdfDrawPolygon(pdf, pdfTransformMapPoints(geometry, anatomyPoints), "FD");
 
         const atriumLines = [
@@ -5736,18 +5780,6 @@
         });
       }
 
-      function pdfDrawMapSectorOutline(pdf, points, color, lineWidth, dash = []) {
-        pdfSetColor(pdf, "setDrawColor", color);
-        pdf.setLineWidth(lineWidth);
-        if (typeof pdf.setLineDashPattern === "function") {
-          pdf.setLineDashPattern(dash, 0);
-        }
-        pdfDrawPolygon(pdf, points, "S");
-        if (typeof pdf.setLineDashPattern === "function") {
-          pdf.setLineDashPattern([], 0);
-        }
-      }
-
       function pdfDrawMapAnnularSector(
         pdf,
         geometry,
@@ -5771,9 +5803,9 @@
           const point = pdfPolarPoint(cx, cy, innerRadius, angle);
           points.push(pdfMapPoint(geometry, point.x, point.y));
         }
-        pdfSetColor(pdf, "setFillColor", fill);
-        pdfSetColor(pdf, "setDrawColor", "#ffffff");
-        pdf.setLineWidth(2.4 * geometry.scale);
+        pdf.fill = fill;
+        pdf.stroke = "#ffffff";
+        pdf.lineWidth = 2.4 * geometry.scale;
         pdfDrawPolygon(pdf, points, "FD");
         return points;
       }
@@ -5796,7 +5828,7 @@
             const level = Math.min(4, Math.max(0, levelForCount(count, key, sector)));
             const startAngle = (sector - 1) * 45 + 1.4;
             const endAngle = sector * 45 - 1.4;
-            const segmentPoints = pdfDrawMapAnnularSector(
+            pdfDrawMapAnnularSector(
               pdf,
               mapGeometry,
               vein.x,
@@ -5838,9 +5870,9 @@
           : status.hasAblation
             ? PDF_COLORS.orange
             : "#cbd1db";
-        pdfSetColor(pdf, "setFillColor", status.ablationComplete ? PDF_COLORS.greenCenter : PDF_COLORS.surface);
-        pdfSetColor(pdf, "setDrawColor", statusColor);
-        pdf.setLineWidth((status.hasAblation || status.ablationComplete ? 3 : 2) * mapGeometry.scale);
+        pdf.fill = status.ablationComplete ? PDF_COLORS.greenCenter : PDF_COLORS.surface;
+        pdf.stroke = statusColor;
+        pdf.lineWidth = (status.hasAblation || status.ablationComplete ? 3 : 2) * mapGeometry.scale;
         pdf.circle(center.x, center.y, 40 * mapGeometry.scale, "FD");
         pdfDrawText(pdf, vein.id, center.x, center.y - 0.4, {
           fontSize: 7.3,
@@ -5862,9 +5894,9 @@
           for (let index = 0; index + 1 < pathNumbers.length; index += 2) {
             mapPoints.push({ x: Number(pathNumbers[index]), y: Number(pathNumbers[index + 1]) });
           }
-          pdfSetColor(pdf, "setFillColor", PDF_SEGMENT_COLORS[level]);
-          pdfSetColor(pdf, "setDrawColor", PDF_COLORS.surface);
-          pdf.setLineWidth(2.4 * geometry.scale);
+          pdf.fill = PDF_SEGMENT_COLORS[level];
+          pdf.stroke = PDF_COLORS.surface;
+          pdf.lineWidth = 2.4 * geometry.scale;
           pdfDrawPolygon(pdf, pdfTransformMapPoints(geometry, mapPoints), "FD");
           pdfDrawMapText(pdf, count > 0 ? String(count) : site.shortName, geometry, site.x, site.y, {
             fontSizePx: count > 0 ? 12 : 10,
@@ -5879,9 +5911,9 @@
         const items = [["0 次", 21], ["未达阈值", 21], ["达阈值", 25], ["超阈值 1 次", 31], ["超阈值 2 次及以上", 39]];
         let x = 10;
         items.forEach(([label, width], index) => {
-          pdfSetColor(pdf, "setFillColor", PDF_SEGMENT_COLORS[index]);
-          pdfSetColor(pdf, "setDrawColor", PDF_COLORS.line);
-          pdf.setLineWidth(0.15);
+          pdf.fill = PDF_SEGMENT_COLORS[index];
+          pdf.stroke = PDF_COLORS.line;
+          pdf.lineWidth = 0.15;
           pdf.rect(x, y - 2.1, 2.4, 2.4, "FD");
           pdfDrawText(pdf, label, x + 3.8, y, { fontSize: 6.8, color: PDF_COLORS.muted });
           x += width;
@@ -5892,9 +5924,9 @@
       function pdfDrawAblationMap(pdf, x, y, width, height, model) {
         const operationLines = pdfWrappedLines(pdf, `最近操作：${model.latestOperation}`, width - 8, 6.8);
         const footerHeight = 4 + operationLines.length * 3.4;
-        pdfSetColor(pdf, "setFillColor", "#fbfbfd");
-        pdfSetColor(pdf, "setDrawColor", PDF_COLORS.line);
-        pdf.setLineWidth(0.25);
+        pdf.fill = "#fbfbfd";
+        pdf.stroke = PDF_COLORS.line;
+        pdf.lineWidth = 0.25;
         pdf.rect(x, y, width, height, "FD");
         const geometry = pdfMapGeometry(x + 2, y + 1, width - 4, height - footerHeight - 1);
         pdfDrawWebAnatomy(pdf, geometry);
@@ -5917,7 +5949,7 @@
         const width = 190 / 3;
         metrics.forEach(([value, label], index) => {
           const x = 10 + index * width;
-          pdfSetColor(pdf, "setFillColor", PDF_COLORS.canvas);
+          pdf.fill = PDF_COLORS.canvas;
           pdf.rect(x, y, width, 16, "F");
           pdfDrawText(pdf, value, x + 4, y + 7, { fontSize: 14, color: PDF_COLORS.purple4 });
           pdfDrawText(pdf, label, x + 4, y + 12.7, { fontSize: 7, color: PDF_COLORS.muted });
@@ -5928,7 +5960,7 @@
         const headerHeight = 8;
         const rowHeight = 11;
         y = pdfEnsureRoom(pdf, model, y, headerHeight + model.assessments.length * rowHeight, "消融概览与 PVI 终点（续）");
-        pdfSetColor(pdf, "setFillColor", PDF_COLORS.canvas);
+        pdf.fill = PDF_COLORS.canvas;
         pdf.rect(10, y, 190, headerHeight, "F");
         [["肺静脉", 13], ["口部（次）", 51], ["前庭（次）", 77], ["消融完成情况", 104], ["PVI 终点", 167]].forEach(([label, x]) => {
           pdfDrawText(pdf, label, x, y + 5.2, { fontSize: 7.3, color: PDF_COLORS.muted });
@@ -5953,8 +5985,8 @@
           const endpointParts = endpoint.split("（");
           pdfDrawText(pdf, endpointParts[0], 167, y + 4.5, { fontSize: 8, color: PDF_COLORS.ink });
           if (endpointParts[1]) pdfDrawText(pdf, endpointParts[1].replace("）", ""), 167, y + 9.2, { fontSize: 6.7, color: PDF_COLORS.muted });
-          pdfSetColor(pdf, "setDrawColor", PDF_COLORS.line);
-          pdf.setLineWidth(0.2);
+          pdf.stroke = PDF_COLORS.line;
+          pdf.lineWidth = 0.2;
           pdf.line(10, y + rowHeight, 200, y + rowHeight);
           y += rowHeight;
         });
@@ -5973,7 +6005,7 @@
         y = pdfEnsureRoom(pdf, model, y, height, "补充记录");
         columns.forEach((column, index) => {
           const x = 10 + index * 97;
-          pdfSetColor(pdf, "setFillColor", PDF_COLORS.canvas);
+          pdf.fill = PDF_COLORS.canvas;
           pdf.rect(x, y, 93, height, "F");
           pdfDrawText(pdf, column.label, x + 4, y + 4.4, { fontSize: 7, color: PDF_COLORS.purple3 });
           column.lines.forEach((line, lineIndex) => pdfDrawText(pdf, line, x + 4, y + 9 + lineIndex * 3.8, { fontSize: 7.5 }));
@@ -6017,11 +6049,11 @@
       }
 
       function pdfDrawFooters(pdf) {
-        const totalPages = pdf.getNumberOfPages();
+        const totalPages = pdf.pages.length;
         for (let pageNumber = 1; pageNumber <= totalPages; pageNumber += 1) {
-          pdf.setPage(pageNumber);
-          pdfSetColor(pdf, "setDrawColor", PDF_COLORS.line);
-          pdf.setLineWidth(0.25);
+          pdf.page = pdf.pages[pageNumber - 1];
+          pdf.stroke = PDF_COLORS.line;
+          pdf.lineWidth = 0.25;
           pdf.line(10, 283, 200, 283);
           pdfDrawText(pdf, "VictoryPVI Community · 记录辅助工具", 10, 288, { fontSize: 6.5, color: PDF_COLORS.muted });
           pdfDrawText(pdf, `v${APP_RELEASE.version} · 第 ${pageNumber} / ${totalPages} 页`, 200, 288, { fontSize: 6.5, color: PDF_COLORS.muted, align: "right" });
@@ -6029,1092 +6061,50 @@
         }
       }
 
-      function ensurePdfFontAsset() {
-        if (window.VICTORY_PDF_FONT_BASE64) {
-          return Promise.resolve(window.VICTORY_PDF_FONT_BASE64);
-        }
-        if (pdfFontLoadPromise) return pdfFontLoadPromise;
-
-        pdfFontLoadPromise = new Promise((resolve, reject) => {
-          const script = document.createElement("script");
-          script.src = PDF_FONT_ASSET;
-          script.async = true;
-          script.dataset.victoryPdfFont = "true";
-          script.addEventListener("load", () => {
-            if (window.VICTORY_PDF_FONT_BASE64) {
-              resolve(window.VICTORY_PDF_FONT_BASE64);
-            } else {
-              reject(new Error("PDF 中文字体加载后未注册"));
-            }
-          }, { once: true });
-          script.addEventListener("error", () => {
-            reject(new Error("PDF 中文字体加载失败"));
-          }, { once: true });
-          document.head.appendChild(script);
-        }).catch((error) => {
-          pdfFontLoadPromise = null;
-          throw error;
-        });
-        return pdfFontLoadPromise;
-      }
-
-      async function createVectorClinicalPdf(exportTime, patientInfo) {
-        const fontBase64 = await ensurePdfFontAsset();
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({
-          orientation: "portrait",
-          unit: "mm",
-          format: "a4",
-          compress: true,
-          precision: 12,
-          putOnlyUsedFonts: true,
-        });
-        pdf.setCreationDate(exportTime);
-        pdf.addFileToVFS(PDF_FONT_VFS_FILE, fontBase64);
-        pdf.addFont(PDF_FONT_VFS_FILE, PDF_FONT_FAMILY, "normal");
-        pdf.setFont(PDF_FONT_FAMILY, "normal");
-        pdf.setLanguage?.("zh-CN");
-        pdf.setProperties({
-          title: "肺静脉消融记录报告",
-          subject: "肺静脉消融分布、消融概览与患者基础信息",
-          author: "VictoryPVI Community",
-          creator: "VictoryPVI",
-        });
-
+      function buildPrintReport(exportTime, patientInfo) {
+        const pdf = new PrintReport(document.createElement("canvas").getContext("2d"));
         const model = getVectorReportModel(exportTime, patientInfo);
         const nextY = pdfDrawPageOne(pdf, model);
         if (model.otherInfo) pdfDrawOtherInfoPages(pdf, model, nextY);
         pdfDrawFooters(pdf);
-        return pdf;
+        return pdf.markup();
       }
 
-      function buildReportMapMarkup() {
-        const reportSvg = svg.cloneNode(true);
-        reportSvg.setAttribute("viewBox", "0 0 980 650");
-        reportSvg.dataset.view = "all";
-        reportSvg.querySelectorAll("[data-vein], .ridge-segment").forEach(node => node.removeAttribute("aria-hidden"));
-        reportSvg.removeAttribute("id");
-        reportSvg.classList.add("report-map-svg");
-        reportSvg.querySelectorAll("[tabindex]").forEach((node) => {
-          node.removeAttribute("tabindex");
-        });
-        reportSvg.querySelectorAll('[role="button"]').forEach((node) => {
-          node.removeAttribute("role");
-        });
-        return reportSvg.outerHTML;
-      }
-
-      function buildClinicalReport(exportTime, patientInfo) {
-        const assessments = veins.map(getVeinClinicalAssessment);
-        const pviConfirmed = assessments.filter(
-          ({ endpointStatus }) =>
-            endpointStatus === "entrance-block" ||
-            endpointStatus === "bidirectional-block",
-        );
-        const bidirectionalEndpoints = assessments.filter(
-          ({ endpointStatus }) => endpointStatus === "bidirectional-block",
-        );
-        const incompleteAblation = assessments.filter(
-          ({ ablationStatus }) => !ablationStatus.ablationComplete,
-        );
-        const incompleteCoverage = assessments.filter(
-          ({ ablationStatus }) => !ablationStatus.coverageComplete,
-        );
-        const exitOnlyEndpoints = assessments.filter(
-          ({ endpointStatus }) => endpointStatus === "exit-block",
-        );
-        const recordedRidges = ridgeSites.filter(
-          (site) =>
-            Number(ridgeApplications[site.id] || 0) > 0 ||
-            Number(counts[ridgeCountKey(site.id)] || 0) > 0,
-        );
-        const overviewMetrics = getAblationOverviewMetrics();
-        const anatomyLabels = {
-          standard: "标准四支肺静脉",
-          "left-common": "左共同肺静脉",
-          "right-common": "右共同肺静脉",
-          "bilateral-common": "双侧共同肺静脉",
-        };
-        const allPviConfirmed = pviConfirmed.length === assessments.length;
-        const allAblationComplete = incompleteAblation.length === 0;
-        const allCoverageComplete = incompleteCoverage.length === 0;
-        const reportTone = allPviConfirmed && allAblationComplete && allCoverageComplete
-          ? "positive"
-          : "attention";
-
-        let endpointConclusion;
-        if (allPviConfirmed) {
-          endpointConclusion = bidirectionalEndpoints.length === assessments.length
-            ? `全部 ${assessments.length} 支目标肺静脉均已记录双向传导阻滞，支持达到肺静脉隔离终点。`
-            : `全部 ${assessments.length} 支目标肺静脉均已记录传入阻滞，支持达到肺静脉隔离终点；其中 ${bidirectionalEndpoints.length} 支同时完成传出阻滞验证。`;
-        } else if (pviConfirmed.length) {
-          const unconfirmedNames = assessments
-            .filter(
-              ({ endpointStatus }) =>
-                endpointStatus !== "entrance-block" &&
-                endpointStatus !== "bidirectional-block",
-            )
-            .map(({ vein }) => vein.name)
-            .join("、");
-          endpointConclusion = `${pviConfirmed.length}/${assessments.length} 支目标肺静脉已记录传入阻滞，支持达到相应 PVI 终点；${unconfirmedNames}尚未记录传入阻滞，当前记录不足以确认全部肺静脉隔离。`;
-        } else {
-          endpointConclusion = "尚未记录传入阻滞，当前报告不能确认肺静脉隔离是否达成。";
-        }
-
-        const ablationCompletionConclusion = allAblationComplete
-          ? "全部目标肺静脉均已达到当前消融完成判定。"
-          : `${assessments.length - incompleteAblation.length}/${assessments.length} 支目标肺静脉达到当前消融完成判定；${incompleteAblation.map(({ vein }) => vein.name).join("、")}尚未完成。`;
-
-        const coverageConclusion = allCoverageComplete
-          ? "全部目标肺静脉的预设消融分布均已完成记录。"
-          : `${assessments.length - incompleteCoverage.length}/${assessments.length} 支目标肺静脉完成预设消融分布；${incompleteCoverage.map(({ vein }) => vein.name).join("、")}仍有覆盖不足区域。`;
-
-        const actionItems = [];
-        const unassessedVeins = assessments.filter(
-          ({ endpointStatus }) => endpointStatus === "not-assessed",
-        );
-        if (unassessedVeins.length) {
-          actionItems.push(
-            `完成或补录${unassessedVeins.map(({ vein }) => vein.name).join("、")}的 PVI 终点评估。`,
-          );
-        }
-        if (exitOnlyEndpoints.length) {
-          actionItems.push(
-            `补充或复核${exitOnlyEndpoints.map(({ vein }) => vein.name).join("、")}的传入阻滞，以确认 PVI 终点。`,
-          );
-        }
-        if (incompleteAblation.length) {
-          actionItems.push(
-            `补足${incompleteAblation.map(({ vein }) => vein.name).join("、")}的消融完成条件；单根肺静脉需前庭 8 个扇区均达到各自完成阈值，且总消融次数不少于 ${MIN_SINGLE_VEIN_TOTAL_APPLICATIONS} 次。`,
-          );
-        }
-        if (incompleteCoverage.length) {
-          actionItems.push(
-            `复核${incompleteCoverage.map(({ vein }) => vein.name).join("、")}的覆盖薄弱区域，并结合术中信号决定是否需要进一步处理。`,
-          );
-        }
-        if (!actionItems.length) {
-          actionItems.push("当前记录未提示需补评估项目；请结合完整术中电生理资料形成最终判断。");
-        }
-
-        const assessmentRows = assessments.map((assessment) => {
-          const completionClass = assessment.ablationStatus.ablationComplete ? "success" : "warning";
-          const endpointClass = assessment.endpointStatus === "bidirectional-block" ||
-            assessment.endpointStatus === "entrance-block"
-            ? "success"
-            : assessment.endpointStatus === "not-assessed"
-              ? "warning"
-              : "neutral";
-          return `
-            <tr>
-              <th scope="row">${escapeHtml(assessment.vein.name)} <span>${escapeHtml(assessment.vein.id)}</span></th>
-              <td>${escapeHtml(assessment.treatmentSummary)}</td>
-              <td>
-                <span class="status ${completionClass}">${escapeHtml(assessment.completionSummary)}</span>
-                <small class="coverage-detail">${escapeHtml(assessment.coverageSummary)}</small>
-              </td>
-              <td><span class="status ${endpointClass}">${escapeHtml(assessment.endpointLabel)}</span></td>
-            </tr>`;
-        }).join("");
-
-        const overviewEndpointLabels = {
-          "not-assessed": "未评估",
-          "entrance-block": "传入阻滞",
-          "exit-block": "传出阻滞",
-          "bidirectional-block": "双向阻滞",
-        };
-        const overviewRows = assessments.map((assessment) => {
-          const visualTarget = Math.max(1, assessment.progress.target);
-          const progressClass = assessment.ablationStatus.ablationComplete
-            ? "complete"
-            : assessment.ablationStatus.hasAblation
-              ? "in-progress"
-              : "not-started";
-          const endpointClass = assessment.endpointStatus === "bidirectional-block" ||
-            assessment.endpointStatus === "entrance-block"
-            ? "success"
-            : assessment.endpointStatus === "not-assessed"
-              ? "warning"
-              : "neutral";
-          return `
-            <div class="overview-vein ${progressClass}">
-              <div class="overview-vein-heading">
-                <div><strong>${escapeHtml(assessment.vein.id)}</strong><span>${escapeHtml(assessment.vein.name)}</span></div>
-                <span class="endpoint-badge ${endpointClass}">${overviewEndpointLabels[assessment.endpointStatus]}</span>
-              </div>
-              <div class="overview-progress-row">
-                <span class="overview-progress" style="--segments: ${visualTarget}">
-                  ${progressSegments(assessment.progress.planProgress, visualTarget)}
-                </span>
-                <b>${escapeHtml(assessment.progress.countLabel)}</b>
-              </div>
-              <p>${escapeHtml(assessment.completionSummary)}</p>
-            </div>`;
-        }).join("");
-
-        const ridgeContent = recordedRidges.length
-          ? `<ul>${recordedRidges.map((site) => {
-              const applicationCount = Number(ridgeApplications[site.id] || 0);
-              return `<li><strong>${escapeHtml(site.ridgeName)}</strong>：追加记录 ${applicationCount} 次消融</li>`;
-            }).join("")}</ul>`
-          : "<p>未记录补充靶区消融。</p>";
-        const ridgeOverview = recordedRidges.length
-          ? recordedRidges.map((site) => {
-              const applicationCount = Number(ridgeApplications[site.id] || 0);
-              return `<span><strong>${escapeHtml(site.ridgeName)}</strong>${applicationCount} 次</span>`;
-            }).join("")
-          : "<span class=\"empty\">未记录补充靶区消融</span>";
-        const reportElectrodes = activeElectrodeNumbers();
-        const electrodeOverview = reportElectrodes.length
-          ? `开启 ${reportElectrodes.length}/${ELECTRODE_NUMBERS.length}：${reportElectrodes.join("、")}`
-          : "当前未开启放电电极";
-        const mapMarkup = buildReportMapMarkup();
-        const currentProtocol = protocolSummary.textContent || anatomyLabels[settings.anatomyMode];
-        const latestOperation = lastOperation
-          ? `${lastOperation.label}${lastOperation.recordedAt ? ` · ${formatOperationTime(lastOperation.recordedAt)}` : ""}`
-          : "尚无操作记录";
-        const normalizedOtherInfo = patientInfo.otherInfo.trim();
-        const otherInfoLayoutWeight = normalizedOtherInfo.length +
-          (normalizedOtherInfo.match(/\r?\n/g) || []).length * 28;
-        const hasLongOtherInfo = otherInfoLayoutWeight > 360;
-        const reportPageCount = hasLongOtherInfo ? 3 : 2;
-        const otherInfoContent = escapeHtml(normalizedOtherInfo).replace(/\r?\n/g, "<br />");
-        const otherInfoSection = normalizedOtherInfo && !hasLongOtherInfo
-          ? `<section class="detail-block patient-note"><div class="section-label">补充信息</div><h2>其它信息</h2><p>${otherInfoContent}</p></section>`
-          : "";
-        const formattedTime = new Intl.DateTimeFormat("zh-CN", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: false,
-        }).format(exportTime);
-        const reportDate = localDateInputValue(exportTime);
-
-        return `<!doctype html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="data:," />
-    <title>肺静脉消融记录报告 · ${reportDate}</title>
-    <style>
-      :root {
-        color-scheme: light;
-        --report-ink: #172033;
-        --report-muted: #6f7787;
-        --report-line: #dfe3eb;
-        --report-purple: #5a278f;
-        --report-purple-dark: #351053;
-        --report-orange: #f28c18;
-        --report-green: #11745c;
-      }
-      * { box-sizing: border-box; }
-      html, body {
-        width: 210mm;
-        margin: 0;
-        padding: 0;
-      }
-      body {
-        background: #fff;
-        color: var(--report-ink);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-        line-height: 1.42;
-      }
-      .report-document {
-        width: 210mm;
-        margin: 0;
-        padding: 0;
-        background: #fff;
-      }
-      .report-page {
-        width: 210mm;
-        height: 297mm;
-        margin: 0;
-        padding: 8mm 10mm 7mm;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        background: #fff;
-      }
-      .report-header {
-        min-height: 15mm;
-        padding: 0 0 3mm;
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 6mm;
-        border-bottom: .6mm solid var(--report-purple);
-      }
-      .report-brand {
-        display: flex;
-        align-items: center;
-        gap: 3mm;
-      }
-      .report-brand-mark {
-        width: 8mm;
-        height: 8mm;
-        flex: 0 0 auto;
-        border: 1.8mm solid var(--report-purple);
-        border-radius: 50%;
-        box-shadow: inset 0 0 0 .55mm #fff;
-      }
-      .report-header h1 {
-        margin: 0 0 .8mm;
-        color: var(--report-ink);
-        font-size: 15pt;
-        line-height: 1.15;
-        letter-spacing: -.02em;
-      }
-      .report-header .subtitle {
-        margin: 0;
-        color: var(--report-muted);
-        font-size: 7.2pt;
-      }
-      .report-meta {
-        padding-top: .2mm;
-        color: var(--report-muted);
-        font-size: 6.5pt;
-        line-height: 1.6;
-        text-align: right;
-        white-space: nowrap;
-      }
-      .patient-strip {
-        margin: 3.5mm 0;
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        border: 1px solid var(--report-line);
-        background: #faf9fb;
-      }
-      .patient-cell {
-        min-width: 0;
-        min-height: 12.5mm;
-        padding: 2mm 2.5mm;
-        border-right: 1px solid var(--report-line);
-      }
-      .patient-cell:nth-child(-n + 3) { border-bottom: 1px solid var(--report-line); }
-      .patient-cell:nth-child(3n) { border-right: 0; }
-      .patient-cell span {
-        display: block;
-        margin-bottom: .65mm;
-        color: var(--report-muted);
-        font-size: 6.1pt;
-      }
-      .patient-cell strong {
-        display: block;
-        overflow-wrap: anywhere;
-        color: var(--report-ink);
-        font-size: 8.2pt;
-        line-height: 1.3;
-      }
-      .visual-grid {
-        display: block;
-      }
-      .map-report {
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-      }
-      .map-heading {
-        min-height: 11mm;
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 4mm;
-      }
-      .section-label {
-        margin-bottom: .6mm;
-        color: var(--report-purple);
-        font-size: 5.8pt;
-        font-weight: 800;
-        letter-spacing: .14em;
-        text-transform: uppercase;
-      }
-      .map-heading h2,
-      .overview-panel h2,
-      .detail-section h2,
-      .side-section h2,
-      .detail-block h2,
-      .notes-content h2 {
-        margin: 0;
-        color: var(--report-ink);
-        font-size: 10pt;
-        line-height: 1.25;
-      }
-      .map-heading p {
-        margin: .7mm 0 0;
-        color: var(--report-muted);
-        font-size: 6.2pt;
-      }
-      .report-legend {
-        max-width: 90mm;
-        padding-top: 1.5mm;
-        display: flex;
-        justify-content: flex-end;
-        flex-wrap: wrap;
-        gap: 1.2mm 2.4mm;
-        color: var(--report-muted);
-        font-size: 5.8pt;
-      }
-      .report-legend span {
-        display: inline-flex;
-        align-items: center;
-        gap: .8mm;
-        white-space: nowrap;
-      }
-      .legend-sample {
-        width: 2.7mm;
-        height: 2.7mm;
-        display: inline-block;
-        border: .25mm solid rgba(50, 32, 76, .1);
-        border-radius: .6mm;
-      }
-      .legend-sample.empty { background: #f3f2f5; }
-      .legend-sample.covered { background: #f4e5f5; }
-      .legend-sample.target { background: #8754bd; }
-      .legend-sample.extra { background: #351053; }
-      .map-surface {
-        height: 104mm;
-        flex: 0 0 104mm;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        border: 1px solid var(--report-line);
-        background: #fbfbfd;
-      }
-      .report-map-svg {
-        width: 100%;
-        height: 100%;
-        display: block;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-      }
-      .report-map-svg .anatomy-field { fill: #f8f8fa; stroke: #e1e4ea; stroke-width: 2; }
-      .report-map-svg .atrium-line { fill: none; stroke: #e4e6ec; stroke-width: 2; stroke-dasharray: 4 7; }
-      .report-map-svg .pv-segment,
-      .report-map-svg .ridge-segment { fill: #f3f2f5; stroke: #fff; stroke-width: 2.4; }
-      .report-map-svg .pv-segment.level-1,
-      .report-map-svg .ridge-segment.level-1 { fill: #f4e5f5; }
-      .report-map-svg .pv-segment.level-2,
-      .report-map-svg .ridge-segment.level-2 { fill: #8754bd; }
-      .report-map-svg .pv-segment.level-3,
-      .report-map-svg .ridge-segment.level-3 { fill: #5a278f; }
-      .report-map-svg .pv-segment.level-4,
-      .report-map-svg .ridge-segment.level-4 { fill: #351053; }
-      .report-map-svg .segment-inner-highlight {
-        fill: none;
-        stroke: #f2a21b;
-        stroke-width: 8;
-        stroke-linejoin: round;
-        stroke-linecap: round;
-        opacity: 0;
-      }
-      .report-map-svg .segment-inner-highlight.visible { opacity: 1; }
-      .report-map-svg .segment-excluded-outline,
-      .report-map-svg .segment-excluded-marker {
-        fill: none;
-        stroke-linejoin: round;
-        stroke-linecap: butt;
-        stroke-dasharray: 7 3;
-        opacity: 0;
-      }
-      .report-map-svg .segment-excluded-outline { stroke: #17131c; stroke-width: 6.2; }
-      .report-map-svg .segment-excluded-marker { stroke: #fff; stroke-width: 3.4; }
-      .report-map-svg .segment-excluded-outline.visible,
-      .report-map-svg .segment-excluded-marker.visible { opacity: 1; }
-      .report-map-svg .ridge-segment.last-recorded {
-        stroke: #075744;
-        stroke-width: 3.4;
-        stroke-dasharray: 7 3;
-      }
-      .report-map-svg .ridge-label,
-      .report-map-svg .ridge-count {
-        text-anchor: middle;
-        dominant-baseline: central;
-      }
-      .report-map-svg .ridge-label {
-        fill: #747c8b;
-        font-size: 10px;
-        font-weight: 780;
-      }
-      .report-map-svg .ridge-label.hidden { opacity: 0; }
-      .report-map-svg .ridge-count {
-        fill: #403a49;
-        font-size: 12px;
-        font-weight: 800;
-        opacity: 0;
-      }
-      .report-map-svg .ridge-count.visible { opacity: 1; }
-      .report-map-svg .ridge-count.on-dark,
-      .report-map-svg .segment-count.on-dark { fill: #fff; }
-      .sector-label {
-        font-size: 11px;
-        font-weight: 500;
-        text-anchor: middle;
-        dominant-baseline: central;
-        fill: #596579;
-        paint-order: stroke;
-        stroke: #fbfbfd;
-        stroke-width: 3px;
-        stroke-linejoin: round;
-        pointer-events: none;
-      }
-
-      .report-map-svg .segment-count {
-        fill: #403a49;
-        font-size: 12px;
-        font-weight: 700;
-        text-anchor: middle;
-        dominant-baseline: central;
-        opacity: 0;
-      }
-      .report-map-svg .sector-label { font-size: 12px; font-weight: 750; fill: #445269; }
-      .report-map-svg .segment-count.visible { opacity: 1; }
-      .report-map-svg .vein-center { fill: #fff; stroke: #cbd1db; stroke-width: 2; }
-      .report-map-svg .vein-code {
-        fill: #7b8492;
-        font-size: 13px;
-        font-weight: 750;
-        letter-spacing: .03em;
-        text-anchor: middle;
-        dominant-baseline: central;
-      }
-      .report-map-svg .vein-cn {
-        fill: #8b929f;
-        font-size: 10px;
-        text-anchor: middle;
-      }
-      .report-map-svg .side-title {
-        fill: var(--report-ink);
-        font-size: 17px;
-        font-weight: 750;
-        text-anchor: middle;
-      }
-      .report-map-svg .plan-complete .vein-center { fill: #16a34a; stroke: #16a34a; stroke-width: 3; }
-      .report-map-svg .plan-complete .vein-code,
-      .report-map-svg .plan-complete .vein-cn { fill: #ffffff; }
-      .report-map-svg .plan-in-progress .vein-center { stroke: #f28c18; stroke-width: 3; }
-      .report-map-svg .plan-in-progress .vein-code { fill: #a94d00; }
-      .report-map-svg .atrium-label {
-        fill: #aeb4bf;
-        font-size: 18px;
-        font-weight: 760;
-        letter-spacing: .08em;
-        text-anchor: middle;
-        dominant-baseline: middle;
-      }
-      .last-operation {
-        min-height: 7mm;
-        padding: 1.6mm 2.3mm;
-        display: flex;
-        align-items: center;
-        gap: 2mm;
-        border: 1px solid var(--report-line);
-        border-top: 0;
-        color: var(--report-muted);
-        font-size: 6.2pt;
-      }
-      .last-operation strong {
-        flex: 0 0 auto;
-        color: var(--report-purple);
-        font-size: 6pt;
-        letter-spacing: .06em;
-      }
-      .overview-panel {
-        min-width: 0;
-        margin-top: 3.5mm;
-        padding-top: 3mm;
-        border-top: 1px solid var(--report-line);
-      }
-      .overview-panel > header {
-        min-height: 0;
-        padding: 0;
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        border: 0;
-      }
-      .overview-metrics {
-        margin-top: 2mm;
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        border: 1px solid var(--report-line);
-        background: #faf9fb;
-      }
-      .overview-metric {
-        min-width: 0;
-        padding: 2mm 2.5mm 1.8mm;
-        border-right: 1px solid var(--report-line);
-      }
-      .overview-metric:last-child { border-right: 0; }
-      .overview-metric b {
-        display: block;
-        color: var(--report-purple-dark);
-        font-size: 12pt;
-        line-height: 1.15;
-        font-variant-numeric: tabular-nums;
-      }
-      .overview-metric span {
-        display: block;
-        margin-top: .6mm;
-        color: var(--report-muted);
-        font-size: 5.6pt;
-        line-height: 1.25;
-      }
-      .overview-veins {
-        margin-top: 2mm;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 1.8mm 4mm;
-      }
-      .overview-vein {
-        padding: 1.8mm 2mm;
-        border: 1px solid var(--report-line);
-        background: #fff;
-      }
-      .overview-vein-heading {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 2mm;
-      }
-      .overview-vein-heading > div {
-        min-width: 0;
-        display: flex;
-        align-items: baseline;
-        gap: 1.5mm;
-      }
-      .overview-vein-heading strong {
-        color: var(--report-ink);
-        font-size: 7pt;
-      }
-      .overview-vein-heading div span {
-        color: var(--report-muted);
-        font-size: 5.7pt;
-      }
-      .endpoint-badge,
-      .status {
-        display: inline-block;
-        border-radius: 999px;
-        font-weight: 650;
-      }
-      .endpoint-badge {
-        flex: 0 0 auto;
-        padding: .45mm 1.35mm;
-        font-size: 5.4pt;
-      }
-      .endpoint-badge.success,
-      .status.success { color: #075744; background: #e6f5ef; }
-      .endpoint-badge.warning,
-      .status.warning { color: #914d00; background: #fff0d6; }
-      .endpoint-badge.neutral,
-      .status.neutral { color: #4f3c68; background: #f1ebf8; }
-      .overview-progress-row {
-        margin-top: 1.2mm;
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        align-items: center;
-        gap: 2mm;
-      }
-      .overview-progress {
-        height: 1.45mm;
-        display: grid;
-        grid-template-columns: repeat(var(--segments), minmax(0, 1fr));
-        gap: .7mm;
-      }
-      .overview-progress .progress-segment {
-        height: 100%;
-        border-radius: .5mm;
-        background: #e5e8ee;
-        box-shadow: none;
-      }
-      .overview-progress .progress-segment.filled { background: var(--report-orange); }
-      .overview-vein.complete .overview-progress .progress-segment.filled { background: var(--report-green); }
-      .overview-progress-row b {
-        color: var(--report-muted);
-        font-size: 5.5pt;
-        font-weight: 650;
-        white-space: nowrap;
-      }
-      .overview-vein p {
-        margin: .8mm 0 0;
-        color: var(--report-muted);
-        font-size: 5.4pt;
-      }
-      .overview-extras {
-        margin-top: 2mm;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 4mm;
-      }
-      .ridge-overview {
-        min-width: 0;
-        padding: 1.6mm 2mm;
-        border: 1px solid var(--report-line);
-        background: #fafbfc;
-      }
-      .ridge-overview h3 {
-        margin: 0 0 .8mm;
-        color: var(--report-muted);
-        font-size: 5.7pt;
-        letter-spacing: .08em;
-      }
-      .ridge-overview-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: .8mm 2mm;
-        color: var(--report-muted);
-        font-size: 5.6pt;
-      }
-      .ridge-overview-list span { white-space: nowrap; }
-      .ridge-overview-list strong { margin-right: .8mm; color: var(--report-ink); }
-      .ridge-overview-list .empty { white-space: normal; }
-      .clinical-summary {
-        margin-top: 4mm;
-        padding: 3.3mm 4mm;
-        display: grid;
-        grid-template-columns: 27mm 1fr;
-        gap: 4mm;
-        border-left: 1.4mm solid #b66a00;
-        background: #fff7e8;
-      }
-      .clinical-summary.positive { border-color: var(--report-green); background: #edf8f4; }
-      .clinical-summary strong {
-        color: var(--report-ink);
-        font-size: 9.2pt;
-      }
-      .clinical-summary p {
-        margin: 0 0 1mm;
-        color: #343c4c;
-        font-size: 7.2pt;
-        line-height: 1.5;
-      }
-      .clinical-summary p:last-child { margin-bottom: 0; }
-      .detail-grid {
-        margin-top: 4mm;
-      }
-      .detail-section h2,
-      .side-section h2,
-      .detail-block h2 { margin-bottom: 2mm; }
-      .clinical-table {
-        width: 100%;
-        border-collapse: collapse;
-        table-layout: fixed;
-        font-size: 6.35pt;
-        line-height: 1.4;
-      }
-      .clinical-table th,
-      .clinical-table td {
-        padding: 2mm 1.8mm;
-        border-bottom: 1px solid var(--report-line);
-        text-align: left;
-        vertical-align: top;
-        overflow-wrap: anywhere;
-      }
-      .clinical-table thead th {
-        color: var(--report-muted);
-        background: #f7f8fa;
-        font-size: 5.9pt;
-      }
-      .clinical-table thead th:nth-child(1) { width: 16%; }
-      .clinical-table thead th:nth-child(2) { width: 25%; }
-      .clinical-table thead th:nth-child(3) { width: 36%; }
-      .clinical-table thead th:nth-child(4) { width: 23%; }
-      .clinical-table tbody th {
-        color: var(--report-ink);
-        font-size: 6.5pt;
-      }
-      .clinical-table tbody th span {
-        display: block;
-        color: var(--report-muted);
-        font-size: 5.4pt;
-        font-weight: 500;
-      }
-      .clinical-table .status {
-        padding: .5mm 1.2mm;
-        font-size: 5.65pt;
-        line-height: 1.4;
-      }
-      .coverage-detail {
-        display: block;
-        margin-top: 1mm;
-        color: var(--report-muted);
-        font-size: 5.5pt;
-        line-height: 1.45;
-      }
-      .detail-block {
-        margin-top: 4mm;
-        padding: 3mm 3.5mm;
-        border: 1px solid var(--report-line);
-        background: #fbfbfc;
-      }
-      .bottom-grid {
-        margin-top: 4mm;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 4mm;
-      }
-      .side-section {
-        min-width: 0;
-        padding: 3mm 3.5mm;
-        border: 1px solid var(--report-line);
-        background: #fbfbfc;
-      }
-      .side-section p,
-      .side-section li,
-      .detail-block p,
-      .notes-content p {
-        color: #434b5a;
-        font-size: 6.7pt;
-        line-height: 1.55;
-      }
-      .side-section p,
-      .detail-block p,
-      .notes-content p { margin: 0; }
-      .side-section ul { margin: 0; padding-left: 4.5mm; }
-      .side-section li + li { margin-top: 1mm; }
-      .patient-note p {
-        overflow-wrap: anywhere;
-        white-space: normal;
-      }
-      .notes-content {
-        margin-top: 5mm;
-        padding: 5mm;
-        border: 1px solid var(--report-line);
-        background: #fbfbfc;
-      }
-      .notes-content p {
-        margin-top: 3mm;
-        font-size: 8pt;
-        line-height: 1.75;
-      }
-      .report-note {
-        margin: 4mm 0 0;
-        padding-top: 3mm;
-        border-top: 1px solid var(--report-line);
-        color: #7e8694;
-        font-size: 5.8pt;
-        line-height: 1.5;
-      }
-      .report-footer {
-        margin-top: auto;
-        padding-top: 2mm;
-        display: flex;
-        justify-content: space-between;
-        gap: 6mm;
-        color: #8a919e;
-        font-size: 5.4pt;
-      }
-    </style>
-  </head>
-  <body>
-    <main class="report-document">
-      <section class="report-page overview-page" data-report-page>
-        <header class="report-header">
-          <div class="report-brand">
-            <span class="report-brand-mark" aria-hidden="true"></span>
-            <div>
-              <h1>肺静脉消融记录报告</h1>
-              <p class="subtitle">当前肺静脉消融分布、消融概览与患者信息</p>
-            </div>
-          </div>
-          <div class="report-meta">
-            <div>解剖类型：${escapeHtml(anatomyLabels[settings.anatomyMode])}</div>
-            <div>报告生成：${escapeHtml(formattedTime)}</div>
-            <div>报告版本：v${APP_RELEASE.version}</div>
-          </div>
-        </header>
-
-        <section class="patient-strip" aria-label="患者基础信息">
-          <div class="patient-cell"><span>姓名</span><strong>${escapeHtml(patientInfo.name || "未填写")}</strong></div>
-          <div class="patient-cell"><span>性别</span><strong>${escapeHtml(patientInfo.sex || "未填写")}</strong></div>
-          <div class="patient-cell"><span>病种</span><strong>${escapeHtml(patientInfo.diagnosis || "未填写")}</strong></div>
-          <div class="patient-cell"><span>手术类型</span><strong>${escapeHtml(patientInfo.procedureType || "未填写")}</strong></div>
-          <div class="patient-cell"><span>手术日期</span><strong>${escapeHtml(patientInfo.surgeryDate || "未填写")}</strong></div>
-          <div class="patient-cell"><span>病案号</span><strong>${escapeHtml(patientInfo.recordNumber || "未填写")}</strong></div>
-        </section>
-
-        <div class="visual-grid">
-          <section class="map-report" aria-labelledby="report-map-heading">
-            <div class="map-heading">
-              <div>
-                <div class="section-label">记录主视图</div>
-                <h2 id="report-map-heading">肺静脉消融分布</h2>
-                <p>${escapeHtml(currentProtocol)}</p>
-              </div>
-              <div class="report-legend" aria-label="消融次数色阶">
-                <span><i class="legend-sample empty"></i>0 次</span>
-                <span><i class="legend-sample covered"></i>未达阈值</span>
-                <span><i class="legend-sample target"></i>达阈值</span>
-                <span><i class="legend-sample extra"></i>超阈值</span>
-              </div>
-            </div>
-            <div class="map-surface">${mapMarkup}</div>
-            <p>圈外 A–H：分区（内外圈共用） · 圈内数字：累计覆盖次数 · 前壁 2 次 / 后壁 1 次达标</p>
-            <div class="last-operation">
-              <strong>最近操作</strong>
-              <span>${escapeHtml(latestOperation)}</span>
-            </div>
-          </section>
-
-          <aside class="overview-panel" aria-labelledby="overview-heading">
-            <header>
-              <div class="section-label">治疗进度</div>
-              <h2 id="overview-heading">消融概览</h2>
-            </header>
-            <div class="overview-metrics">
-              <div class="overview-metric"><b>${overviewMetrics.total}</b><span>累计消融次数</span></div>
-              <div class="overview-metric"><b>${overviewMetrics.covered}/${overviewMetrics.totalPositions}</b><span>已覆盖位置</span></div>
-              <div class="overview-metric"><b>${overviewMetrics.targetMetPercentage}%</b><span>达标扇区</span></div>
-            </div>
-            <div class="overview-veins">${overviewRows}</div>
-            <div class="overview-extras">
-              <section class="ridge-overview">
-                <h3>补充靶区</h3>
-                <div class="ridge-overview-list">${ridgeOverview}</div>
-              </section>
-              <section class="ridge-overview">
-                <h3>本次放电电极</h3>
-                <div class="ridge-overview-list"><span>${escapeHtml(electrodeOverview)}</span></div>
-              </section>
-            </div>
-          </aside>
-        </div>
-
-        <footer class="report-footer">
-          <span>VictoryPVI Community · 第三方非官方记录辅助工具</span>
-          <span>记录总览 · 1 / ${reportPageCount}</span>
-        </footer>
-      </section>
-
-      <section class="report-page detail-page" data-report-page>
-        <header class="report-header">
-          <div class="report-brand">
-            <span class="report-brand-mark" aria-hidden="true"></span>
-            <div>
-              <h1>记录明细</h1>
-              <p class="subtitle">治疗记录、PVI 终点与待处理事项</p>
-            </div>
-          </div>
-          <div class="report-meta">
-            <div>患者：${escapeHtml(patientInfo.name || "未填写")}</div>
-            <div>病案号：${escapeHtml(patientInfo.recordNumber || "未填写")}</div>
-            <div>${escapeHtml(formattedTime)}</div>
-          </div>
-        </header>
-
-        <section class="clinical-summary ${reportTone}">
-          <div>
-            <div class="section-label">记录汇总</div>
-            <strong>记录结论</strong>
-          </div>
-          <div>
-            <p>${escapeHtml(endpointConclusion)}</p>
-            <p>${escapeHtml(ablationCompletionConclusion)}</p>
-            <p>${escapeHtml(coverageConclusion)}</p>
-          </div>
-        </section>
-
-        <div class="detail-grid">
-          <section class="detail-section">
-            <div class="section-label">逐支评估</div>
-            <h2>各肺静脉记录</h2>
-            <table class="clinical-table">
-              <thead><tr><th>目标肺静脉</th><th>治疗记录</th><th>消融完成与覆盖</th><th>PVI 终点</th></tr></thead>
-              <tbody>${assessmentRows}</tbody>
-            </table>
-          </section>
-
-          ${otherInfoSection}
-          <div class="bottom-grid">
-            <section class="side-section">
-              <div class="section-label">补充记录</div>
-              <h2>补充靶区处理</h2>
-              ${ridgeContent}
-            </section>
-            <section class="side-section">
-              <div class="section-label">待处理事项</div>
-              <h2>建议处理事项</h2>
-              <ul>${actionItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
-            </section>
-          </div>
-        </div>
-
-        <p class="report-note">说明：本报告由社区维护的第三方非官方工具根据当前质控记录自动汇总。单根肺静脉的消融完成判定为前庭 8 个扇区均达到各自完成阈值，且口部与前庭总消融次数不少于 ${MIN_SINGLE_VEIN_TOTAL_APPLICATIONS} 次；消融完成判定不等同于 PVI 电生理终点。报告以传入阻滞作为确认 PVI 的最低记录标准，传出阻滞作为补充证据。肺静脉隔离是否达成，应以术中电生理终点评估为准。</p>
-        <footer class="report-footer">
-          <span>本报告不替代设备原始数据、机构规范或医师临床判断</span>
-          <span>记录明细 · 2 / ${reportPageCount}</span>
-        </footer>
-      </section>
-      ${hasLongOtherInfo ? `
-      <section class="report-page notes-page" data-report-page>
-        <header class="report-header">
-          <div class="report-brand">
-            <span class="report-brand-mark" aria-hidden="true"></span>
-            <div>
-              <h1>患者补充信息</h1>
-              <p class="subtitle">患者基础信息表中填写的其它内容</p>
-            </div>
-          </div>
-          <div class="report-meta">
-            <div>患者：${escapeHtml(patientInfo.name || "未填写")}</div>
-            <div>病案号：${escapeHtml(patientInfo.recordNumber || "未填写")}</div>
-            <div>${escapeHtml(formattedTime)}</div>
-          </div>
-        </header>
-        <section class="notes-content patient-note">
-          <div class="section-label">补充信息</div>
-          <h2>其它信息</h2>
-          <p>${otherInfoContent}</p>
-        </section>
-        <footer class="report-footer">
-          <span>本页内容来自导出前填写的信息，不写入浏览器本地记录</span>
-          <span>补充信息 · 3 / ${reportPageCount}</span>
-        </footer>
-      </section>` : ""}
-    </main>
-  </body>
-</html>`;
-      }
-
-      async function exportClinicalReport(patientInfo) {
-        if (pdfExportInProgress) return;
-        pdfExportInProgress = true;
-        const previousButtonLabel = exportButton.textContent;
-        const previousButtonState = exportButton.disabled;
-        exportButton.disabled = true;
-        exportButton.dataset.busy = "true";
-        exportButton.textContent = "正在生成 PDF…";
-        showToast("正在生成报告…");
-
+      function printCurrentReport() {
         try {
-          if (!window.jspdf?.jsPDF) {
-            await new Promise((resolve, reject) => {
-              const script = document.createElement("script");
-              script.src = "./vendor/jspdf.umd.min.js";
-              script.onload = resolve;
-              script.onerror = () => { script.remove(); reject(new Error("PDF 生成组件未加载")); };
-              document.head.append(script);
-            });
-          }
-
-          const exportTime = new Date();
-          const pdf = await createVectorClinicalPdf(exportTime, patientInfo);
-          const fileName = `PVI-ablation-report-${localDateInputValue(exportTime)}.pdf`;
-          pdf.save(fileName);
-          showToast("报告已生成，开始下载");
-        } catch (error) {
-          console.error("PDF export failed", error);
-          showToast("PDF 生成失败，请刷新页面后重试");
-        } finally {
-          pdfExportInProgress = false;
-          delete exportButton.dataset.busy;
-          exportButton.textContent = previousButtonLabel;
-          exportButton.disabled = previousButtonState;
+          window.print();
+        } catch {
+          document.getElementById("report-print-help").textContent = "请使用浏览器菜单中的打印功能，或在系统浏览器中打开应用。";
         }
       }
+
+      function closeReportPreview() {
+        if (!document.body.classList.contains("report-open")) return;
+        document.body.classList.remove("report-open");
+        document.getElementById("report-pages").replaceChildren();
+        document.title = appTitle;
+        (exportButton.offsetWidth ? exportButton : document.getElementById("more-button")).focus({ preventScroll: true });
+      }
+
+      function exportClinicalReport(patientInfo) {
+        const exportTime = new Date();
+        try {
+          document.getElementById("report-pages").innerHTML = buildPrintReport(exportTime, patientInfo);
+          document.title = `PVI-ablation-report-${localDateInputValue(exportTime)}`;
+          document.getElementById("report-print-help").textContent = "在系统打印面板选择“存储为 PDF”。";
+          document.body.classList.add("report-open");
+          document.getElementById("report-back").focus();
+          printCurrentReport();
+        } catch (error) {
+          closeReportPreview();
+          console.error("Report preview failed", error);
+          showToast("报告生成失败，请重试");
+        }
+      }
+
+      document.getElementById("report-back").addEventListener("click", closeReportPreview);
+      document.getElementById("report-print").addEventListener("click", printCurrentReport);
+      window.addEventListener("pagehide", closeReportPreview);
 
       document.getElementById("more-button").addEventListener("click", () => {
         updateExperienceUi(); actionsDialog.showModal(); document.getElementById("actions-title").focus({ preventScroll: true });
