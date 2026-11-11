@@ -4,16 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f4f5f8" />
-    <meta name="application-version" content="1.19.0" />
-    <meta name="application-iteration" content="2026-11-11T15:43:12+08:00" />
+    <meta name="application-version" content="1.20.0" />
+    <meta name="application-iteration" content="2026-11-11T17:54:59+08:00" />
     <script id="app-release" type="application/json">
       {
-        "version": "1.19.0",
-        "iteration": "2026-11-11T15:43:12+08:00",
-        "summary": "报告改用设备字体，网页发布包缩小至约 0.66 MB。",
+        "version": "1.20.0",
+        "edition": "量化版",
+        "iteration": "2026-11-11T17:54:59+08:00",
+        "summary": "量化版将口部和前庭各分为 10 个扇区，按扇区与缺口的距离累计覆盖值。",
         "changes": [
-          "从系统打印面板存储 A4 PDF，支持离线导出和长备注分页。",
-          "Windows 和 macOS 下载链接指向已发布的 v1.15.0 桌面客户端。"
+          "每环从正上方顺时针标为 A–J，每区 36°。一次整环记录中，缺口加 0，两侧各两个相邻扇区分别加 0.5，其余五区分别加 1，整环操作计 1 次。",
+          "后壁按原图角度对应左侧 B–E、右侧 F–I，覆盖值达到 1 即达标，其余扇区以 2 为阈值。普通单支肺静脉的完成条件为前庭 10 区全部达标，且口部与前庭合计至少 4 次消融。",
+          "图谱、概览和 PDF 使用同一套覆盖值和阈值。旧八区计数按原扇区中心角迁移，保留原值，新图 C、H 两区从 0 开始。"
         ]
       }
     </script>
@@ -2370,12 +2372,12 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>肺静脉消融记录 <span class="plus-mark">PLUS</span></h1>
-            <p class="app-meta" id="app-meta" aria-label="软件版本 1.19.0，独立社区维护的非官方工具，迭代时间 2026年11月11日 15点43分">
-              <span class="app-version" id="app-version">v1.19.0</span>
+            <p class="app-meta" id="app-meta" aria-label="软件版本 1.20.0，独立社区维护的非官方工具，迭代时间 2026年11月11日 17点54分">
+              <span class="app-version" id="app-version">v1.20.0 · 量化版</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
               <span>社区维护 · 非官方</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
-              <time id="app-iteration" datetime="2026-11-11T15:43:12+08:00">迭代于 2026-11-11 15:43</time>
+              <time id="app-iteration" datetime="2026-11-11T17:54:59+08:00">迭代于 2026-11-11 17:54</time>
             </p>
           </div>
         </div>
@@ -2435,11 +2437,11 @@
                   <button type="button" data-edit-mode="segment" aria-pressed="false">节段</button>
                   <button type="button" data-edit-mode="remove" aria-pressed="false">去除</button>
                 </div>
-                <span class="record-hint" id="record-hint">选择电极后，点击本次 1–10 gap 所在扇区</span>
+                <span class="record-hint" id="record-hint">点击 1–10 gap：缺口 +0，两侧各 2 区 +0.5，其余 +1</span>
               </div>
             </div>
             <div class="map-reading-key" aria-label="图谱阅读说明">
-              <span><b class="sector-key-sample">A–H</b>圈外分区 · 内外圈共用</span>
+              <span><b class="sector-key-sample">A–J</b>圈外分区 · 内外圈共用</span>
               <span><b class="count-key-sample">次数</b>圈内数字为累计覆盖次数</span>
               <span>前壁 2 次达标 · 后壁 1 次达标</span>
             </div>
@@ -2719,7 +2721,7 @@
                 <span>前壁等非后壁 2 次 · 后壁 1 次</span>
               </div>
             </div>
-            <p class="settings-help">前壁等非后壁扇区达标阈值为 2 次，后壁为 1 次，口部与前庭共用此规则。已覆盖但未达阈值显示粉紫色，达到阈值显示达标紫色。达阈值后追加 1 次、2 次使用更深紫色；超过 2 次不再区分，仅用于显示。单根肺静脉判定为消融完成需同时满足：前庭 8 个扇区均达到各自完成阈值，且口部与前庭总消融次数 ≥4；消融完成判定不替代 PVI 电生理终点评估。</p>
+            <p class="settings-help">前壁等非后壁扇区达标阈值为 2 次，后壁为 1 次，口部与前庭共用此规则。已覆盖但未达阈值显示粉紫色，达到阈值显示达标紫色。达阈值后追加 1 次、2 次使用更深紫色；超过 2 次不再区分，仅用于显示。单根肺静脉判定为消融完成需同时满足：前庭 10 个扇区均达到各自完成阈值，且口部与前庭总消融次数 ≥4；消融完成判定不替代 PVI 电生理终点评估。</p>
           </section>
 
           <section class="settings-section">
@@ -2831,11 +2833,11 @@
           <section class="about-section">
             <h3>当前版本</h3>
             <p>
-              <strong id="about-release-version">v1.19.0</strong>
+              <strong id="about-release-version">v1.20.0 · 量化版</strong>
               <span aria-hidden="true"> · </span>
-              <time id="about-release-iteration" datetime="2026-11-11T15:43:12+08:00">迭代于 2026-11-11 15:43</time>
+              <time id="about-release-iteration" datetime="2026-11-11T17:54:59+08:00">迭代于 2026-11-11 17:54</time>
             </p>
-            <p id="about-release-summary">更新内容：报告改用设备字体，网页发布包缩小至约 0.66 MB。</p>
+            <p id="about-release-summary">更新内容：量化版将口部和前庭各分为 10 个扇区，按扇区与缺口的距离累计覆盖值。</p>
           </section>
           <section class="about-section">
             <h3>项目身份</h3>
@@ -2861,9 +2863,10 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <div class="remove-cursor" id="remove-cursor" aria-hidden="true"></div>
 
+    <script src="./miniprogram/utils/sector-grid.js?v=1.20.0"></script>
     <script src="./vendor/qrcode-generator.js"></script>
-    <script src="./sync-client.js?v=1.19.0"></script>
-    <script src="./direct-sync-ui.js?v=1.19.0"></script>
+    <script src="./sync-client.js?v=1.20.0"></script>
+    <script src="./direct-sync-ui.js?v=1.20.0"></script>
     <script>
       const NS = "http://www.w3.org/2000/svg";
       // Historical storage identifiers are retained so existing records, undo history,
@@ -2874,15 +2877,15 @@
       const LEGACY_HISTORY_KEY = "varipulse-ablation-map-v4-history";
       const OLDEST_STORAGE_KEY = "varipulse-ablation-map-v3";
       const SYNC_SETTINGS_KEY = "varipulse-sync-settings-v1";
-      const SCHEMA_VERSION = 7;
+      const SCHEMA_VERSION = 8;
       const HISTORY_LIMIT = 100;
       const APPLICATIONS_PER_SEQUENCE = 3;
       const MIN_SINGLE_VEIN_TOTAL_APPLICATIONS = 4;
       const APP_RELEASE = Object.freeze((() => {
         const fallback = {
-          version: "1.19.0",
-          iteration: "2026-11-11T15:43:12+08:00",
-          summary: "报告改用设备字体，网页发布包缩小至约 0.66 MB。",
+          version: "1.20.0",
+          iteration: "2026-11-11T17:54:59+08:00",
+          summary: "量化版将口部和前庭各分为 10 个扇区，按扇区与缺口的距离累计覆盖值。",
           changes: [],
         };
         try {
@@ -3111,6 +3114,7 @@
       }
 
       function renderReleaseMetadata() {
+        const displayVersion = APP_RELEASE.edition ? `v${APP_RELEASE.version} · ${APP_RELEASE.edition}` : `v${APP_RELEASE.version}`;
         const parts = releaseIterationParts(APP_RELEASE.iteration);
         if (!parts) return;
         const displayIteration = `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}`;
@@ -3120,17 +3124,17 @@
         const appMeta = document.getElementById("app-meta");
         appMeta?.setAttribute(
           "aria-label",
-          `软件版本 ${APP_RELEASE.version}，独立社区维护的非官方工具，迭代时间 ${displayIterationZh}`,
+          `软件版本 ${displayVersion}，独立社区维护的非官方工具，迭代时间 ${displayIterationZh}`,
         );
         const appVersion = document.getElementById("app-version");
-        if (appVersion) appVersion.textContent = `v${APP_RELEASE.version}`;
+        if (appVersion) appVersion.textContent = displayVersion;
         const appIteration = document.getElementById("app-iteration");
         if (appIteration) {
           appIteration.dateTime = APP_RELEASE.iteration;
           appIteration.textContent = `迭代于 ${displayIteration}`;
         }
         const aboutVersion = document.getElementById("about-release-version");
-        if (aboutVersion) aboutVersion.textContent = `v${APP_RELEASE.version}`;
+        if (aboutVersion) aboutVersion.textContent = displayVersion;
         const aboutIteration = document.getElementById("about-release-iteration");
         if (aboutIteration) {
           aboutIteration.dateTime = APP_RELEASE.iteration;
@@ -3294,6 +3298,7 @@
           updateSyncUi();
           return false;
         }
+        payload = upgradeSectorGrid(payload);
         const ridgeState = normalizeRidgeState(payload.counts, payload.ridgeApplications);
         syncApplying = true;
         try {
@@ -3633,10 +3638,7 @@
       }
 
       function isPosteriorSingleApplicationSector(vein, sector) {
-        const isLeftVein = vein.id.startsWith("L");
-        return isLeftVein
-          ? sector >= 2 && sector <= 4
-          : sector >= 5 && sector <= 7;
+        return RingSectors.isPosterior(vein.id.startsWith("L"), sector);
       }
 
       function requiredVeinSectorCount(vein, layerId, sector) {
@@ -3651,7 +3653,7 @@
 
         Object.keys(layers).forEach((layerId) => {
           const key = ringKey(vein.id, layerId);
-          for (let sector = 1; sector <= 8; sector += 1) {
+          for (let sector = 1; sector <= RingSectors.count; sector += 1) {
             const count = Number(counts[sectorKey(key, sector)] || 0);
             const requiredCount = requiredVeinSectorCount(vein, layerId, sector);
             if (count > 0) hasAblation = true;
@@ -3672,7 +3674,7 @@
         hasAblation = hasAblation || totalApplications > 0;
         const coverageComplete = hasAblation && everySectorAtTarget;
 
-        const outerSectorsComplete = outerSectorsAtTarget === 8;
+        const outerSectorsComplete = outerSectorsAtTarget === RingSectors.count;
         const minimumTotalMet = totalApplications >= MIN_SINGLE_VEIN_TOTAL_APPLICATIONS;
         const singleVeinCriteriaMet = !vein.common && outerSectorsComplete && minimumTotalMet;
         const commonVeinCriteriaMet = vein.common && coverageComplete &&
@@ -3682,7 +3684,7 @@
           : singleVeinCriteriaMet;
         const completionSummary = vein.common
           ? `${ablationComplete ? "已完成" : "未完成"} · 全部扇区${coverageComplete ? "已满足" : "未满足"} · 总数 ${totalApplications}/${settings.commonSequenceTarget}`
-          : `${ablationComplete ? "已完成" : "未完成"} · 前庭扇区 ${outerSectorsAtTarget}/8 · 总数 ${totalApplications}/≥${MIN_SINGLE_VEIN_TOTAL_APPLICATIONS}`;
+          : `${ablationComplete ? "已完成" : "未完成"} · 前庭扇区 ${outerSectorsAtTarget}/${RingSectors.count} · 总数 ${totalApplications}/≥${MIN_SINGLE_VEIN_TOTAL_APPLICATIONS}`;
 
         return {
           hasAblation,
@@ -3832,7 +3834,7 @@
           ? "点击扇区或脊部，将该位置消融次数减 1"
           : mapEditMode === "segment"
             ? "点击目标扇区，仅该区 +1 次；无需选择电极"
-            : "选择电极后，点击本次 1–10 gap 所在扇区";
+            : "点击 1–10 gap：缺口 +0，两侧各 2 区 +0.5，其余 +1";
         mapPanel.classList.toggle("remove-mode", removeMode);
         mapPanel.classList.toggle("segment-mode", mapEditMode === "segment");
         electrodeSelectorSection.classList.toggle("is-inactive", mapEditMode !== "ablate");
@@ -4043,7 +4045,7 @@
           ) return [];
           if (event.type === "segment" && (
             typeof event.key !== "string" || !parseKey(event.key).vein || !parseKey(event.key).layer ||
-            !Number.isInteger(event.sector) || event.sector < 1 || event.sector > 8
+            !Number.isInteger(event.sector) || event.sector < 1 || event.sector > RingSectors.count
           )) return [];
           const normalized = { ...event };
           delete normalized.status;
@@ -4056,16 +4058,21 @@
         });
       }
 
+      function upgradeSectorGrid(record) {
+        if (!record || Number(record.schemaVersion || 0) >= 8) return record;
+        return RingSectors.migrateRecord(record);
+      }
+
       function loadState() {
         try {
-          const stored = JSON.parse(safeStorageGet(STORAGE_KEY));
+          const stored = upgradeSectorGrid(JSON.parse(safeStorageGet(STORAGE_KEY)));
           if (stored && typeof stored.counts === "object" && typeof stored.applications === "object") {
             const ridgeState = normalizeRidgeState(
               stored.counts,
               stored.ridgeApplications,
             );
             const normalizedSettings = sanitizeSettings(stored.settings);
-            if (Number(stored.schemaVersion || 0) < SCHEMA_VERSION) {
+            if (Number(stored.schemaVersion || 0) < 7) {
               normalizedSettings.ridgeEnabled = true;
               normalizedSettings.ridgeTarget = 2;
             }
@@ -4084,7 +4091,7 @@
             };
           }
 
-          const legacy = JSON.parse(safeStorageGet(LEGACY_STORAGE_KEY));
+          const legacy = upgradeSectorGrid(JSON.parse(safeStorageGet(LEGACY_STORAGE_KEY)));
           if (
             legacy &&
             typeof legacy.counts === "object" &&
@@ -4118,7 +4125,7 @@
               const count = Math.max(0, Number(value) || 0);
               if (!count || !layers[key.split("-")[1]]) return;
               migratedApplications[key] = count;
-              for (let sector = 1; sector <= 8; sector += 1) {
+              for (const sector of RingSectors.legacySectors) {
                 migratedCounts[sectorKey(key, sector)] = count;
               }
             });
@@ -4167,9 +4174,10 @@
                 typeof entry.applications === "object" &&
                 !String(entry.actionLabel || "").includes("\u672a\u5b8c\u6574"),
             )
+            .map(upgradeSectorGrid)
             .map((entry) => {
               const normalizedSettings = sanitizeSettings(entry.settings);
-              if (Number(entry.schemaVersion || 0) < SCHEMA_VERSION) {
+              if (Number(entry.schemaVersion || 0) < 7) {
                 normalizedSettings.ridgeEnabled = true;
                 normalizedSettings.ridgeTarget = 2;
               }
@@ -4497,15 +4505,15 @@
             group,
           );
 
-          for (let index = 0; index < 8; index += 1) {
+          for (let index = 0; index < RingSectors.count; index += 1) {
             const sector = index + 1;
             const completionRequiredCount = requiredVeinSectorCount(
               vein,
               layerId,
               sector,
             );
-            const startAngle = index * 45 + 1.4;
-            const endAngle = (index + 1) * 45 - 1.4;
+            const startAngle = index * RingSectors.degrees + 1.4;
+            const endAngle = (index + 1) * RingSectors.degrees - 1.4;
             const segmentPath = ringSegmentPath(
               vein.x,
               vein.y,
@@ -4609,8 +4617,8 @@
           });
         });
 
-        for (let sector = 1; sector <= 8; sector += 1) {
-          const point = polar(vein.x, vein.y, 130, (sector - 0.5) * 45);
+        for (let sector = 1; sector <= RingSectors.count; sector += 1) {
+          const point = polar(vein.x, vein.y, 130, (sector - 0.5) * RingSectors.degrees);
           const label = createSvgElement("text", {
             x: point.x, y: point.y, class: "sector-label",
             "aria-hidden": "true",
@@ -4665,9 +4673,9 @@
       function levelForCount(count, key, sector) {
         const threshold = targetThreshold(key, sector);
         if (count >= threshold + 2) return 4;
-        if (count > threshold) return 3;
+        if (count >= threshold + 1) return 3;
         if (count >= threshold) return 2;
-        if (count >= 1) return 1;
+        if (count > 0) return 1;
         return 0;
       }
 
@@ -4683,18 +4691,19 @@
         }
 
         const ringName = `${parsed.vein.name}${parsed.layer.name}`;
-        pushHistory(`${ringName}${sectorLabel(sector)}区消融次数减 1`);
-        if (currentCount === 1) {
+        const nextCount = Math.max(0, currentCount - 1);
+        pushHistory(`${ringName}${sectorLabel(sector)}区消融次数减 ${currentCount - nextCount}`);
+        if (nextCount === 0) {
           delete counts[keyForSector];
         } else {
-          counts[keyForSector] = currentCount - 1;
+          counts[keyForSector] = nextCount;
         }
         selectedKey = key;
         selectedSector = sector;
         selectedRidgeId = null;
         saveCounts();
         updateAll();
-        showToast(`${sectorLabel(sector)} 区消融次数已减至 ${currentCount - 1}`);
+        showToast(`${sectorLabel(sector)} 区消融次数已减至 ${nextCount}`);
       }
 
       function removeRidgeCoverage(site) {
@@ -4739,7 +4748,7 @@
       function applySegment(key, sector) {
         if (syncWriteBlocked()) return;
         const parsed = parseKey(key);
-        if (!parsed.vein || !parsed.layer || !Number.isInteger(sector) || sector < 1 || sector > 8) return;
+        if (!parsed.vein || !parsed.layer || !Number.isInteger(sector) || sector < 1 || sector > RingSectors.count) return;
         pushHistory(`${parsed.vein.name}${parsed.layer.name} ${sectorLabel(sector)}区节段消融 +1 次`);
         const countKey = sectorKey(key, sector);
         counts[countKey] = Number(counts[countKey] || 0) + 1;
@@ -4787,10 +4796,10 @@
           recordedAt: new Date().toISOString(),
         });
         applications[key] = (applications[key] || 0) + 1;
-        for (let sector = 1; sector <= 8; sector += 1) {
+        for (let sector = 1; sector <= RingSectors.count; sector += 1) {
           if (sector === excludedSector) continue;
           const keyForSector = sectorKey(key, sector);
-          counts[keyForSector] = (counts[keyForSector] || 0) + 1;
+          counts[keyForSector] = Number(counts[keyForSector] || 0) + RingSectors.coverageIncrement(sector, excludedSector);
         }
         selectedKey = key;
         selectedSector = excludedSector;
@@ -4853,11 +4862,12 @@
           return { key: latestAblation.key, sector: latestAblation.sector };
         }
         const excludedSector = Number(latestAblation.excludedSector);
-        if (!Number.isInteger(excludedSector) || excludedSector < 1 || excludedSector > 8) {
+        if (!Number.isInteger(excludedSector) || excludedSector < 1 || excludedSector > RingSectors.count) {
           return null;
         }
         return {
           key: latestAblation.key,
+          legacyEightSectors: latestAblation.legacyEightSectors,
           excludedSector,
         };
       }
@@ -4881,6 +4891,7 @@
           if (level) segment.classList.add(`level-${level}`);
           const increasedByLastAblation =
             lastIncrease?.key === key &&
+            (!lastIncrease.legacyEightSectors || RingSectors.legacySectors.includes(sector)) &&
             (lastIncrease.sector ? lastIncrease.sector === sector : lastIncrease.excludedSector !== sector) &&
             count > 0;
           const innerHighlight = document.querySelector(
@@ -4976,7 +4987,7 @@
         veins.forEach((vein) => {
           Object.keys(layers).forEach((layerId) => {
             const key = ringKey(vein.id, layerId);
-            for (let sector = 1; sector <= 8; sector += 1) {
+            for (let sector = 1; sector <= RingSectors.count; sector += 1) {
               const count = counts[sectorKey(key, sector)] || 0;
               if (count > 0) covered += 1;
               if (count >= targetThreshold(key, sector)) targetMet += 1;
@@ -4989,7 +5000,7 @@
             if (count > 0) covered += 1;
           });
         }
-        const totalVeinSectors = veins.length * Object.keys(layers).length * 8;
+        const totalVeinSectors = veins.length * Object.keys(layers).length * RingSectors.count;
         const targetMetPercentage = totalVeinSectors
           ? Math.round((targetMet / totalVeinSectors) * 100)
           : 0;
@@ -5371,7 +5382,7 @@
         const ablationStatus = getVeinAblationStatus(vein);
         const incompleteLayers = Object.entries(layers).flatMap(([layerId, layer]) => {
           const key = ringKey(vein.id, layerId);
-          const sectors = Array.from({ length: 8 }, (_, index) => index + 1)
+          const sectors = Array.from({ length: RingSectors.count }, (_, index) => index + 1)
             .filter((sector) => {
               const count = Number(counts[sectorKey(key, sector)] || 0);
               return count < requiredVeinSectorCount(vein, layerId, sector);
@@ -5810,9 +5821,8 @@
         return points;
       }
 
-      // Display labels only: numeric sector keys remain compatible with saved records and sync.
       function sectorLabel(sector) {
-        return "ABCDEFGH"[sector - 1] || "";
+        return RingSectors.labels[sector - 1] || "";
       }
 
       function pdfDrawVein(pdf, vein, mapGeometry) {
@@ -5823,11 +5833,11 @@
         const center = pdfMapPoint(mapGeometry, vein.x, vein.y);
         Object.entries(ringGeometry).forEach(([layerId, layerGeometry]) => {
           const key = ringKey(vein.id, layerId);
-          for (let sector = 1; sector <= 8; sector += 1) {
+          for (let sector = 1; sector <= RingSectors.count; sector += 1) {
             const count = Number(counts[sectorKey(key, sector)] || 0);
             const level = Math.min(4, Math.max(0, levelForCount(count, key, sector)));
-            const startAngle = (sector - 1) * 45 + 1.4;
-            const endAngle = sector * 45 - 1.4;
+            const startAngle = (sector - 1) * RingSectors.degrees + 1.4;
+            const endAngle = sector * RingSectors.degrees - 1.4;
             pdfDrawMapAnnularSector(
               pdf,
               mapGeometry,
@@ -5857,8 +5867,8 @@
           }
         });
 
-        for (let sector = 1; sector <= 8; sector += 1) {
-          const point = pdfPolarPoint(vein.x, vein.y, 130, (sector - 0.5) * 45);
+        for (let sector = 1; sector <= RingSectors.count; sector += 1) {
+          const point = pdfPolarPoint(vein.x, vein.y, 130, (sector - 0.5) * RingSectors.degrees);
           pdfDrawMapText(pdf, sectorLabel(sector), mapGeometry, point.x, point.y, {
             fontSizePx: 12, color: "#445269", align: "center", baseline: "middle",
           });
@@ -5931,7 +5941,7 @@
         const geometry = pdfMapGeometry(x + 2, y + 1, width - 4, height - footerHeight - 1);
         pdfDrawWebAnatomy(pdf, geometry);
         veins.forEach(vein => pdfDrawVein(pdf, vein, geometry));
-        pdfDrawMapText(pdf, "圈外 A–H：分区（内外圈共用） · 圈内数字：累计覆盖次数 · 前壁 2 次 / 后壁 1 次达标", geometry, 490, 624, {
+        pdfDrawMapText(pdf, "圈外 A–J：分区（内外圈共用） · 圈内数字：累计覆盖次数 · 前壁 2 次 / 后壁 1 次达标", geometry, 490, 624, {
           fontSizePx: 12, color: PDF_COLORS.muted, align: "center",
         });
         pdfDrawRidges(pdf, geometry);
@@ -5979,7 +5989,7 @@
           pdfDrawText(pdf, status.ablationComplete ? "已完成" : status.hasAblation ? "未完成" : "尚无记录", 104, y + 4.5, { fontSize: 8, color });
           const detail = assessment.vein.common
             ? `全扇区${status.coverageComplete ? "达阈值" : "未达阈值"} · 总数 ${status.totalApplications}/${settings.commonSequenceTarget}`
-            : `前庭 ${status.outerSectorsAtTarget}/8 区 · 总数 ${status.totalApplications}/≥${MIN_SINGLE_VEIN_TOTAL_APPLICATIONS}`;
+            : `前庭 ${status.outerSectorsAtTarget}/${RingSectors.count} 区 · 总数 ${status.totalApplications}/≥${MIN_SINGLE_VEIN_TOTAL_APPLICATIONS}`;
           pdfDrawText(pdf, detail, 104, y + 9.2, { fontSize: 6.7, color: PDF_COLORS.muted });
           const endpoint = endpointLabels[assessment.endpointStatus] || "未评估";
           const endpointParts = endpoint.split("（");
