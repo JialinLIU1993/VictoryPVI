@@ -3,19 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#f4f5f8" />
-    <meta name="application-version" content="1.20.0" />
-    <meta name="application-iteration" content="2026-11-11T17:54:59+08:00" />
+    <meta name="theme-color" content="#f5f5f7" />
+    <meta name="application-version" content="1.21.0" />
+    <meta name="application-iteration" content="2026-11-13T20:52:28+08:00" />
     <script id="app-release" type="application/json">
       {
-        "version": "1.20.0",
+        "version": "1.21.0",
         "edition": "量化版",
-        "iteration": "2026-11-11T17:54:59+08:00",
-        "summary": "量化版将口部和前庭各分为 10 个扇区，按扇区与缺口的距离累计覆盖值。",
+        "iteration": "2026-11-13T20:52:28+08:00",
+        "summary": "新增左房后壁交界覆盖图和 SVC 单环记录，可在同一张图上查看各区域消融次数。",
         "changes": [
-          "每环从正上方顺时针标为 A–J，每区 36°。一次整环记录中，缺口加 0，两侧各两个相邻扇区分别加 0.5，其余五区分别加 1，整环操作计 1 次。",
-          "后壁按原图角度对应左侧 B–E、右侧 F–I，覆盖值达到 1 即达标，其余扇区以 2 为阈值。普通单支肺静脉的完成条件为前庭 10 区全部达标，且口部与前庭合计至少 4 次消融。",
-          "图谱、概览和 PDF 使用同一套覆盖值和阈值。旧八区计数按原扇区中心角迁移，保留原值，新图 C、H 两区从 0 开始。"
+          "后壁默认 3 行 4 列。点灰色边缘记录缺口方向，仅本格加 1 次，紫色显示覆盖与邻格衔接。",
+          "加行向下、加列向右，原有次数和缺口保留在原格。有记录的末行、末列不可删除。",
+          "上下缘缺口标红，内部缺口标淡黄。同侧肺静脉前庭后壁达标后，隐藏对应侧缘提示。",
+          "可在「PVI+解剖位置」分别显示后壁和 SVC。SVC 按 A–J 单环记录，首次消融后圆心变绿。",
+          "肺静脉圆心和后壁标题显示各自消融次数，前脊、后脊分别标名计数。PDF 增加后壁覆盖图、逐次记录和终点评估。",
+          "手机可切换左侧、右侧、后壁和全图。记录模式移到图下方，图例在卡片底部，「PVI 消融与终点」默认收起。"
         ]
       }
     </script>
@@ -743,12 +746,6 @@
         font-size: 10px;
         font-weight: 780;
         letter-spacing: 0.04em;
-        opacity: 1;
-        transition: opacity 170ms ease;
-      }
-
-      .ridge-label.hidden {
-        opacity: 0;
       }
 
       .ridge-count {
@@ -762,6 +759,7 @@
         opacity: 1;
       }
 
+      .ridge-label.on-dark,
       .ridge-count.on-dark {
         fill: white;
       }
@@ -821,6 +819,19 @@
         pointer-events: none;
       }
 
+      .vein-total {
+        fill: #51485c;
+        font-size: 20px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        text-anchor: middle;
+        dominant-baseline: central;
+        pointer-events: none;
+      }
+
+      [data-vein] > .vein-code,
+      #static-preview-fallback > .vein-code { font-size: 17px; }
+
       .side-title {
         font-size: 17px;
         font-weight: 750;
@@ -835,7 +846,8 @@
       }
 
       .plan-complete .vein-code,
-      .plan-complete .vein-cn {
+      .plan-complete .vein-cn,
+      .plan-complete .vein-total {
         fill: #ffffff;
       }
 
@@ -900,6 +912,11 @@
 
       .inspector-section {
         margin-top: 30px;
+      }
+
+      .inspector-section > summary {
+        cursor: pointer;
+        padding-block: 8px;
       }
 
       .vein-list {
@@ -1747,6 +1764,14 @@
         margin: 0;
       }
 
+      .release-notes {
+        margin: 0;
+        padding-inline-start: 1.3em;
+        line-height: 1.55;
+      }
+      .release-notes li + li { margin-top: .55em; }
+      .release-notes li::marker { color: var(--purple-3); }
+
       .about-links {
         display: flex;
         flex-wrap: wrap;
@@ -2247,7 +2272,7 @@
         .map-mode-slider { height: 32px; top: 3px; }
         .record-hint { grid-column: 1 / -1; font-size: 11px; }
         .layer-key { font-size: 11px; }
-        .map-view-switch { display: grid; grid-template-columns: repeat(3, 1fr); padding: 0 12px; border-bottom: 1px solid var(--line); }
+        .map-view-switch { display: grid; grid-template-columns: repeat(4, 1fr); padding: 0 12px; border-bottom: 1px solid var(--line); }
         .map-view-switch button { padding: 10px 6px; min-height: 44px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; }
         .map-view-switch button[aria-pressed="true"] { border-bottom-color: var(--purple-3); color: var(--purple-3); font-weight: 700; }
         .map-wrap { overflow: hidden; padding: 8px 0 10px; }
@@ -2354,6 +2379,1077 @@
         #map-mode-toggle { width: 100%; }
       }
 
+      /* ==========================================================
+         Apple-inspired visual system
+         SF typography, translucent chrome, pill controls, grouped
+         cards, generous whitespace. Data heatmap colors unchanged.
+         ========================================================== */
+      :root {
+        --ink: #1d1d1f;
+        --muted: #6e6e73;
+        --muted-2: #86868b;
+        --line: rgba(0, 0, 0, 0.08);
+        --line-strong: rgba(0, 0, 0, 0.14);
+        --surface: #ffffff;
+        --canvas: #f5f5f7;
+        --fill: rgba(118, 118, 128, 0.12);
+        --fill-hover: rgba(118, 118, 128, 0.18);
+        --accent: #0071e3;
+        --accent-hover: #0077ed;
+        --accent-press: #006edb;
+        --accent-soft: rgba(0, 113, 227, 0.1);
+        --danger: #e30000;
+        --radius-card: 22px;
+        --radius-control: 12px;
+        --shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.04);
+        --ease-apple: cubic-bezier(0.25, 0.1, 0.25, 1);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+          "PingFang SC", "Helvetica Neue", "Hiragino Sans GB", "Microsoft YaHei",
+          Inter, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+      }
+      body { background: var(--canvas); color: var(--ink); letter-spacing: -0.003em; }
+
+      /* Translucent navigation bar — aligned with workspace container */
+      .topbar {
+        position: sticky;
+        top: 0;
+        height: 56px;
+        min-height: 56px;
+        padding: 0 max(24px, calc((100vw - 1440px) / 2 + 24px));
+        background: rgba(251, 251, 253, 0.82);
+        border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+        -webkit-backdrop-filter: saturate(180%) blur(20px);
+        backdrop-filter: saturate(180%) blur(20px);
+      }
+      .brand { gap: 11px; }
+      .brand-mark {
+        width: 28px; height: 28px;
+        border: 0;
+        background:
+          radial-gradient(circle, #fff 0 34%, transparent 35%),
+          conic-gradient(from 210deg, #5a278f, #8754bd, #c7a3e8, #5a278f);
+        box-shadow: 0 1px 3px rgba(53, 16, 83, 0.25);
+      }
+      .brand h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.022em; }
+      .plus-mark {
+        margin-left: 6px; padding: 2px 6px; border-radius: 6px;
+        background: linear-gradient(135deg, #5a278f, #8754bd);
+        color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+        vertical-align: 2px;
+      }
+      .app-meta { margin-top: 2px; color: var(--muted-2); font-size: 11px; letter-spacing: 0; }
+      .app-version { color: var(--muted); font-weight: 600; letter-spacing: 0; }
+      .app-meta-separator { color: #d2d2d7; }
+      .save-state { color: var(--muted-2); font-size: 12px; }
+      .save-state::before { width: 6px; height: 6px; background: #34c759; box-shadow: none; }
+      .save-state[data-storage="memory"]::before { background: #ff9f0a; box-shadow: none; }
+
+      /* Pill buttons */
+      .button {
+        min-height: 34px;
+        padding: 0 16px;
+        border: 0;
+        border-radius: 980px;
+        background: var(--fill);
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        transition: background-color 200ms var(--ease-apple), transform 120ms var(--ease-apple), opacity 200ms ease;
+      }
+      .button:hover:not(:disabled) { border-color: transparent; background: var(--fill-hover); }
+      .button:active:not(:disabled) { transform: scale(0.97); }
+      .button:disabled { opacity: 0.35; }
+      .button.primary { border: 0; background: var(--accent); color: #fff; }
+      .button.primary:hover:not(:disabled) { background: var(--accent-hover); }
+      .button.primary:active:not(:disabled) { background: var(--accent-press); }
+      .button.danger { border: 0; background: var(--danger); color: #fff; }
+      .button:focus-visible, .action-item:focus-visible, .mobile-dock button:focus-visible,
+      .map-view-switch button:focus-visible, .direct-choice:focus-visible, .direct-text-button:focus-visible {
+        outline: 0; box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.35);
+      }
+      .more-button { width: 34px; min-width: 34px; padding: 0; font-size: 13px; letter-spacing: 1px; }
+
+      .sync-status {
+        min-height: 34px;
+        padding: 4px 12px 4px 6px;
+        border: 0;
+        border-radius: 980px;
+        background: var(--fill);
+        transition: background-color 200ms var(--ease-apple);
+      }
+      .sync-status:hover { border-color: transparent; background: var(--fill-hover); }
+      .sync-status-mark { width: 24px; height: 24px; border-radius: 50%; background: #fff; color: var(--accent); font-size: 13px; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+      .sync-status-dot { width: 6px; height: 6px; box-shadow: none; background: #aeaeb2; }
+      .sync-status[data-state="connected"] .sync-status-dot,
+      .sync-status[data-state="synced"] .sync-status-dot { background: #34c759; box-shadow: none; }
+      .sync-status[data-state="connecting"] .sync-status-dot,
+      .sync-status[data-state="offline"] .sync-status-dot { background: #ff9f0a; box-shadow: none; }
+      .sync-status[data-state="error"] .sync-status-dot { background: #ff3b30; box-shadow: none; }
+      .sync-status-name { font-size: 11px; font-weight: 600; }
+      .sync-status-state { font-size: 10px; color: var(--muted); }
+      .sync-status-chevron { color: #c7c7cc; }
+
+      /* Symmetrical Workspace & Unified Stage Card */
+      .workspace {
+        width: 100%;
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 18px 24px;
+        gap: 18px;
+        grid-template-columns: minmax(0, 1fr) 336px;
+        align-items: stretch;
+      }
+      .stage {
+        padding: 0;
+        background: var(--surface);
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+      }
+      .stage-header {
+        max-width: none;
+        width: 100%;
+        margin: 0;
+        padding: 16px 24px 14px;
+        border-bottom: 0.5px solid var(--line);
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px 16px;
+      }
+      .stage-title { min-width: 0; flex: 1 1 auto; }
+      .stage-title h2 { font-size: 22px; font-weight: 700; line-height: 1.2; letter-spacing: -0.024em; }
+      .stage-title p { margin-top: 3px; color: var(--muted); font-size: 13px; line-height: 1.4; letter-spacing: -0.008em; }
+      .legend { flex: 0 0 auto; gap: 6px 14px; color: var(--muted); font-size: 12px; justify-content: flex-end; }
+      .legend-swatch { width: 10px; height: 10px; border-radius: 50%; border: 0; box-shadow: inset 0 0 0 0.5px rgba(0,0,0,.12); }
+
+      /* Map panel inside unified stage card */
+      .map-panel {
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        display: flex;
+        flex-direction: column;
+      }
+      .map-toolbar {
+        min-height: 50px;
+        padding: 10px 24px 8px;
+        border-top: 1px solid var(--line);
+        border-bottom: 0;
+        background: var(--surface);
+        flex-shrink: 0;
+        color: var(--muted);
+        font-size: 12.5px;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 10px 16px;
+      }
+      .map-action-row { display: contents; }
+      #map-mode-toggle { order: 1; justify-self: start; }
+      .record-hint {
+        order: 2;
+        justify-self: center;
+        text-align: center;
+        width: auto;
+        max-width: 100%;
+        color: var(--muted);
+        font-size: 12px;
+        white-space: normal;
+      }
+      .layer-key { order: 3; justify-self: end; color: var(--muted); font-size: 12px; gap: 14px; }
+      .ring-icon { border-color: #c7c7cc; }
+      .map-reading-key {
+        margin: 0 24px;
+        padding: 7px 14px;
+        border: 0;
+        border-radius: 10px;
+        background: var(--canvas);
+        color: var(--muted);
+        font-size: 11.5px;
+        justify-content: center;
+        text-align: center;
+        gap: 6px 22px;
+      }
+      .sector-key-sample { color: var(--ink); font-weight: 600; letter-spacing: 0.04em; }
+      .count-key-sample { color: var(--accent); font-weight: 600; }
+      .map-wrap {
+        flex: 1;
+        min-height: 0;
+        padding: 6px 18px 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #pv-map {
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: 100%;
+        aspect-ratio: 980 / 650;
+        margin: 0 auto;
+      }
+
+      /* iOS segmented control */
+      #map-mode-toggle {
+        height: 34px;
+        padding: 2px;
+        gap: 0;
+        border: 0;
+        border-radius: 9px;
+        background: var(--fill);
+        box-shadow: none;
+      }
+      #map-mode-toggle button {
+        border-radius: 7px;
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 500;
+        transition: background-color 220ms var(--ease-apple), color 220ms ease, box-shadow 220ms ease;
+      }
+      #map-mode-toggle button[aria-pressed="true"] {
+        background: #fff;
+        color: var(--ink);
+        font-weight: 600;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 3px 1px rgba(0, 0, 0, 0.04), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+      }
+      #map-mode-toggle button[data-edit-mode="remove"][aria-pressed="true"] { background: #fff; color: var(--danger); }
+      #map-mode-toggle button:focus-visible { outline: 0; box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.35); }
+
+      /* SVG neutrals */
+      .anatomy-field { fill: #f5f5f7; stroke: #e8e8ed; }
+      .atrium-line { stroke: #e0e0e5; }
+      .atrium-label { fill: #aeaeb2; font-weight: 600; letter-spacing: 0.04em; }
+      .side-title { fill: var(--ink); font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+      .sector-label { fill: #6e6e73; font-weight: 600; }
+      .vein-center { stroke: #d2d2d7; }
+      .vein-code { fill: #6e6e73; font-weight: 700; }
+      .vein-cn { fill: #86868b; }
+      .ridge-label { fill: #86868b; }
+      .pv-segment:hover, .ridge-segment:hover { stroke: #fff; filter: brightness(0.94); }
+      .pv-segment:focus-visible, .ridge-segment:focus-visible { stroke: var(--accent); }
+
+      .operation-status-bar {
+        margin-top: auto;
+        min-height: 42px;
+        padding: 9px 24px;
+        border-top: 0.5px solid var(--line);
+        background: rgba(245, 245, 247, 0.45);
+        color: var(--muted);
+        font-size: 12.5px;
+      }
+      .operation-status-label { color: var(--muted); font-weight: 500; }
+      .operation-status-label::before { width: 6px; height: 6px; background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+      .operation-status-text { color: var(--ink); font-weight: 500; }
+      .operation-status-time { color: var(--muted-2); }
+
+      /* Inspector: matched full-height bento stack */
+      .workspace > .inspector {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        min-height: 0;
+        overflow: hidden;
+      }
+      .inspector > section,
+      .inspector > details.inspector-section {
+        margin: 0;
+        padding: 16px 18px;
+        border-radius: var(--radius-card);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+      .inspector-section { margin-top: 0; }
+      .summary-kicker, .section-kicker {
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+        text-transform: none;
+      }
+      .inspector-section > summary { padding: 0; list-style: none; display: flex; align-items: center; justify-content: space-between; }
+      .inspector-section > summary::-webkit-details-marker { display: none; }
+      .inspector-section > summary::after { content: "›"; color: #c7c7cc; font-size: 20px; font-weight: 400; transition: transform 220ms var(--ease-apple); }
+      .inspector-section[open] > summary::after { transform: rotate(90deg); }
+      .quality-row { margin-top: 12px; gap: 8px; }
+      .quality-metric {
+        min-width: 0;
+        padding: 10px 6px;
+        border: 0;
+        border-radius: 13px;
+        background: var(--canvas);
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .quality-metric strong { font-size: 20px; font-weight: 700; letter-spacing: -0.03em; white-space: nowrap; }
+      .quality-metric span { margin-top: 3px; color: var(--muted); font-size: 10.5px; line-height: 1.3; }
+      .workspace > .inspector > details.inspector-section[open] {
+        flex: 1 1 auto;
+        min-height: 130px;
+        max-height: 45%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .vein-list { margin-top: 8px; overflow-y: auto; min-height: 0; }
+      .vein-summary { padding: 10px 0; border-bottom: 0.5px solid var(--line); row-gap: 6px; }
+      .vein-summary-name { color: var(--ink); font-weight: 600; font-size: 13px; }
+      .progress-track { height: 6px; gap: 3px; }
+      .progress-segment { border-radius: 980px; background: #e8e8ed; box-shadow: none; }
+      .progress-segment.filled { background: #ff9f0a; }
+      .vein-summary.plan-complete .progress-segment.filled { background: #34c759; }
+      .endpoint-control select, .field input, .field select, .field textarea {
+        border: 0.5px solid var(--line-strong);
+        border-radius: 10px;
+        background: #fff;
+        transition: box-shadow 200ms ease, border-color 200ms ease;
+      }
+      .field input:focus, .field select:focus, .field textarea:focus, .endpoint-control select:focus,
+      input:focus-visible, select:focus-visible, textarea:focus-visible {
+        border-color: var(--accent);
+        outline: 0;
+        box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.2);
+      }
+      .workspace > .inspector > .electrode-selector-section {
+        flex: 1 1 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        border-radius: var(--radius-card) var(--radius-card) 0 0;
+      }
+      .electrode-selector-wrap {
+        flex: 1;
+        min-height: 0;
+        margin-top: 8px;
+        padding: 4px 0;
+        border-top: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #electrode-selector {
+        width: auto;
+        height: auto;
+        max-width: min(100%, 206px);
+        max-height: 100%;
+        aspect-ratio: 1;
+        margin: 0 auto;
+      }
+      .electrode-selection-count { padding: 3px 9px; border-radius: 980px; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 600; }
+      .electrode-center-ring { fill: #f5f5f7; stroke: #e8e8ed; }
+      .workspace > .inspector > .clinical-note {
+        margin: -14px 0 0;
+        padding: 10px 16px;
+        border-top: 0.5px solid var(--line);
+        border-radius: 0 0 var(--radius-card) var(--radius-card);
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: var(--shadow);
+        color: var(--muted-2);
+        font-size: 10.5px;
+        line-height: 1.45;
+        text-align: center;
+      }
+
+      /* Sheets & dialogs */
+      .settings-dialog {
+        border: 0;
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.98);
+        box-shadow: 0 0 0 0.5px rgba(0,0,0,.06), 0 24px 80px rgba(0, 0, 0, 0.22);
+      }
+      .settings-dialog::backdrop {
+        background: rgba(0, 0, 0, 0.32);
+        -webkit-backdrop-filter: blur(8px) saturate(140%);
+        backdrop-filter: blur(8px) saturate(140%);
+      }
+      .settings-dialog[open] { animation: apple-sheet 320ms cubic-bezier(0.32, 0.72, 0, 1); }
+      @keyframes apple-sheet { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+      .settings-header, .settings-footer { padding: 22px 24px; border: 0; }
+      .settings-header { border-bottom: 0; padding-bottom: 8px; }
+      .settings-footer { border-top: 0; padding-top: 12px; }
+      .settings-header h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.024em; }
+      .settings-header-help { color: var(--muted); font-size: 13px; }
+      .settings-body { padding: 12px 24px 16px; }
+      .dialog-close {
+        width: 30px !important; height: 30px !important;
+        border-radius: 50%;
+        background: var(--fill);
+        color: var(--muted);
+        font-size: 18px;
+        transition: background-color 200ms ease;
+      }
+      .dialog-close:hover { background: var(--fill-hover); }
+      .settings-section + .settings-section { margin-top: 18px; padding-top: 18px; border-top: 0.5px solid var(--line); }
+      .settings-section h3, .about-section h3 { color: var(--ink); font-size: 15px; font-weight: 600; letter-spacing: -0.015em; }
+      .field { color: var(--muted); font-size: 12px; }
+      .toggle-field { font-size: 13px; }
+      .toggle-field input { accent-color: var(--accent); }
+      .settings-help, .sync-detail, .sync-code-note, .sync-privacy-note, .patient-privacy-note { color: var(--muted); font-size: 12px; }
+      .sync-privacy-note, .patient-privacy-note { border-radius: var(--radius-control); background: var(--canvas); }
+      .dialog-kicker, .sync-section-label { color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 0.02em; text-transform: none; }
+      .sync-dialog-title .dialog-kicker, #direct-dialog .dialog-kicker, .sync-section-label-accent { color: var(--accent); }
+      .sync-status-panel, .sync-qr-layout { border: 0; border-radius: 16px; background: var(--canvas); }
+      .sync-code { border: 0.5px solid var(--line-strong); border-radius: 10px; background: #fff; color: var(--ink); }
+      .sync-device-row { border-radius: 12px; background: var(--canvas); }
+      .about-links a { color: var(--accent); text-decoration: none; }
+      .about-links a:hover { text-decoration: underline; }
+
+      /* Grouped action list */
+      .action-list { padding: 8px 24px 24px; }
+      .actions-dialog .action-list { display: grid; }
+      .action-item {
+        padding: 14px 16px;
+        border-bottom: 0;
+        background: var(--canvas);
+        font-size: 15px;
+        position: relative;
+      }
+      @media (min-width: 721px) {
+        #about-button { border-top-left-radius: 14px; border-top-right-radius: 14px; }
+        #about-button::before { display: none; }
+      }
+      .action-list > .action-item:first-child { border-top-left-radius: 14px; border-top-right-radius: 14px; }
+      .action-list > .action-item:last-child { border-bottom-left-radius: 14px; border-bottom-right-radius: 14px; }
+      .action-item + .action-item::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; height: 0.5px; background: var(--line-strong); }
+      .action-item:hover:not(:disabled) { background: #ececf0; }
+      .action-item:hover:not(:disabled) span { color: inherit; }
+      .action-item b { color: #c7c7cc; font-size: 20px; }
+      .action-item-danger { color: var(--danger); }
+
+      /* Direct sync */
+      .direct-choice { border: 0; border-radius: 16px; background: var(--canvas); color: var(--ink); }
+      .direct-choice:hover { background: #ececf0; }
+      .direct-choice-primary { background: var(--accent); color: #fff; }
+      .direct-choice-primary:hover { background: var(--accent-hover); }
+      .direct-choice-primary small { color: rgba(255,255,255,.82); }
+      #direct-dialog[data-phase="connection"] .direct-choice-primary { background: var(--canvas); color: var(--ink); border: 0; }
+      .direct-steps span { background: var(--fill); }
+      .direct-steps [aria-current="step"] { color: var(--accent); }
+      .direct-steps [aria-current="step"] span { background: var(--accent); }
+      .direct-connection-icon { background: var(--accent-soft); color: var(--accent); }
+      #direct-dialog .sync-qr { border: 0.5px solid var(--line-strong); border-radius: 16px; }
+      .direct-viewfinder { border-radius: 18px; }
+      .direct-text-button { color: var(--accent); }
+
+      /* Toast: frosted pill */
+      .toast {
+        padding: 11px 18px;
+        border-radius: 980px;
+        background: rgba(29, 29, 31, 0.86);
+        -webkit-backdrop-filter: saturate(180%) blur(20px);
+        backdrop-filter: saturate(180%) blur(20px);
+        font-size: 13px;
+        font-weight: 500;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+        transition: opacity 260ms var(--ease-apple), transform 360ms cubic-bezier(0.32, 0.72, 0, 1);
+      }
+
+      body[data-sync-role="mirror"] .map-panel::after { top: 18px; right: 22px; padding: 4px 10px; background: var(--accent-soft); color: var(--accent); font-weight: 600; box-shadow: none; }
+      .print-actions { background: rgba(251,251,253,.85); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); border-bottom: 0.5px solid var(--line-strong); }
+
+      @keyframes rise-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+      .stage-header, .map-panel, .inspector > * { animation: rise-in 600ms cubic-bezier(0.25, 0.1, 0.25, 1) both; }
+      .map-panel { animation-delay: 60ms; }
+      .inspector > *:nth-child(2) { animation-delay: 100ms; }
+      .inspector > *:nth-child(3) { animation-delay: 140ms; }
+
+      /* Single-screen viewport lock for Desktop & iPad (Landscape + Portrait) */
+      @media (min-width: 721px) and (min-height: 640px) {
+        .app-shell {
+          height: 100dvh;
+          max-height: 100dvh;
+          overflow: hidden;
+          grid-template-rows: auto minmax(0, 1fr);
+        }
+        .workspace {
+          height: 100%;
+          min-height: 0;
+        }
+      }
+
+      @media (min-width: 951px) and (max-width: 1180px) {
+        .topbar { height: 54px; min-height: 54px; padding: 0 20px; flex-wrap: nowrap; }
+        .workspace { padding: 14px 20px; gap: 14px; grid-template-columns: minmax(0, 1fr) 300px; }
+        .stage-header { padding: 12px 18px; }
+        .stage-title h2 { font-size: 19px; }
+        .stage-title p { font-size: 11.5px; }
+        .legend { font-size: 11px; gap: 5px 9px; }
+        .map-toolbar { min-height: 44px; padding: 8px 18px 6px; gap: 8px 10px; }
+        .record-hint { font-size: 11.5px; }
+        .map-reading-key { margin: 0 18px; padding: 6px 12px; font-size: 11px; gap: 4px 16px; }
+        .operation-status-bar { min-height: 38px; padding: 7px 18px; font-size: 12px; }
+        .workspace > .inspector { gap: 12px; }
+        .inspector > section, .inspector > details.inspector-section { padding: 14px 16px; }
+        .workspace > .inspector > .clinical-note { margin-top: -12px; padding: 8px 14px; }
+        .quality-row { gap: 6px; margin-top: 10px; }
+        .quality-metric { padding: 8px 4px; }
+        .quality-metric strong { font-size: 17px; letter-spacing: -0.035em; }
+        #electrode-selector { max-width: min(100%, 176px); }
+      }
+
+      /* iPad Portrait & Tablet (721px–950px): Symmetrical 50/50 bottom bento + 1-screen fit */
+      @media (max-width: 950px) {
+        .workspace { grid-template-columns: minmax(0, 1fr); }
+      }
+      @media (min-width: 721px) and (max-width: 950px) {
+        .topbar { height: 52px; min-height: 52px; padding: 0 18px; flex-wrap: nowrap; }
+        .workspace {
+          padding: 12px 18px;
+          gap: 12px;
+          grid-template-rows: minmax(0, 1fr) auto;
+        }
+        .stage-header { padding: 12px 18px 10px; }
+        .stage-title h2 { font-size: 19px; }
+        .stage-title p { font-size: 11.5px; margin-top: 2px; }
+        .legend { font-size: 11px; gap: 4px 9px; }
+        .map-toolbar { min-height: 42px; padding: 7px 18px 5px; gap: 6px 10px; }
+        .record-hint { font-size: 11px; }
+        .layer-key { font-size: 11px; gap: 10px; }
+        .map-reading-key { margin: 0 18px; padding: 5px 12px; font-size: 11px; gap: 4px 14px; }
+        .map-wrap { padding: 4px 14px; }
+        .operation-status-bar { min-height: 36px; padding: 6px 18px; font-size: 11.5px; }
+        .workspace > .inspector {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          grid-template-rows: auto auto auto;
+          gap: 10px 12px;
+          align-items: stretch;
+        }
+        .workspace > .inspector > section:first-child {
+          grid-column: 1;
+          grid-row: 1;
+          padding: 12px 14px;
+        }
+        .workspace > .inspector > details.inspector-section {
+          grid-column: 1;
+          grid-row: 2;
+          padding: 11px 14px;
+        }
+        .workspace > .inspector > details.inspector-section[open] {
+          max-height: 155px;
+        }
+        .workspace > .inspector > .electrode-selector-section {
+          grid-column: 2;
+          grid-row: 1 / span 2;
+          padding: 12px 14px;
+          border-radius: var(--radius-card);
+        }
+        .workspace > .inspector > .electrode-selector-section #electrode-selector {
+          max-width: 128px;
+          max-height: 128px;
+        }
+        .workspace > .inspector > .clinical-note {
+          grid-column: 1 / -1;
+          grid-row: 3;
+          margin: -4px 0 0;
+          padding: 0;
+          border: 0;
+          background: transparent;
+          box-shadow: none;
+          font-size: 10px;
+          line-height: 1.3;
+        }
+        .quality-row { margin-top: 8px; gap: 6px; }
+        .quality-metric { padding: 8px 4px; border-radius: 10px; }
+        .quality-metric strong { font-size: 17px; }
+        .quality-metric span { font-size: 10px; margin-top: 2px; }
+      }
+
+      @media (max-width: 720px) {
+        .topbar { min-height: 54px; height: auto; padding: 8px max(14px, env(safe-area-inset-right)) 8px max(14px, env(safe-area-inset-left)); }
+        .brand-mark { width: 24px; height: 24px; }
+        .brand h1 { font-size: 15px; line-height: 1.3; white-space: nowrap; }
+        .plus-mark { padding: 1px 5px; font-size: 8px; }
+        .app-meta { font-size: 10px; flex-wrap: wrap; row-gap: 2px; }
+        .top-actions .sync-status { min-height: 36px; padding: 4px 10px 4px 4px; }
+        .top-actions .more-button { width: 36px; min-width: 36px; min-height: 36px; }
+        .workspace { padding: 12px 12px 18px; display: block; }
+        .workspace > .inspector { display: none; }
+        .stage { border-radius: 20px; }
+        .stage-header { padding: 14px 14px 12px; gap: 8px; flex-direction: column; align-items: center; text-align: center; }
+        .stage-title h2 { font-size: 22px; letter-spacing: -0.022em; }
+        .stage-title p { font-size: 12px; line-height: 1.45; margin-top: 4px; }
+        .legend { font-size: 11px; gap: 5px 10px; justify-content: center; }
+        .map-panel { border-radius: 0; box-shadow: none; }
+        .map-toolbar {
+          padding: 10px 14px 8px;
+          font-size: 12px;
+          grid-template-columns: auto 1fr;
+          gap: 8px 10px;
+        }
+        #map-mode-toggle { order: 1; height: 34px; }
+        .layer-key { order: 2; justify-self: end; gap: 10px; }
+        .record-hint { order: 3; grid-column: 1 / -1; justify-self: center; text-align: center; font-size: 11px; }
+        .map-reading-key { margin: 0 14px; padding: 8px 12px; font-size: 11px; justify-content: center; text-align: center; gap: 4px 14px; }
+        .map-view-switch {
+          margin: 10px 14px 0;
+          padding: 2px;
+          gap: 0;
+          border: 0;
+          border-radius: 9px;
+          background: var(--fill);
+        }
+        .map-view-switch button {
+          min-height: 32px;
+          padding: 6px;
+          border: 0;
+          border-radius: 7px;
+          color: var(--ink);
+          font-size: 13px;
+          font-weight: 500;
+        }
+        .map-view-switch button[aria-pressed="true"] {
+          border: 0;
+          background: #fff;
+          color: var(--ink);
+          font-weight: 600;
+          box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 3px 1px rgba(0, 0, 0, 0.04);
+        }
+        .map-wrap { padding: 6px 0 8px; }
+        #pv-map { width: 100%; max-height: none; aspect-ratio: 400 / 580; }
+        #pv-map[data-view="all"] { aspect-ratio: 980 / 650; }
+        .operation-status-bar { padding: 10px 14px; font-size: 11.5px; justify-content: center; }
+        .app-shell { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+        .mobile-dock {
+          gap: 4px;
+          padding: 8px max(12px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+          background: rgba(249, 249, 251, 0.82);
+          border-top: 0.5px solid rgba(0, 0, 0, 0.16);
+          box-shadow: none;
+          -webkit-backdrop-filter: saturate(180%) blur(20px);
+          backdrop-filter: saturate(180%) blur(20px);
+        }
+        .mobile-dock button { min-height: 50px; padding: 6px 12px; border-radius: 14px; transition: background-color 200ms ease, transform 120ms ease; }
+        .mobile-dock button:active:not(:disabled) { transform: scale(0.96); background: var(--fill); }
+        .mobile-dock strong { font-size: 14px; font-weight: 600; }
+        .mobile-dock small { font-size: 10px; color: var(--muted); }
+        #mobile-electrodes { background: var(--accent-soft); color: var(--accent); }
+        #mobile-electrodes[data-empty="true"] { background: rgba(255, 159, 10, 0.14); color: #c25e00; }
+        .mobile-total strong { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+        .mobile-total > span { font-size: 10px; color: var(--muted-2); }
+        .toast { bottom: calc(92px + env(safe-area-inset-bottom)); }
+        .settings-dialog { border-radius: 20px; }
+        .quick-dialog { border-radius: 20px 20px 0 0; }
+        .quick-dialog::before {
+          content: ""; display: block; width: 36px; height: 5px; margin: 8px auto 0;
+          border-radius: 980px; background: rgba(60, 60, 67, 0.3);
+        }
+        .quick-dialog .settings-card { max-height: calc(min(88dvh, 820px) - 13px); }
+        .quick-dialog .inspector > section,
+        .quick-dialog .inspector > details.inspector-section { padding: 0; box-shadow: none; border-radius: 0; background: transparent; margin: 0 0 20px; }
+        .quick-dialog .quality-metric strong { font-size: 22px; }
+        .settings-header, .settings-footer, .settings-body { padding-left: 20px; padding-right: 20px; }
+        .action-list { padding: 8px 20px 20px; }
+      }
+      @media (max-width: 720px) and (max-height: 500px) {
+        .topbar { min-height: 46px; padding-top: 4px; padding-bottom: 4px; }
+        .app-meta { display: none; }
+        .stage { padding-top: 12px; padding-bottom: 14px; }
+        #pv-map { width: auto; max-width: 100%; max-height: 70dvh; margin: 0 auto; }
+        .mobile-dock { padding-top: 4px; padding-bottom: calc(4px + env(safe-area-inset-bottom)); }
+        .mobile-dock button { min-height: 40px; padding: 4px 10px; }
+      }
+      @media (max-height: 520px) {
+        .settings-header { padding-top: 12px; padding-bottom: 6px; }
+        .settings-footer { padding-top: 8px; padding-bottom: 12px; }
+        .quick-dialog #electrode-selector { max-height: 32dvh; }
+      }
+      @media (max-width: 380px) {
+        .topbar { gap: 6px; padding-left: 10px; padding-right: 10px; }
+        .brand { gap: 6px; }
+        .brand-mark { width: 20px; height: 20px; }
+        .brand h1 { font-size: 13.5px; }
+        .plus-mark { margin-left: 3px; padding: 1px 4px; font-size: 7.5px; }
+        .top-actions { gap: 4px; }
+        .top-actions .sync-status { padding: 4px 7px 4px 4px; gap: 4px; }
+        .mobile-dock button { padding: 6px 8px; }
+        .mobile-dock strong { font-size: 13px; }
+        .mobile-total strong { font-size: 19px; }
+      }
+      @media (max-width: 360px) {
+        .stage-title h2 { font-size: 24px; }
+      }
+
+      /* ==========================================================
+         Planar & Extra-PV Structural Ablation Grid System
+         ========================================================== */
+      .map-display-options { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+      .map-display-options summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink); }
+      .map-display-options fieldset { border: 0; padding: 0; margin: 8px 0 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 8px; }
+      .map-display-options label { display: flex; gap: 6px; align-items: center; min-height: 26px; font-size: 13px; cursor: pointer; }
+      .map-display-options label:has(input:disabled) { color: #929298; cursor: default; }
+      .map-display-options input { accent-color: var(--accent); }
+      .map-guide {
+        display: grid; justify-items: center; gap: 6px; flex-shrink: 0;
+        padding: 8px 16px; border-top: 1px solid var(--line);
+        color: var(--muted); font-size: 11px; line-height: 1.4; text-align: center;
+      }
+      .map-guide p { margin: 0; }
+      .map-guide .legend, .map-guide .map-reading-key { justify-content: center; font-size: inherit; }
+      .map-guide .map-reading-key { margin: 0; padding: 0; background: transparent; }
+      @media (max-width: 720px) {
+        body { overflow-x: clip; }
+        .stage, .map-panel { overflow: clip; }
+        .map-toolbar { position: sticky; bottom: calc(68px + env(safe-area-inset-bottom)); z-index: 3; }
+      }
+      .map-wrap { position: relative; }
+      .planar-layer { transition: opacity 180ms ease; }
+      .planar-zone-frame {
+        fill: rgba(255, 255, 255, 0.88);
+        stroke: #d7dbe4;
+        stroke-width: 1.25px;
+        transition: stroke 160ms ease, filter 160ms ease;
+      }
+      .planar-zone.is-configured .planar-zone-frame {
+        stroke: var(--accent);
+        stroke-width: 1.6px;
+      }
+      .planar-zone.is-complete .planar-zone-frame {
+        stroke: #34c759;
+        stroke-width: 1.8px;
+      }
+      #pv-map.has-planar-grid :is(.anatomy-field, .atrium-line, .atrium-label) {
+        display: none;
+      }
+      #pv-map .planar-zone[aria-hidden="true"] { display: none; }
+      #pv-map[data-view="posterior"] [data-pv-side] { display: none; }
+      .map-panel:has(#pv-map[data-view="posterior"]) :is(.layer-key, .map-reading-key) { display: none; }
+      .planar-zone-header-bg {
+        fill: #f2f3f7;
+      }
+      .planar-zone.is-complete .planar-zone-header-bg {
+        fill: #eaf8ee;
+      }
+      .planar-zone-title {
+        fill: var(--ink);
+        font-size: 10.5px;
+        font-weight: 650;
+        letter-spacing: -0.01em;
+        pointer-events: none;
+      }
+      .planar-dim-btn { cursor: pointer; }
+      .planar-dim-pill {
+        fill: #ffffff;
+        stroke: rgba(0, 0, 0, 0.12);
+        stroke-width: 0.9px;
+        transition: fill 150ms ease, stroke 150ms ease;
+      }
+      .planar-dim-btn:hover .planar-dim-pill,
+      .planar-zone.is-configured .planar-dim-pill {
+        fill: #eef5ff;
+        stroke: var(--accent);
+      }
+      .planar-dim-text {
+        fill: var(--accent);
+        font-size: 9.2px;
+        font-weight: 700;
+        text-anchor: middle;
+        dominant-baseline: central;
+        pointer-events: none;
+        font-variant-numeric: tabular-nums;
+      }
+      .planar-mini-step { cursor: pointer; }
+      .planar-mini-step[aria-disabled="true"] { opacity: 0.4; cursor: default; }
+      .planar-mini-step-bg {
+        fill: rgba(255, 255, 255, 0.92);
+        stroke: rgba(0, 0, 0, 0.12);
+        stroke-width: 0.85px;
+      }
+      .planar-mini-step:hover .planar-mini-step-bg {
+        fill: #eef5ff;
+        stroke: var(--accent);
+      }
+      .planar-mini-step text {
+        fill: var(--ink);
+        font-size: 10.5px;
+        font-weight: 700;
+        text-anchor: middle;
+        dominant-baseline: central;
+        pointer-events: none;
+      }
+      .planar-zone[data-planar-site="lapw"] .planar-zone-title { font-size: 13px; }
+      .planar-zone[data-planar-site="lapw"] .planar-dim-text { font-size: 11px; }
+      .planar-zone[data-planar-site="lapw"] .planar-mini-step text { font-size: 13px; }
+
+      .planar-cell {
+        fill: #f3f2f5;
+        stroke: #ffffff;
+        stroke-width: 1.8px;
+        cursor: pointer;
+        transition: fill 160ms ease, stroke 160ms ease, filter 160ms ease;
+      }
+      .planar-cell.level-1 { fill: var(--purple-1); }
+      .planar-cell.level-2 { fill: var(--purple-2); }
+      .planar-cell.level-3 { fill: var(--purple-3); }
+      .planar-cell.level-4 { fill: var(--purple-4); }
+      .planar-cell:hover { filter: brightness(0.95); }
+      .planar-cell:focus-visible { outline: 0; stroke: var(--accent); stroke-width: 2.2px; }
+      .planar-zone rect.planar-cell { fill: transparent; stroke: none; pointer-events: none; }
+      rect.planar-cell:focus-visible { stroke: var(--accent); }
+      .planar-cell-edge {
+        fill: #e5e3eb;
+        stroke: none;
+        cursor: pointer;
+        transition: fill 120ms ease;
+      }
+      .planar-cell-edge.level-1 { fill: var(--purple-1); }
+      .planar-cell-edge.level-2 { fill: var(--purple-2); }
+      .planar-cell-edge.level-3 { fill: var(--purple-3); }
+      .planar-cell-edge.level-4 { fill: var(--purple-4); }
+      @media (any-hover: hover) {
+        .map-panel:not(.remove-mode):not(.segment-mode) .planar-cell-edge:hover {
+          fill: #f4c430;
+        }
+      }
+      .map-panel.remove-mode .planar-cell-edge:hover {
+        stroke: #c13737;
+        stroke-width: 1.4px;
+      }
+      .map-panel.segment-mode .planar-cell-edge:hover {
+        stroke: var(--accent);
+        stroke-width: 1.4px;
+      }
+      .planar-gap-warning-underlay {
+        fill: none;
+        stroke: #ffffff;
+        stroke-width: 4.2px;
+        stroke-linecap: round;
+        pointer-events: none;
+      }
+      .planar-gap-warning-edge {
+        fill: none;
+        stroke: #f4c430;
+        stroke-width: 2.6px;
+        stroke-dasharray: 4.2 2.4;
+        stroke-linecap: round;
+        pointer-events: none;
+      }
+      .planar-gap-warning-tag-bg {
+        fill: #d32030;
+        stroke: #ffffff;
+        stroke-width: 0.9px;
+        pointer-events: none;
+      }
+      .planar-gap-warning-tag {
+        fill: #ffffff;
+        font-size: 7.4px;
+        font-weight: 800;
+        text-anchor: middle;
+        dominant-baseline: central;
+        letter-spacing: 0.02em;
+        pointer-events: none;
+      }
+      .planar-gap-warning-edge.is-outer-edge {
+        stroke: #d32030;
+        stroke-width: 4px;
+        stroke-dasharray: none;
+      }
+      .planar-cell-count {
+        fill: #403a49;
+        font-size: 10.5px;
+        font-weight: 700;
+        text-anchor: middle;
+        dominant-baseline: central;
+        pointer-events: none;
+        font-variant-numeric: tabular-nums;
+        opacity: 0;
+      }
+      .planar-cell-count.visible { opacity: 1; }
+      .planar-cell-count.on-dark { fill: #ffffff; }
+
+      .wall-records { font-size: 12px; margin-top: 8px; }
+      .wall-records summary { cursor: pointer; }
+      .wall-records ol { max-height: 150px; overflow: auto; padding-inline-start: 21px; }
+      .wall-records li { margin-block: 6px; }
+      .wall-records button { margin-inline-start: 6px; }
+      .wall-edge-hit { fill: transparent; cursor: pointer; touch-action: manipulation; outline: none; -webkit-tap-highlight-color: transparent; }
+      .wall-edge-hit.is-uncovered {
+        fill: #d4d6dc;
+        stroke: var(--wall-cell-surface);
+        stroke-width: 1.5px;
+        stroke-linejoin: round;
+        pointer-events: fill;
+      }
+      .wall-edge-hit:focus-visible { stroke: var(--ink); stroke-width: 1.5px; }
+      @media (any-hover: hover) {
+        .wall-edge-hit:hover { fill: rgb(135 84 189 / 12%); }
+        .wall-edge-hit.is-uncovered:hover { fill: #bfc2cb; }
+        .map-panel.remove-mode .wall-edge-hit:hover { fill: rgb(198 40 64 / 12%); }
+      }
+      .planar-stamp-ring {
+        fill: none;
+        stroke: rgba(242, 140, 24, 0.88);
+        stroke-width: 1.35px;
+        stroke-dasharray: 2.4 2;
+        pointer-events: none;
+      }
+      .planar-stamp-gap {
+        fill: none;
+        stroke: #ffffff;
+        stroke-width: 2.6px;
+        stroke-linecap: round;
+        pointer-events: none;
+      }
+      .planar-zone-status-dot { fill: #d2d2d7; pointer-events: none; }
+      .planar-zone.is-in-progress .planar-zone-status-dot { fill: #ff9f0a; }
+      .planar-zone.is-complete .planar-zone-status-dot { fill: #34c759; }
+
+      /* Floating Apple Popover for Dynamic Partition & Gap Config */
+      .planar-config-popover {
+        position: absolute;
+        top: 10px;
+        right: 14px;
+        z-index: 30;
+        width: 274px;
+        max-width: calc(100% - 24px);
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.94);
+        border: 0.5px solid rgba(0, 0, 0, 0.12);
+        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.06);
+        -webkit-backdrop-filter: saturate(180%) blur(20px);
+        backdrop-filter: saturate(180%) blur(20px);
+        font-size: 12px;
+        color: var(--ink);
+        animation: apple-sheet 200ms cubic-bezier(0.32, 0.72, 0, 1);
+      }
+      .planar-config-popover[hidden] { display: none; }
+      .planar-popover-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding-bottom: 10px;
+        border-bottom: 0.5px solid var(--line);
+      }
+      .planar-popover-head strong { font-size: 14px; font-weight: 650; letter-spacing: -0.015em; }
+      .planar-popover-head small { display: block; font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+      .planar-popover-close {
+        width: 24px; height: 24px; border: 0; border-radius: 50%;
+        background: var(--fill); color: var(--muted); font-size: 15px; line-height: 1;
+        cursor: pointer; flex: none;
+      }
+      .planar-popover-close:hover { background: var(--fill-hover); color: var(--ink); }
+      .planar-popover-rows { display: grid; gap: 8px; margin-top: 10px; }
+      .planar-popover-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .planar-popover-row > span { color: var(--muted); font-size: 12px; font-weight: 500; }
+      .planar-stepper {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px;
+        border-radius: 9px;
+        background: var(--canvas);
+        border: 0.5px solid var(--line);
+      }
+      .planar-stepper button {
+        width: 26px; height: 24px; border: 0; border-radius: 7px;
+        background: #fff; color: var(--ink); font: inherit; font-size: 14px; font-weight: 600;
+        cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+      }
+      .planar-stepper button:disabled { opacity: 0.35; cursor: default; box-shadow: none; }
+      .planar-stepper b {
+        min-width: 26px; text-align: center; font-size: 12.5px; font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+      .planar-gap-segment {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2px;
+        padding: 2px;
+        border-radius: 9px;
+        background: var(--fill);
+      }
+      .planar-gap-segment button {
+        height: 24px; padding: 0 6px; border: 0; border-radius: 7px;
+        background: transparent; color: var(--muted); font: inherit; font-size: 11px; font-weight: 600;
+        cursor: pointer;
+      }
+      .planar-gap-segment button[aria-pressed="true"] {
+        background: #fff; color: var(--accent);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+      }
+      .planar-popover-note {
+        margin: 10px 0 0;
+        padding: 7px 9px;
+        border-radius: 10px;
+        background: var(--canvas);
+        color: var(--muted);
+        font-size: 10.5px;
+        line-height: 1.45;
+      }
+      .planar-summary-group-label {
+        padding: 8px 0 2px;
+        font-size: 11px;
+        font-weight: 650;
+        color: var(--accent);
+        letter-spacing: 0.01em;
+      }
+      .planar-summary-item .vein-summary-name { font-size: 12px; }
+      .planar-summary-badge {
+        display: inline-block;
+        margin-left: 4px;
+        padding: 1px 5px;
+        border-radius: 5px;
+        background: var(--canvas);
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 600;
+      }
+      .planar-unablated-hint {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        padding: 4px 8px;
+        border-radius: 8px;
+        background: #fff6cc;
+        color: #725500;
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.4;
+      }
+      .planar-unablated-hint.is-closed {
+        background: #eaf8ee;
+        color: #167a3e;
+      }
+      @media (max-width: 720px) {
+        .planar-config-popover {
+          top: auto;
+          bottom: 10px;
+          left: 12px;
+          right: 12px;
+          width: auto;
+        }
+      }
+
       @media (prefers-reduced-motion: reduce) {
         *,
         *::before,
@@ -2372,12 +3468,12 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>肺静脉消融记录 <span class="plus-mark">PLUS</span></h1>
-            <p class="app-meta" id="app-meta" aria-label="软件版本 1.20.0，独立社区维护的非官方工具，迭代时间 2026年11月11日 17点54分">
-              <span class="app-version" id="app-version">v1.20.0 · 量化版</span>
+            <p class="app-meta" id="app-meta" aria-label="软件版本 1.21.0，独立社区维护的非官方工具，迭代时间 2026年11月13日 20点52分">
+              <span class="app-version" id="app-version">v1.21.0 · 量化版</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
               <span>社区维护 · 非官方</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
-              <time id="app-iteration" datetime="2026-11-11T17:54:59+08:00">迭代于 2026-11-11 17:54</time>
+              <time id="app-iteration" datetime="2026-11-13T20:52:28+08:00">迭代于 2026-11-13 20:52</time>
             </p>
           </div>
         </div>
@@ -2404,50 +3500,14 @@
           <div class="stage-header">
             <div class="stage-title">
               <h2 id="map-title">肺静脉消融分布</h2>
-              <p id="protocol-summary">标准四支 · 口部 2 / 前庭 2 · 每次消融 3 次放电</p>
-            </div>
-            <div class="legend" aria-label="消融次数色阶">
-              <span class="legend-item">
-                <i class="legend-swatch" style="background: #f3f2f5"></i>0 次
-              </span>
-              <span class="legend-item">
-                <i class="legend-swatch" style="background: var(--purple-1)"></i>未达阈值
-              </span>
-              <span class="legend-item">
-                <i class="legend-swatch" style="background: var(--purple-2)"></i>达阈值
-              </span>
-              <span class="legend-item">
-                <i class="legend-swatch" style="background: var(--purple-3)"></i>达标 +1
-              </span>
-              <span class="legend-item">
-                <i class="legend-swatch" style="background: var(--purple-4)"></i>达标 +2 以上
-              </span>
             </div>
           </div>
 
           <div class="map-panel">
-            <div class="map-toolbar">
-              <div class="layer-key">
-                <span><i class="ring-icon"></i>前庭</span>
-                <span><i class="ring-icon inner"></i>口部</span>
-              </div>
-              <div class="map-action-row">
-                <div class="map-mode-toggle" id="map-mode-toggle" data-mode="ablate" role="group" aria-label="消融记录模式">
-                  <button type="button" data-edit-mode="ablate" aria-pressed="true">消融</button>
-                  <button type="button" data-edit-mode="segment" aria-pressed="false">节段</button>
-                  <button type="button" data-edit-mode="remove" aria-pressed="false">去除</button>
-                </div>
-                <span class="record-hint" id="record-hint">点击 1–10 gap：缺口 +0，两侧各 2 区 +0.5，其余 +1</span>
-              </div>
-            </div>
-            <div class="map-reading-key" aria-label="图谱阅读说明">
-              <span><b class="sector-key-sample">A–J</b>圈外分区 · 内外圈共用</span>
-              <span><b class="count-key-sample">次数</b>圈内数字为累计覆盖次数</span>
-              <span>前壁 2 次达标 · 后壁 1 次达标</span>
-            </div>
             <div class="map-view-switch" role="group" aria-label="图谱显示范围">
               <button type="button" data-map-view="left" aria-pressed="true">左侧</button>
               <button type="button" data-map-view="right" aria-pressed="false">右侧</button>
+              <button type="button" data-map-view="posterior" aria-pressed="false" aria-controls="pv-map">后壁</button>
               <button type="button" data-map-view="all" aria-pressed="false">全图</button>
             </div>
             <div class="map-wrap">
@@ -2505,22 +3565,58 @@
                   <use href="#preview-ring" x="720" y="185"></use>
                   <use href="#preview-ring" x="720" y="475"></use>
 
-                  <text x="260" y="202" class="vein-code">LSPV</text>
-                  <text x="260" y="221" class="vein-cn">左上肺</text>
-                  <text x="260" y="452" class="vein-code">LIPV</text>
-                  <text x="260" y="471" class="vein-cn">左下肺</text>
-                  <text x="720" y="202" class="vein-code">RSPV</text>
-                  <text x="720" y="221" class="vein-cn">右上肺</text>
-                  <text x="720" y="452" class="vein-code">RIPV</text>
-                  <text x="720" y="471" class="vein-cn">右下肺</text>
+                  <text x="260" y="185" class="vein-code">LSPV</text>
+                  <text x="260" y="475" class="vein-code">LIPV</text>
+                  <text x="720" y="185" class="vein-code">RSPV</text>
+                  <text x="720" y="475" class="vein-code">RIPV</text>
                 </g>
               </svg>
+              <div class="planar-config-popover" id="planar-popover" hidden role="dialog" aria-label="解剖分区与导管方向设置"></div>
+            </div>
+            <div class="map-toolbar">
+              <div class="layer-key">
+                <span><i class="ring-icon"></i>前庭</span>
+                <span><i class="ring-icon inner"></i>口部</span>
+              </div>
+              <div class="map-action-row">
+                <div class="map-mode-toggle" id="map-mode-toggle" data-mode="ablate" role="group" aria-label="消融记录模式">
+                  <button type="button" data-edit-mode="ablate" aria-pressed="true">消融</button>
+                  <button type="button" data-edit-mode="segment" aria-pressed="false">节段</button>
+                  <button type="button" data-edit-mode="remove" aria-pressed="false">去除</button>
+                </div>
+                <span class="record-hint" id="record-hint">点击扇区指定环形缺口；点击网格边缘指定该格缺口，仅该格计数</span>
+              </div>
             </div>
             <div class="operation-status-bar" role="status" aria-live="polite">
               <span class="operation-status-label">最近操作</span>
               <span class="operation-status-text" id="last-operation">尚无操作记录</span>
               <time class="operation-status-time" id="last-operation-time"></time>
             </div>
+            <footer class="map-guide" aria-label="图谱说明">
+              <p id="protocol-summary">标准四支 · 口部 2 / 前庭 2 · 每次消融 3 次放电</p>
+              <div class="legend" aria-label="消融次数色阶">
+                <span class="legend-item">
+                  <i class="legend-swatch" style="background: #f3f2f5"></i>0 次
+                </span>
+                <span class="legend-item">
+                  <i class="legend-swatch" style="background: var(--purple-1)"></i>未达阈值
+                </span>
+                <span class="legend-item">
+                  <i class="legend-swatch" style="background: var(--purple-2)"></i>达阈值
+                </span>
+                <span class="legend-item">
+                  <i class="legend-swatch" style="background: var(--purple-3)"></i>达标 +1
+                </span>
+                <span class="legend-item">
+                  <i class="legend-swatch" style="background: var(--purple-4)"></i>达标 +2 以上
+                </span>
+              </div>
+              <div class="map-reading-key" aria-label="图谱阅读说明">
+                <span><b class="sector-key-sample">A–J</b>圈外分区 · 内外圈共用</span>
+                <span><b class="count-key-sample">次数</b>圆心为该支消融次数，扇区为累计覆盖次数</span>
+                <span>前壁 2 次达标 · 后壁 1 次达标</span>
+              </div>
+            </footer>
           </div>
         </section>
 
@@ -2541,17 +3637,27 @@
                 <span>满足消融次数扇区百分比</span>
               </div>
             </div>
+            <details class="map-display-options" open>
+              <summary>PVI+解剖位置</summary>
+              <fieldset id="optional-structures" aria-label="PVI+解剖位置">
+                <label><input type="checkbox" value="lapw">左房后壁</label>
+                <label><input type="checkbox" value="roof" disabled>顶部线</label>
+                <label><input type="checkbox" value="floor" disabled>底部线</label>
+                <label><input type="checkbox" value="svcRing">SVC</label>
+                <label><input type="checkbox" value="mi" disabled>MI 峡部</label>
+              </fieldset>
+            </details>
           </section>
 
-          <section class="inspector-section">
-            <div class="section-kicker">PVI 消融与终点</div>
+          <details class="inspector-section">
+            <summary class="section-kicker">PVI 消融与终点</summary>
             <div class="vein-list" id="vein-list">
               <div class="vein-summary"><span class="vein-summary-name">LSPV</span><span class="progress-track" style="--segments: 4"><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span></span><span class="vein-summary-count">0 次</span></div>
               <div class="vein-summary"><span class="vein-summary-name">LIPV</span><span class="progress-track" style="--segments: 4"><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span></span><span class="vein-summary-count">0 次</span></div>
               <div class="vein-summary"><span class="vein-summary-name">RSPV</span><span class="progress-track" style="--segments: 4"><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span></span><span class="vein-summary-count">0 次</span></div>
               <div class="vein-summary"><span class="vein-summary-name">RIPV</span><span class="progress-track" style="--segments: 4"><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span></span><span class="vein-summary-count">0 次</span></div>
             </div>
-          </section>
+          </details>
 
           <section class="inspector-section electrode-selector-section" id="electrode-selector-section">
             <div class="electrode-selector-header">
@@ -2820,6 +3926,13 @@
       </form>
     </dialog>
 
+    <dialog class="settings-dialog about-dialog" id="release-dialog" aria-labelledby="release-title">
+      <form method="dialog" class="settings-card">
+        <header class="settings-header"><h2 id="release-title">本次更新</h2></header>
+        <div class="settings-body"><ul class="release-notes" id="release-changes"></ul></div>
+        <footer class="settings-footer"><button class="button primary" autofocus>知道了</button></footer>
+      </form>
+    </dialog>
     <dialog class="settings-dialog about-dialog" id="about-dialog" aria-labelledby="about-title">
       <article class="settings-card">
         <header class="settings-header">
@@ -2833,11 +3946,15 @@
           <section class="about-section">
             <h3>当前版本</h3>
             <p>
-              <strong id="about-release-version">v1.20.0 · 量化版</strong>
+              <strong id="about-release-version">v1.21.0 · 量化版</strong>
               <span aria-hidden="true"> · </span>
-              <time id="about-release-iteration" datetime="2026-11-11T17:54:59+08:00">迭代于 2026-11-11 17:54</time>
+              <time id="about-release-iteration" datetime="2026-11-13T20:52:28+08:00">迭代于 2026-11-13 20:52</time>
             </p>
-            <p id="about-release-summary">更新内容：量化版将口部和前庭各分为 10 个扇区，按扇区与缺口的距离累计覆盖值。</p>
+            <p id="about-release-summary">更新内容：新增左房后壁交界覆盖图和 SVC 单环记录，可在同一张图上查看各区域消融次数。</p>
+          </section>
+          <section class="about-section">
+            <h3>本次更新</h3>
+            <ul class="release-notes" id="about-changes"></ul>
           </section>
           <section class="about-section">
             <h3>项目身份</h3>
@@ -2863,10 +3980,10 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <div class="remove-cursor" id="remove-cursor" aria-hidden="true"></div>
 
-    <script src="./miniprogram/utils/sector-grid.js?v=1.20.0"></script>
+    <script src="./miniprogram/utils/sector-grid.js?v=1.21.0"></script>
     <script src="./vendor/qrcode-generator.js"></script>
-    <script src="./sync-client.js?v=1.20.0"></script>
-    <script src="./direct-sync-ui.js?v=1.20.0"></script>
+    <script src="./sync-client.js?v=1.21.0"></script>
+    <script src="./direct-sync-ui.js?v=1.21.0"></script>
     <script>
       const NS = "http://www.w3.org/2000/svg";
       // Historical storage identifiers are retained so existing records, undo history,
@@ -2883,9 +4000,9 @@
       const MIN_SINGLE_VEIN_TOTAL_APPLICATIONS = 4;
       const APP_RELEASE = Object.freeze((() => {
         const fallback = {
-          version: "1.20.0",
-          iteration: "2026-11-11T17:54:59+08:00",
-          summary: "量化版将口部和前庭各分为 10 个扇区，按扇区与缺口的距离累计覆盖值。",
+          version: "1.21.0",
+          iteration: "2026-11-13T20:52:28+08:00",
+          summary: "新增左房后壁交界覆盖图和 SVC 单环记录，可在同一张图上查看各区域消融次数。",
           changes: [],
         };
         try {
@@ -3646,6 +4763,18 @@
         return 2;
       }
 
+      function posteriorAntrumAtTarget(side) {
+        const ipsilateral = veins.filter(vein => vein.id.startsWith(side));
+        return ipsilateral.length > 0 && ipsilateral.every(vein => {
+          const key = ringKey(vein.id, "outer");
+          for (let sector = 1; sector <= RingSectors.count; sector++) {
+            if (!isPosteriorSingleApplicationSector(vein, sector)) continue;
+            if (Number(counts[sectorKey(key, sector)] || 0) < requiredVeinSectorCount(vein, "outer", sector)) return false;
+          }
+          return true;
+        });
+      }
+
       function getVeinAblationStatus(vein) {
         let hasAblation = false;
         let everySectorAtTarget = true;
@@ -3831,10 +4960,10 @@
           button.setAttribute("aria-pressed", String(button.dataset.editMode === mapEditMode));
         });
         recordHint.textContent = removeMode
-          ? "点击扇区或脊部，将该位置消融次数减 1"
+          ? "点击扇区、脊部或解剖网格，将该位置消融次数减 1"
           : mapEditMode === "segment"
-            ? "点击目标扇区，仅该区 +1 次；无需选择电极"
-            : "点击 1–10 gap：缺口 +0，两侧各 2 区 +0.5，其余 +1";
+            ? "点击目标扇区或网格，单区/补齐缺口 +1 次；无需选择电极"
+            : "点击扇区指定环形缺口；点击网格边缘指定该格缺口，仅该格计数";
         mapPanel.classList.toggle("remove-mode", removeMode);
         mapPanel.classList.toggle("segment-mode", mapEditMode === "segment");
         electrodeSelectorSection.classList.toggle("is-inactive", mapEditMode !== "ablate");
@@ -3855,7 +4984,7 @@
 
       function moveRemoveCursor(event) {
         const overRemovableRegion = event.target.closest?.(
-          ".pv-segment, .ridge-segment",
+          ".pv-segment, .ridge-segment, .planar-cell, .planar-cell-edge, .wall-edge-hit",
         );
         if (
           mapEditMode !== "remove" ||
@@ -4289,6 +5418,7 @@
             endpoints,
             settings: cloneSettings(),
             electrodeSelection: [...selectedElectrodes],
+            planarState: clonePlanarState(),
             lastOperation,
             metadata: migrationInfo ? { migrationInfo } : {},
           }),
@@ -4322,6 +5452,7 @@
         const normalizedActionLabel = normalizeAblationWording(actionLabel);
         actionHistory.push({
           schemaVersion: SCHEMA_VERSION,
+          planarState: clonePlanarState(),
           counts: { ...counts },
           applications: { ...applications },
           ridgeApplications: { ...ridgeApplications },
@@ -4351,14 +5482,14 @@
       }
 
       function updateMapView() {
-        if (!["left", "right", "all"].includes(mapViewChoice)) mapViewChoice = "left";
+        if (!["left", "right", "posterior", "all"].includes(mapViewChoice)) mapViewChoice = "left";
         const view = mobileMapMedia.matches ? mapViewChoice : "all";
         svg.dataset.view = view;
         svg.setAttribute("viewBox", view === "left" ? "60 40 400 580" : view === "right" ? "520 40 400 580" : "0 0 980 650");
         document.querySelectorAll("[data-map-view]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.mapView === view)));
         // Keep off-screen geometry out of keyboard navigation, without changing the record.
         svg.querySelectorAll("[data-vein]").forEach(group => {
-          const visible = view === "all" || group.dataset.vein.startsWith(view === "left" ? "L" : "R");
+          const visible = view === "all" || group.dataset.pvSide === view;
           group.setAttribute("aria-hidden", String(!visible));
           group.querySelectorAll("[role='button']").forEach(button => button.setAttribute("tabindex", visible && syncRole !== "mirror" ? "0" : "-1"));
         });
@@ -4407,23 +5538,26 @@
 
       function drawAnatomy() {
         createSvgElement("path", {
+          "data-map-part": "atrium",
           class: "anatomy-field",
           d: "M 424 178 C 445 151 535 151 556 178 C 574 204 567 247 561 286 C 556 320 571 352 566 408 C 561 457 539 482 490 490 C 441 482 419 457 414 408 C 409 352 424 320 419 286 C 413 247 406 204 424 178 Z",
         });
         createSvgElement("path", {
+          "data-map-part": "atrium",
           class: "atrium-line",
           d: "M 378 185 C 420 205 560 205 602 185 M 378 475 C 420 455 560 455 602 475",
         });
         const laWall = createSvgElement("text", {
+          "data-map-part": "atriumLabel",
           x: 490,
           y: 335,
           class: "atrium-label",
         });
         laWall.textContent = "左房后壁";
 
-        const leftTitle = createSvgElement("text", { x: 260, y: 36, class: "side-title" });
+        const leftTitle = createSvgElement("text", { x: 260, y: 36, class: "side-title", "data-pv-side": "left" });
         leftTitle.textContent = "左侧肺静脉";
-        const rightTitle = createSvgElement("text", { x: 720, y: 36, class: "side-title" });
+        const rightTitle = createSvgElement("text", { x: 720, y: 36, class: "side-title", "data-pv-side": "right" });
         rightTitle.textContent = "右侧肺静脉";
 
       }
@@ -4436,6 +5570,7 @@
         });
 
         getActiveRidgeSites().forEach((site) => {
+          const siteGroup = createSvgElement("g", { "data-pv-side": site.side }, group);
           const countKey = ridgeCountKey(site.id);
           const segment = createSvgElement(
             "path",
@@ -4447,7 +5582,7 @@
               "data-ridge-id": site.id,
               "aria-label": `${site.ridgeName}，累计${counts[countKey] || 0}次消融，显示阈值${settings.ridgeTarget}次；点击记录一次消融`,
             },
-            group,
+            siteGroup,
           );
           segment.addEventListener("click", (event) => {
             event.stopPropagation();
@@ -4468,7 +5603,7 @@
               class: "ridge-label",
               "data-ridge-label-for": site.id,
             },
-            group,
+            siteGroup,
           );
           ridgeLabel.textContent = site.shortName;
 
@@ -4476,11 +5611,11 @@
             "text",
             {
               x: site.x,
-              y: site.y,
+              y: site.y + 8,
               class: "ridge-count",
               "data-ridge-count-for": site.id,
             },
-            group,
+            siteGroup,
           );
           countText.textContent = counts[countKey] || "";
         });
@@ -4489,6 +5624,7 @@
       function drawVein(vein) {
         const group = createSvgElement("g", {
           "data-vein": vein.id,
+          "data-pv-side": vein.id.startsWith("L") ? "left" : "right",
           "aria-label": vein.name,
         });
 
@@ -4531,7 +5667,7 @@
                 role: "button",
                 "data-key": key,
                 "data-sector": sector,
-                "aria-label": `${vein.name} ${layer.name} ${sectorLabel(sector)}区，完成判定需${completionRequiredCount}次；点击将该区记录为本次 1–10 gap`,
+                "aria-label": `${vein.name} ${layer.name} ${sectorLabel(sector)}区，完成判定需${completionRequiredCount}次；点击将该区记录为本次缺口`,
               },
               ringGroup,
             );
@@ -4633,16 +5769,11 @@
         );
         const code = createSvgElement(
           "text",
-          { x: vein.x, y: vein.y - 3, class: "vein-code" },
+          { x: vein.x, y: vein.y - 11, class: "vein-code" },
           group,
         );
         code.textContent = vein.id;
-        const name = createSvgElement(
-          "text",
-          { x: vein.x, y: vein.y + 16, class: "vein-cn" },
-          group,
-        );
-        name.textContent = vein.short;
+        createSvgElement("text", { x: vein.x, y: vein.y + 11, class: "vein-total" }, group);
       }
 
       function renderMap() {
@@ -4785,7 +5916,7 @@
           .reverse()
           .find((event) => event.type === "ring");
         pushHistory(
-          `${ringName}消融，${sectorLabel(excludedSector)} 区为 1–10 gap，${activeElectrodes.length} 个电极`,
+          `${ringName}消融，${sectorLabel(excludedSector)} 区为缺口，${activeElectrodes.length} 个电极`,
         );
 
         sequenceEvents.push({
@@ -4807,7 +5938,7 @@
         saveCounts();
         updateAll();
         if (previousRingEvent?.key === key) {
-          showToast(`已记录 ${activeElectrodes.length} 个电极；请确认已重新定位并覆盖前次 gap`);
+          showToast(`已记录 ${activeElectrodes.length} 个电极；请确认已重新定位并覆盖前次缺口`);
         } else {
           showToast(`已记录 1 次消融 · ${activeElectrodes.length} 个电极`);
         }
@@ -4909,7 +6040,7 @@
           const actionLabel = mapEditMode === "remove"
             ? "点击将该区消融次数减 1"
             : mapEditMode === "segment" ? "点击仅将该区消融次数加 1"
-            : "点击将该区记录为本次 1–10 gap";
+            : "点击将该区记录为本次缺口";
           segment.setAttribute(
             "aria-label",
             `${parsed.vein.name} ${parsed.layer.name} ${sectorLabel(sector)}区，累计覆盖${count}次，达标阈值${threshold}次${increasedByLastAblation ? "，最近一次消融已增加该区计数" : ""}；${actionLabel}`,
@@ -4947,7 +6078,8 @@
           countText.classList.toggle("visible", count > 0);
           countText.classList.toggle("on-dark", level >= 2);
           const ridgeLabel = document.querySelector(`[data-ridge-label-for="${ridgeId}"]`);
-          ridgeLabel.classList.toggle("hidden", count > 0);
+          ridgeLabel.setAttribute("y", count > 0 ? site.y - 7 : site.y);
+          ridgeLabel.classList.toggle("on-dark", level >= 2);
         });
         updateSummary();
         updateElectrodeSelector();
@@ -5054,6 +6186,10 @@
           const ablationComplete = ablationStatus.ablationComplete;
           const ablationInProgress = ablationStatus.hasAblation && !ablationComplete;
           const veinGroup = document.querySelector(`[data-vein="${vein.id}"]`);
+          if (veinGroup) {
+            veinGroup.querySelector(".vein-total").textContent = `${ablationStatus.totalApplications} 次`;
+            veinGroup.setAttribute("aria-label", `${vein.name}，消融 ${ablationStatus.totalApplications} 次`);
+          }
           veinGroup?.classList.toggle("plan-complete", ablationComplete);
           veinGroup?.classList.toggle("plan-in-progress", ablationInProgress);
           const endpointOptions = ENDPOINT_OPTIONS.map(
@@ -5125,6 +6261,7 @@
           showToast("暂无可撤回操作");
           return;
         }
+        if (previous.planarState) planarState = clonePlanarState(previous.planarState);
         const ridgeState = normalizeRidgeState(
           previous.counts,
           previous.ridgeApplications,
@@ -5681,7 +6818,7 @@
 
       function pdfMapPoint(geometry, x, y) {
         return {
-          x: geometry.x + x * geometry.scale,
+          x: geometry.x + x * (geometry.scaleX ?? geometry.scale),
           y: geometry.y + y * geometry.scale,
         };
       }
@@ -5739,7 +6876,7 @@
         return points;
       }
 
-      function pdfDrawWebAnatomy(pdf, geometry) {
+      function pdfDrawPosteriorWall(pdf, geometry) {
         const anatomyPoints = [{ x: 424, y: 178 }];
         const anatomySegments = [
           [{ x: 424, y: 178 }, { x: 445, y: 151 }, { x: 535, y: 151 }, { x: 556, y: 178 }],
@@ -5779,12 +6916,16 @@
           align: "center",
           baseline: "middle",
         });
-        pdfDrawMapText(pdf, "左侧肺静脉", geometry, 260, 36, {
+      }
+
+      function pdfDrawWebAnatomy(pdf, geometry, showPosteriorWall = true) {
+        if (showPosteriorWall) pdfDrawPosteriorWall(pdf, posteriorMapGeometry(geometry, "atrium"));
+        pdfDrawMapText(pdf, "左侧肺静脉", posteriorMapGeometry(geometry, "left"), 260, 36, {
           fontSizePx: 17,
           color: PDF_COLORS.ink,
           align: "center",
         });
-        pdfDrawMapText(pdf, "右侧肺静脉", geometry, 720, 36, {
+        pdfDrawMapText(pdf, "右侧肺静脉", posteriorMapGeometry(geometry, "right"), 720, 36, {
           fontSizePx: 17,
           color: PDF_COLORS.ink,
           align: "center",
@@ -5884,19 +7025,20 @@
         pdf.stroke = statusColor;
         pdf.lineWidth = (status.hasAblation || status.ablationComplete ? 3 : 2) * mapGeometry.scale;
         pdf.circle(center.x, center.y, 40 * mapGeometry.scale, "FD");
-        pdfDrawText(pdf, vein.id, center.x, center.y - 0.4, {
-          fontSize: 7.3,
+        pdfDrawText(pdf, vein.id, center.x, center.y - 3 * mapGeometry.scale, {
+          fontSize: Math.max(6.8, pdfMapFontSize(mapGeometry, 17)),
           color: status.ablationComplete ? "#ffffff" : status.hasAblation ? "#945300" : "#667085",
           align: "center",
         });
-        pdfDrawText(pdf, vein.short, center.x, center.y + 2.5, {
-          fontSize: 6.5, color: status.ablationComplete ? "#ffffff" : "#667085", align: "center",
+        pdfDrawText(pdf, `${status.totalApplications} 次`, center.x, center.y + 19 * mapGeometry.scale, {
+          fontSize: Math.max(7.2, pdfMapFontSize(mapGeometry, 20)), color: status.ablationComplete ? "#ffffff" : PDF_COLORS.ink, align: "center",
         });
       }
 
-      function pdfDrawRidges(pdf, geometry) {
+      function pdfDrawRidges(pdf, mapGeometry) {
         if (!settings.ridgeEnabled) return;
         getActiveRidgeSites().forEach((site) => {
+          const geometry = posteriorMapGeometry(mapGeometry, site.side);
           const count = Number(counts[ridgeCountKey(site.id)] || 0);
           const level = Math.min(4, Math.max(0, ridgeLevel(count)));
           const pathNumbers = String(site.path).match(/-?\d+(?:\.\d+)?/g) || [];
@@ -5908,12 +7050,19 @@
           pdf.stroke = PDF_COLORS.surface;
           pdf.lineWidth = 2.4 * geometry.scale;
           pdfDrawPolygon(pdf, pdfTransformMapPoints(geometry, mapPoints), "FD");
-          pdfDrawMapText(pdf, count > 0 ? String(count) : site.shortName, geometry, site.x, site.y, {
-            fontSizePx: count > 0 ? 12 : 10,
-            color: count > 0 && level >= 2 ? "#ffffff" : "#403a49",
+          const textStyle = {
+            color: level >= 2 ? "#ffffff" : "#403a49",
             align: "center",
             baseline: "middle",
+          };
+          pdfDrawMapText(pdf, site.shortName, geometry, site.x, count > 0 ? site.y - 7 : site.y, {
+            ...textStyle, fontSizePx: 10,
           });
+          if (count > 0) {
+            pdfDrawMapText(pdf, String(count), geometry, site.x, site.y + 8, {
+              ...textStyle, fontSizePx: 12,
+            });
+          }
         });
       }
 
@@ -5939,9 +7088,13 @@
         pdf.lineWidth = 0.25;
         pdf.rect(x, y, width, height, "FD");
         const geometry = pdfMapGeometry(x + 2, y + 1, width - 4, height - footerHeight - 1);
+        geometry.showWall = visibleStructures.has("lapw") || planarState.events.some(event => event.siteId === "lapw");
+        const showLineSites = planarState.events.some(event => ["mi", "roof", "floor"].includes(event.siteId));
+        const showSvc = visibleStructures.has("svcRing") || planarState.svcRing.applications > 0;
+        geometry.placements = mapPlacements(geometry.showWall || showLineSites, showSvc);
         pdfDrawWebAnatomy(pdf, geometry);
-        veins.forEach(vein => pdfDrawVein(pdf, vein, geometry));
-        pdfDrawMapText(pdf, "圈外 A–J：分区（内外圈共用） · 圈内数字：累计覆盖次数 · 前壁 2 次 / 后壁 1 次达标", geometry, 490, 624, {
+        veins.forEach(vein => pdfDrawVein(pdf, vein, posteriorMapGeometry(geometry, vein.id.startsWith("L") ? "left" : "right")));
+        pdfDrawMapText(pdf, "A–J：分区 · 圆心：该支消融次数 · 扇区：累计覆盖次数 · 前壁 2 次 / 后壁 1 次达标", geometry, 490, 624, {
           fontSizePx: 12, color: PDF_COLORS.muted, align: "center",
         });
         pdfDrawRidges(pdf, geometry);
@@ -6076,6 +7229,7 @@
         const model = getVectorReportModel(exportTime, patientInfo);
         const nextY = pdfDrawPageOne(pdf, model);
         if (model.otherInfo) pdfDrawOtherInfoPages(pdf, model, nextY);
+        pdfDrawWallAppendix(pdf, model);
         pdfDrawFooters(pdf);
         return pdf.markup();
       }
@@ -6124,11 +7278,11 @@
       document.getElementById("more-export").onclick = () => { actionsDialog.close(); exportButton.click(); };
       document.getElementById("mobile-electrodes").onclick = () => openQuickPanel("electrodes");
       document.getElementById("mobile-overview").onclick = () => openQuickPanel("overview");
-      document.getElementById("mobile-undo").onclick = undoLastAction;
+      document.getElementById("mobile-undo").onclick = () => undoLastAction();
       document.getElementById("quick-close").onclick = document.getElementById("quick-done").onclick = () => quickDialog.close();
       quickDialog.addEventListener("close", () => { if (!quickDialog.open) restoreQuickPanel(); });
       document.getElementById("reset-close").onclick = document.getElementById("reset-cancel").onclick = () => resetDialog.close();
-      document.getElementById("reset-confirm").onclick = confirmResetRecord;
+      document.getElementById("reset-confirm").onclick = () => confirmResetRecord();
       for (const dialog of [actionsDialog, quickDialog, resetDialog]) dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); });
       document.querySelectorAll("[data-map-view]").forEach(button => button.addEventListener("click", () => {
         mapViewChoice = button.dataset.mapView;
@@ -6188,8 +7342,8 @@
         event.preventDefault();
         closePatientInfoDialog();
       });
-      undoButton.addEventListener("click", undoLastAction);
-      resetButton.addEventListener("click", resetRecord);
+      undoButton.addEventListener("click", () => undoLastAction());
+      resetButton.addEventListener("click", () => resetRecord());
       exportButton.addEventListener("click", openPatientInfoDialog);
       mapModeToggle.querySelectorAll("[data-edit-mode]").forEach(button => {
         button.addEventListener("click", () => toggleMapEditMode(button.dataset.editMode));
@@ -6201,7 +7355,7 @@
       mapWrap.addEventListener("pointercancel", hideRemoveCursor);
       window.addEventListener("blur", hideRemoveCursor);
       svg.addEventListener("click", (event) => {
-        if (event.target.closest?.(".pv-segment, .ridge-segment")) return;
+        if (event.target.closest?.(".pv-segment, .ridge-segment, .planar-zone")) return;
         clearSelection();
       });
       document.addEventListener("keydown", (event) => {
@@ -6216,9 +7370,1725 @@
           undoLastAction();
         } else if (event.key === "Escape") {
           if (document.querySelector("dialog[open]")) return;
+          if (!document.getElementById("planar-popover")?.hidden) {
+            closePlanarPopover();
+            return;
+          }
           clearSelection();
         }
       });
+
+      // ==========================================================
+      // Planar & Extra-PV Structural Ablation System
+      // Supports dynamic pre/post-ablation grid resizing,
+      // VARIPULSE 10-electrode gap orientation and planar cell records.
+      // ==========================================================
+      const SVC_RING = {
+        id: "svcRing", name: "上腔静脉", short: "SVC", side: "right", x: 905, y: 102,
+        inner: 31, outer: 55, defaultRows: 1, minRows: 1, maxRows: 1,
+        defaultCols: RingSectors.count, minCols: RingSectors.count, maxCols: RingSectors.count,
+        defaultTarget: 1, endpointLabel: "SVC 隔离",
+      };
+      const PLANAR_SITES = [
+        { id: "mi", name: "二尖瓣峡部", short: "MI 峡部", side: "left", x: 10, y: 360, w: 108, h: 214, defaultRows: 3, defaultCols: 1, minRows: 2, maxRows: 5, minCols: 1, maxCols: 2, defaultTarget: 2, endpointLabel: "峡部阻滞", quickCols: false },
+        { id: "roof", name: "左房顶部线", short: "顶部线", side: "center", x: 402, y: 126, w: 176, h: 56, defaultRows: 1, defaultCols: 3, minRows: 1, maxRows: 2, minCols: 2, maxCols: 6, defaultTarget: 2, endpointLabel: "顶部线阻滞", quickCols: true },
+        { id: "lapw", name: "左房后壁 Box", short: "左房后壁", side: "center", x: 330, y: 196, w: 320, h: 266, defaultRows: 3, defaultCols: 4, minRows: 1, maxRows: 5, minCols: 1, maxCols: 5, defaultTarget: 1, endpointLabel: "Box 隔离", quickCols: true },
+        { id: "floor", name: "左房底部线", short: "底部线", side: "center", x: 402, y: 484, w: 176, h: 56, defaultRows: 1, defaultCols: 3, minRows: 1, maxRows: 2, minCols: 2, maxCols: 6, defaultTarget: 2, endpointLabel: "底部线阻滞", quickCols: true },
+        SVC_RING,
+      ];
+      // In the full map, keep each pulmonary vein, its labels and its ridges together.
+      // Single-side views use the native coordinates and retain their larger targets.
+      const POSTERIOR_MAP_PLACEMENT = {
+        left: {scale: .9, x: -38, y: 33},
+        right: {scale: .9, x: 136, y: 33},
+        mi: {scale: .62, x: -2, y: 171},
+        svcRing: {scale: .94, x: 64, y: -29},
+      };
+      const SVC_MAP_PLACEMENT = {
+        left: {scale: 1, x: -57, y: 0},
+        right: {scale: 1, x: -122, y: 0},
+        atrium: {scale: 1, scaleX: .72, x: 47, y: 0},
+        atriumLabel: {scale: 1, x: -90, y: 0},
+        svcRing: {scale: 1.35, x: -357, y: -9},
+      };
+      const WALL_AND_SVC_PLACEMENT = {
+        ...POSTERIOR_MAP_PLACEMENT,
+        left: {scale: .9, x: -91, y: 33},
+        right: {scale: .9, x: 20, y: 33},
+        lapw: {scale: .84, x: -8, y: 53},
+        svcRing: SVC_MAP_PLACEMENT.svcRing,
+      };
+
+      function mapPlacements(showGrid, showSvc) {
+        if (showGrid) return showSvc ? WALL_AND_SVC_PLACEMENT : POSTERIOR_MAP_PLACEMENT;
+        return showSvc ? SVC_MAP_PLACEMENT : null;
+      }
+
+      function posteriorMapGeometry(map, part) {
+        const placement = map.placements?.[part];
+        if (!placement) return map;
+        return {x: map.x + placement.x * map.scale, y: map.y + placement.y * map.scale,
+          scale: map.scale * placement.scale, scaleX: map.scale * (placement.scaleX ?? placement.scale)};
+      }
+      // Keep earlier grid observations at their original locations in saved records and reports.
+      const HISTORICAL_GRID_SITES = [
+        { id: "anterior", name: "左房前壁 / 间隔", short: "前壁/间隔", side: "left", x: 10, y: 76, w: 108, h: 214, defaultRows: 2, defaultCols: 2, minRows: 1, maxRows: 4, minCols: 1, maxCols: 3, defaultTarget: 2, endpointLabel: "传导阻滞评估", quickCols: false },
+        { id: "svc", name: "上腔静脉", short: "SVC", side: "right", x: 862, y: 76, w: 108, h: 214, defaultRows: 2, defaultCols: 2, minRows: 1, maxRows: 4, minCols: 1, maxCols: 3, defaultTarget: 1, endpointLabel: "SVC 隔离", quickCols: false },
+        { id: "cti", name: "三尖瓣峡部", short: "CTI 峡部", side: "right", x: 862, y: 360, w: 108, h: 214, defaultRows: 3, defaultCols: 1, minRows: 2, maxRows: 5, minCols: 1, maxCols: 2, defaultTarget: 2, endpointLabel: "峡部双向阻滞", quickCols: false },
+      ];
+      const RECORD_SITES = [...PLANAR_SITES, ...HISTORICAL_GRID_SITES];
+      const PLANAR_SITE_MAP = Object.fromEntries(RECORD_SITES.map((site) => [site.id, site]));
+      const PLANAR_ENDPOINT_OPTIONS = [
+        ["not-assessed", "未评估"],
+        ["bidirectional-block", "双向传导阻滞 / 完全隔离"],
+        ["incomplete", "残留传导 / 待巩固"],
+      ];
+      const PLANAR_GAP_DIRS = [
+        { deg: 0, symbol: "↑", label: "上" },
+        { deg: 90, symbol: "→", label: "右" },
+        { deg: 180, symbol: "↓", label: "下" },
+        { deg: 270, symbol: "←", label: "左" },
+      ];
+
+      function savedPlanarAngle(value) {
+        const deg = Number(value);
+        return value != null && Number.isInteger(deg) && deg >= 0 && deg < 360 &&
+          (deg % 36 === 0 || deg % 45 === 0) ? deg : null;
+      }
+
+      // Project later ten-sector and corner records onto the original four directions for display.
+      function planarDisplayEdge(deg) {
+        return Math.round(deg / 90) % 4 * 90;
+      }
+
+      function defaultPlanarConfigs() {
+        return Object.fromEntries(
+          RECORD_SITES.map((site) => [
+            site.id,
+            { rows: site.defaultRows, cols: site.defaultCols, target: site.defaultTarget },
+          ]),
+        );
+      }
+
+      function sanitizePlanarState(raw) {
+        const defaults = defaultPlanarConfigs();
+        const enabled = typeof raw?.enabled === "boolean" ? raw.enabled : true;
+        const gapOrientation = planarDisplayEdge(savedPlanarAngle(raw?.gapOrientation) ?? 0);
+        const configs = {};
+        for (const site of RECORD_SITES) {
+          const src = raw?.configs?.[site.id];
+          configs[site.id] = {
+            rows: clampInteger(src?.rows, site.minRows, site.maxRows, defaults[site.id].rows),
+            cols: clampInteger(src?.cols, site.minCols, site.maxCols, defaults[site.id].cols),
+            target: clampInteger(src?.target, 1, 4, defaults[site.id].target),
+          };
+        }
+        const events = Array.isArray(raw?.events)
+          ? raw.events.flatMap((ev, index) => {
+              if (!ev || typeof ev !== "object") return [];
+              const site = PLANAR_SITE_MAP[ev?.siteId];
+              if (!site || site === SVC_RING) return [];
+              const u = Number(ev.u);
+              const v = Number(ev.v);
+              const du = Number(ev.du);
+              const dv = Number(ev.dv);
+              if (![u, v, du, dv].every(Number.isFinite)) return [];
+              return [{
+                id: String(ev.id || `pe-legacy-${index}`),
+                siteId: site.id,
+                u: Math.min(1, Math.max(0, u)),
+                v: Math.min(1, Math.max(0, v)),
+                du: Math.min(1, Math.max(0.05, du)),
+                dv: Math.min(1, Math.max(0.05, dv)),
+                mode: ev.mode === "segment" ? "segment" : "ablate",
+                activeElectrodes: sanitizeElectrodeSelection(ev.activeElectrodes),
+                ...(typeof ev.electrodesRecorded === "boolean" ? {electrodesRecorded: ev.electrodesRecorded} :
+                  !Array.isArray(ev.activeElectrodes) ? {electrodesRecorded: false} : {}),
+                ...(ev.sectorCount === 4 ? { sectorCount: 4 } : {}),
+                ...(site.id === "lapw" && ev.wallShape === "triangle" ? { wallShape: "triangle" } : {}),
+                gapOrientation: savedPlanarAngle(ev.gapOrientation) ?? (site.id === "lapw" ? null : 0),
+                targetEdge: savedPlanarAngle(ev.targetEdge),
+                recordedAt: typeof ev.recordedAt === "string" ? ev.recordedAt : null,
+              }];
+            })
+          : [];
+        const validEp = new Set(PLANAR_ENDPOINT_OPTIONS.map(([v]) => v));
+        const planarEndpoints = {};
+        if (raw?.endpoints && typeof raw.endpoints === "object") {
+          for (const [k, v] of Object.entries(raw.endpoints)) {
+            if (PLANAR_SITE_MAP[k] && validEp.has(v)) planarEndpoints[k] = v;
+          }
+        }
+        const ring = raw?.svcRing;
+        const svcRing = {
+          counts: Array.from({ length: RingSectors.count }, (_, i) => Math.max(0, Number(ring?.counts?.[i]) || 0)),
+          applications: Math.max(0, Math.trunc(Number(ring?.applications) || 0)),
+          lastGap: Number.isInteger(ring?.lastGap) && ring.lastGap >= 1 && ring.lastGap <= RingSectors.count ? ring.lastGap : null,
+        };
+        const wallReviews = {};
+        for (const [key, review] of Object.entries(raw?.wallReviews || {})) {
+          if (!/^[0-4]:[0-4]:(90|180)$/.test(key) || !review ||
+              !["joined", "gap"].includes(review.result) || typeof review.evidence !== "string") continue;
+          wallReviews[key] = { result: review.result, evidence: review.evidence,
+            recordedAt: typeof review.recordedAt === "string" ? review.recordedAt : null };
+        }
+        return { enabled, gapOrientation, configs, events, endpoints: planarEndpoints, svcRing, wallReviews };
+      }
+
+      function clonePlanarState(state = planarState) {
+        return sanitizePlanarState(JSON.parse(JSON.stringify(state)));
+      }
+
+      function loadInitialPlanarState() {
+        try {
+          const parsed = JSON.parse(safeStorageGet(STORAGE_KEY) || "null");
+          if (parsed && parsed.planarState) return sanitizePlanarState(parsed.planarState);
+        } catch {}
+        return sanitizePlanarState(null);
+      }
+
+      let planarState = loadInitialPlanarState();
+      let activePlanarPopoverSiteId = null;
+      const planarPopover = document.getElementById("planar-popover");
+
+      function planarAngleDiff(a, b) {
+        const diff = Math.abs(((a - b) % 360 + 360) % 360);
+        return Math.min(diff, 360 - diff);
+      }
+
+      function planarVaripulseActiveDirs(activeElectrodes, gapOrientation) {
+        const activeSet = new Set(activeElectrodes || []);
+        const step = 300 / 9;
+        const dirs = { up: false, right: false, down: false, left: false };
+        const dirAngles = [
+          ["up", 0],
+          ["right", 90],
+          ["down", 180],
+          ["left", 270],
+        ];
+        for (const [key, angle] of dirAngles) {
+          // 1-10 gap leaves an unablated corridor along gapOrientation
+          if (planarAngleDiff(angle, gapOrientation) < 25) {
+            dirs[key] = false;
+            continue;
+          }
+          let hits = 0;
+          for (const el of ELECTRODE_NUMBERS) {
+            if (!activeSet.has(el)) continue;
+            const elAngle = (gapOrientation + 30 + (el - 1) * step) % 360;
+            if (planarAngleDiff(elAngle, angle) <= 62) hits += 1;
+          }
+          dirs[key] = hits >= 2;
+        }
+        return dirs;
+      }
+
+      function planarEventProjection(ev, rows, cols) {
+        const centerCol = Math.min(cols - 1, Math.max(0, Math.floor(ev.u * cols)));
+        const centerRow = Math.min(rows - 1, Math.max(0, Math.floor(ev.v * rows)));
+        const primaryWeight = ev.mode === "segment"
+          ? 1
+          : ev.activeElectrodes.length >= 6
+            ? 1
+            : ev.activeElectrodes.length >= 1
+              ? 0.5
+              : 0;
+        return { row: centerRow, col: centerCol, weight: primaryWeight };
+      }
+
+      const PLANAR_EDGE_META = {
+        0: { deg: 0, key: "up", oppDeg: 180, dr: -1, dc: 0, label: "上" },
+        90: { deg: 90, key: "right", oppDeg: 270, dr: 0, dc: 1, label: "右" },
+        180: { deg: 180, key: "down", oppDeg: 0, dr: 1, dc: 0, label: "下" },
+        270: { deg: 270, key: "left", oppDeg: 90, dr: 0, dc: -1, label: "左" },
+      };
+
+      function planarComputeSiteEdgeGaps(rows, cols, projections) {
+        const edgeGapMarked = Array.from({ length: rows }, () =>
+          Array.from({ length: cols }, () => ({ 0: false, 90: false, 180: false, 270: false })),
+        );
+        const edgeCovered = Array.from({ length: rows }, () =>
+          Array.from({ length: cols }, () => ({ 0: false, 90: false, 180: false, 270: false })),
+        );
+
+        projections.forEach(({ ev, row: r, col: c }) => {
+          if (ev.mode === "segment") {
+            if (ev.targetEdge != null) {
+              edgeCovered[r][c][planarDisplayEdge(ev.targetEdge)] = true;
+            } else {
+              for (const d of [0, 90, 180, 270]) edgeCovered[r][c][d] = true;
+            }
+            return;
+          }
+
+          const edge = planarDisplayEdge(ev.gapOrientation);
+          const dirs = planarVaripulseActiveDirs(ev.activeElectrodes, edge);
+          const gMeta = PLANAR_EDGE_META[edge];
+          if (gMeta && !dirs[gMeta.key]) {
+            edgeGapMarked[r][c][edge] = true;
+          }
+          for (const d of [0, 90, 180, 270]) {
+            const meta = PLANAR_EDGE_META[d];
+            if (!dirs[meta.key]) continue;
+            edgeCovered[r][c][d] = true;
+            const nr = r + meta.dr;
+            const nc = c + meta.dc;
+            if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+              edgeCovered[nr][nc][meta.oppDeg] = true;
+            }
+          }
+        });
+
+        const unablatedGaps = [];
+        for (let r = 0; r < rows; r += 1) {
+          for (let c = 0; c < cols; c += 1) {
+            for (const d of [0, 90, 180, 270]) {
+              if (edgeGapMarked[r][c][d] && !edgeCovered[r][c][d]) {
+                unablatedGaps.push({
+                  row: r,
+                  col: c,
+                  deg: d,
+                  label: PLANAR_EDGE_META[d].label,
+                  outerEdge: (r === 0 && d === 0) || (r === rows - 1 && d === 180),
+                });
+              }
+            }
+          }
+        }
+        return unablatedGaps;
+      }
+
+      function wallProjection(ev, rows, cols) {
+        // Stored centers and cell sizes identify the original row and column in older records too.
+        const originalRows = Math.round(1 / ev.dv);
+        const originalCols = Math.round(1 / ev.du);
+        const { row, col, weight } = planarEventProjection(ev, originalRows, originalCols);
+        const source = { rows: originalRows, cols: originalCols, row, col };
+        return { ev, source, row, col, weight, assigned: row < rows && col < cols };
+      }
+
+      function wallRegionName(source) {
+        return `${source.rows}×${source.cols} 第${source.row + 1}行第${source.col + 1}列`;
+      }
+
+      function wallRimAtRecording(source, direction) {
+        return (direction === 0 && source.row === 0) || (direction === 180 && source.row === source.rows - 1);
+      }
+
+      function wallCellName(row, col) {
+        return `第${row + 1}行第${col + 1}格`;
+      }
+
+      function wallDirectionText(ev) {
+        const angle = ev.mode === "segment" ? ev.targetEdge : ev.gapOrientation;
+        if (angle == null) return "方向未记录";
+        const edge = planarDisplayEdge(angle);
+        return PLANAR_EDGE_META[edge].label + "边" + (angle === edge ? "" : `（原始 ${angle}°）`);
+      }
+
+      function wallRecordDescription(ev) {
+        const direction = wallDirectionText(ev);
+        return ev.mode === "segment" ? "节段补消 · " + direction :
+          "整环记录 · " + (ev.gapOrientation == null ? direction : "缺口朝" + direction);
+      }
+
+      function wallElectrodeText(ev) {
+        if (ev.mode === "segment" && !ev.electrodesRecorded) return "电极选择未单独记录";
+        if (ev.electrodesRecorded === false) return "历史记录未保存电极选择";
+        return ev.activeElectrodes.length ? "记录时选择电极 " + ev.activeElectrodes.join("、") : "记录时未选电极";
+      }
+
+      function wallCoverage(rows, cols, projections, grid, reviews) {
+        // Each side only accumulates its own observations. Neighbors are compared afterwards.
+        const sides = Array.from({length: rows}, () => Array.from({length: cols}, () =>
+          Object.fromEntries(PLANAR_GAP_DIRS.map(({deg}) => [deg, {count: 0, coverId: null, gapId: null, rim: false}]))));
+        for (const {ev, row, col, weight, source} of projections) {
+          const angle = ev.mode === "segment" ? ev.targetEdge : ev.gapOrientation;
+          if (angle == null || !weight) continue;
+          const deg = planarDisplayEdge(angle);
+          const cell = sides[row][col];
+          if (ev.mode === "segment") {
+            cell[deg].count += weight;
+            cell[deg].coverId = ev.id;
+            continue;
+          }
+          cell[deg].gapId = ev.id;
+          cell[deg].rim ||= wallRimAtRecording(source, deg);
+          const covered = planarVaripulseActiveDirs(ev.activeElectrodes, deg);
+          for (const dir of PLANAR_GAP_DIRS) {
+            if (!covered[PLANAR_EDGE_META[dir.deg].key]) continue;
+            cell[dir.deg].count += weight;
+            cell[dir.deg].coverId = ev.id;
+          }
+        }
+        const interfaces = [], unablatedGaps = [];
+        function compare(row, col, deg) {
+          const {dr, dc, oppDeg} = PLANAR_EDGE_META[deg];
+          const nr = row + dr, nc = col + dc;
+          const a = sides[row][col][deg], b = sides[nr]?.[nc]?.[oppDeg];
+          const aGap = a.gapId && !a.count, bGap = b?.gapId && !b.count;
+          const key = `${row}:${col}:${deg}`;
+          const boundary = {key, row, col, deg, nr, nc};
+          if (a.count && b?.count) {
+            interfaces.push({...boundary, state: "covered"});
+            return;
+          }
+          if (!aGap && !bGap) return;
+          const gapRow = aGap ? row : nr, gapCol = aGap ? col : nc, gapDeg = aGap ? deg : oppDeg;
+          const missing = aGap ? a : b, support = aGap ? b : a;
+          const gap = {row: gapRow, col: gapCol, deg: gapDeg, label: PLANAR_EDGE_META[gapDeg].label,
+            outerEdge: !!((aGap && a.rim) || (bGap && b.rim))};
+          if (b && grid[row][col] && grid[nr][nc]) {
+            if (support?.count && !gap.outerEdge) {
+              const evidence = JSON.stringify([gapDeg, missing.gapId, support.coverId]);
+              const saved = reviews[key];
+              const review = saved?.evidence === evidence ? saved : null;
+              const state = review?.result === "joined" ? "reviewed" : review?.result === "gap" ? "gap" : "pending";
+              interfaces.push({...boundary, state, evidence, review, missing: gap});
+              if (state !== "gap") return;
+            } else {
+              interfaces.push({...boundary, state: "gap", missing: gap});
+            }
+          }
+          unablatedGaps.push(gap);
+        }
+        for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < cols; col++) {
+            if (row === 0) compare(row, col, 0);
+            if (col === 0) compare(row, col, 270);
+            compare(row, col, 90);
+            compare(row, col, 180);
+          }
+        }
+        return {sides, interfaces, unablatedGaps, pendingCount: interfaces.filter(edge => edge.state === "pending").length};
+      }
+
+      function wallMetrics(site, cfg, events, reviews = {}, antrumAtTarget = {}) {
+        const { rows, cols, target } = cfg;
+        const grid = Array.from({ length: rows }, () => Array(cols).fill(0));
+        const weights = grid.map(row => row.slice());
+        const projections = events.map((ev, index) => ({...wallProjection(ev, rows, cols), ordinal: index + 1}));
+        const retained = projections.filter(p => !p.assigned);
+        for (const { assigned, row, col, weight } of projections) {
+          if (!assigned) continue;
+          grid[row][col]++;
+          weights[row][col] += weight;
+        }
+        const levels = weights.map(row => row.map(value => planarLevelForCount(value, target)));
+        const coveredCells = grid.flat().filter(value => value > 0).length;
+        const targetMetCells = weights.flat().filter(value => value >= target).length;
+        const totalCells = rows * cols;
+        const visible = projections.filter(p => p.assigned);
+        const coverage = wallCoverage(rows, cols, visible, grid, reviews);
+        const complete = targetMetCells === totalCells && coverage.unablatedGaps.length === 0 &&
+          coverage.pendingCount === 0 && retained.length === 0;
+        // Antral coverage controls the lateral prompts, independently of local wall records and completion.
+        const unablatedGaps = coverage.unablatedGaps.filter(gap =>
+          !(gap.col === 0 && gap.deg === 270 && antrumAtTarget.left) &&
+          !(gap.col === cols - 1 && gap.deg === 90 && antrumAtTarget.right));
+        return { site, cfg, grid, levels, retained, recordedPositions: projections, applicationCount: events.length,
+          assignedCount: visible.length, layoutLabel: `${rows}×${cols}`, events, projections: visible,
+          ...coverage, unablatedGaps, coveredCells, targetMetCells, totalCells,
+          complete, inProgress: events.length > 0 && !complete };
+      }
+
+      function gapLine(geom, gap) {
+        return planarEdgeLineCoords(geom.gx + gap.col * (geom.cellW + geom.gap), geom.gy + gap.row * (geom.cellH + geom.gap),
+          geom.cellW, geom.cellH, gap.deg, 1.8);
+      }
+
+      function gapLocation(gap) {
+        return `(${gap.row + 1},${gap.col + 1})${gap.label}边`;
+      }
+
+      function wallCountSummary(m) {
+        return m.retained.length ? `共 ${m.applicationCount} 次 · 当前网格 ${m.assignedCount} 次 · 收起行列 ${m.retained.length} 次` : `共 ${m.applicationCount} 次`;
+      }
+
+      function wallProgressText(m) {
+        return `记录 ${m.applicationCount} 次 · ${m.targetMetCells}/${m.totalCells} 格达标 · ${m.unablatedGaps.length} 处缺口 · ${m.pendingCount} 处待核对`;
+      }
+
+      function wallInterfaceName(edge) {
+        return `${wallCellName(edge.row, edge.col)} ↔ ${wallCellName(edge.nr, edge.nc)}`;
+      }
+
+      // The overview, enlarged inspection and report draw the same boundary states.
+      function wallLineMarks(m, geometry) {
+        const {gx, gy, cellW, cellH, gap} = geometry;
+        const marks = [];
+        function edgeMark(row, col, deg, shared, state, key, missing) {
+          const vertical = deg === 90 || deg === 270;
+          const cx = gx + col * (cellW + gap) + cellW / 2;
+          const cy = gy + row * (cellH + gap) + cellH / 2;
+          const step = ((vertical ? cellW : cellH) + (shared ? gap : 0)) / 2;
+          const {dr, dc} = PLANAR_EDGE_META[deg];
+          const x = cx + dc * step, y = cy + dr * step;
+          const half = (vertical ? cellH : cellW) * (shared ? .21 : .26);
+          marks.push({row, col, deg, state, key, missing, x1: x - (vertical ? 0 : half), x2: x + (vertical ? 0 : half),
+            y1: y - (vertical ? half : 0), y2: y + (vertical ? half : 0)});
+        }
+        const sharedGaps = new Set();
+        for (const edge of m.interfaces) {
+          edgeMark(edge.row, edge.col, edge.deg, true, edge.state, edge.key, edge.missing);
+          if (edge.state === "gap") sharedGaps.add(`${edge.missing.row}:${edge.missing.col}:${edge.missing.deg}`);
+        }
+        for (const g of m.unablatedGaps) {
+          const key = `${g.row}:${g.col}:${g.deg}`;
+          if (!sharedGaps.has(key)) edgeMark(g.row, g.col, g.deg, false, "gap", key, g);
+        }
+        return marks;
+      }
+
+      const wallLineStyles = {
+        covered: {color: "#8754bd", dash: [], label: "双侧覆盖"},
+        pending: {color: "#8754bd", dash: [2, 3], label: "邻格衔接待核对"},
+        reviewed: {color: "#5a278f", dash: [6, 2], label: "邻格衔接已核对"},
+        gap: {color: "#c62840", dash: [], label: "缺口"},
+      };
+
+      function wallGapColors(outerEdge) {
+        return outerEdge
+          ? {fill: wallLineStyles.gap.color, ink: "#fff", border: "#fff", line: wallLineStyles.gap.color}
+          : {fill: "#fff0b8", ink: "#624600", border: "#c59a32", line: "#dfb648"};
+      }
+
+      function drawWallGap(parent, geom, mark, attrs) {
+        const {row, col, deg} = mark.missing;
+        const {cellW, cellH, gx, gy, gap} = geom;
+        const {dr, dc} = PLANAR_EDGE_META[deg];
+        const font = Math.min(11, cellH * .19);
+        const width = font * (dc ? 1.4 : 2.55);
+        const height = font * (dc ? 2.45 : 1.4);
+        const cx = gx + col * (cellW + gap) + cellW / 2 + dc * ((cellW - width) / 2 - 1);
+        const cy = gy + row * (cellH + gap) + cellH / 2 + dr * ((cellH - height) / 2 - 1);
+        const colors = wallGapColors(mark.missing.outerEdge);
+        const group = createSvgElement("g", {...attrs, role: "img", "aria-label": gapLocation(mark.missing) + "缺口"}, parent);
+        createSvgElement("line", {x1: mark.x1, y1: mark.y1, x2: mark.x2, y2: mark.y2,
+          stroke: colors.line, "stroke-width": 3.5, "stroke-linecap": "round"}, group);
+        createSvgElement("rect", {x: cx - width / 2, y: cy - height / 2, width, height,
+          rx: 3.5, fill: colors.fill, stroke: colors.border, "stroke-width": 1}, group);
+        const label = createSvgElement("text", {x: cx, y: cy, fill: colors.ink, "font-size": font,
+          "font-weight": 700, "text-anchor": "middle", "dominant-baseline": "central"}, group);
+        if (dc) {
+          createSvgElement("tspan", {x: cx, y: cy - font * .52}, label).textContent = "缺";
+          createSvgElement("tspan", {x: cx, y: cy + font * .52}, label).textContent = "口";
+        } else label.textContent = "缺口";
+      }
+
+      let wallPaintId = 0;
+      function wallGradient(defs, axis, stops) {
+        const id = `wall-paint-${++wallPaintId}`;
+        const gradient = createSvgElement("linearGradient", {id, ...axis}, defs);
+        for (const [offset, color] of stops) createSvgElement("stop", {offset, "stop-color": color}, gradient);
+        return `url(#${id})`;
+      }
+
+      function wallCoverageColor(count, target) {
+        return PDF_SEGMENT_COLORS[planarLevelForCount(count, target)];
+      }
+
+      function wallCornerColor(a, b) {
+        const channels = [1, 3, 5].map(i =>
+          Math.round((parseInt(a.slice(i, i + 2), 16) + parseInt(b.slice(i, i + 2), 16)) / 2));
+        return `rgb(${channels.join(",")})`;
+      }
+
+      function wallBandFill(defs, geom, sides, deg, target) {
+        const color = wallCoverageColor(sides[deg].count, target);
+        const endColors = [(deg + 270) % 360, (deg + 90) % 360].map(direction => {
+          const n = sides[direction].count;
+          const neighbor = n && wallCoverageColor(n, target);
+          return neighbor && neighbor !== color ? wallCornerColor(color, neighbor) : color;
+        });
+        if (endColors.every(end => end === color)) return color;
+        // Both halves of a curved corner reach the same tint before their diagonal seam.
+        // Only the tips blend; the straight middle keeps the recorded coverage color.
+        const size = Math.min(geom.cellW, geom.cellH);
+        const length = deg === 90 || deg === 270 ? geom.cellH : geom.cellW;
+        const corner = length / 2 - size * .33;
+        const end = corner + size * .029;
+        const hold = Math.max(0, corner - size * .09);
+        const innerStop = (end - hold) / (2 * end);
+        return wallGradient(defs, {gradientUnits: "userSpaceOnUse", x1: -end, y1: 0, x2: end, y2: 0},
+          [[0, endColors[0]], [innerStop, color], [1 - innerStop, color], [1, endColors[1]]]);
+      }
+
+      function drawWallMarks(parent, m, geom, defs) {
+        for (const mark of wallLineMarks(m, geom)) {
+          const {color, dash, label} = wallLineStyles[mark.state];
+          const attrs = {"data-wall-boundary": mark.key, "data-state": mark.state, "aria-label": label, "pointer-events": "none"};
+          if (mark.state === "gap") {
+            drawWallGap(parent, geom, mark, attrs);
+            continue;
+          }
+          if (mark.state === "covered") {
+            const vertical = mark.x1 === mark.x2;
+            const {dr, dc, oppDeg} = PLANAR_EDGE_META[mark.deg];
+            const from = wallCoverageColor(m.sides[mark.row][mark.col][mark.deg].count, m.cfg.target);
+            const to = wallCoverageColor(m.sides[mark.row + dr][mark.col + dc][oppDeg].count, m.cfg.target);
+            const fill = from === to ? from : wallGradient(defs,
+              {x1: 0, y1: 0, x2: vertical ? 1 : 0, y2: vertical ? 0 : 1}, [[0, from], [1, to]]);
+            const depth = geom.gap + Math.min(geom.cellW, geom.cellH) * .10;
+            createSvgElement("rect", {...attrs, fill, rx: 2,
+              x: mark.x1 - (vertical ? depth / 2 : 0), y: mark.y1 - (vertical ? 0 : depth / 2),
+              width: vertical ? depth : mark.x2 - mark.x1, height: vertical ? mark.y2 - mark.y1 : depth}, parent);
+            continue;
+          }
+          createSvgElement("line", {x1: mark.x1, y1: mark.y1, x2: mark.x2, y2: mark.y2,
+            stroke: color, "stroke-width": 2.6, "stroke-linecap": "round", "stroke-dasharray": dash.join(" ") || "none",
+            ...attrs}, parent);
+        }
+      }
+
+      function wallMapGeometry(m) {
+        const cellW = 76, cellH = 54, gap = 6, margin = 24;
+        return {gx: margin, gy: margin, cellW, cellH, gap, labelX: 10, labelY: 10,
+          width: 2 * margin + m.cfg.cols * cellW + (m.cfg.cols - 1) * gap,
+          height: 2 * margin + m.cfg.rows * cellH + (m.cfg.rows - 1) * gap};
+      }
+
+      function drawWallAxes(map, geom, {rows, cols}) {
+        function label(x, y, text) {
+          createSvgElement("text", {x, y, "text-anchor":"middle", "dominant-baseline":"central",
+            fill: "#585563", "font-size": 10}, map).textContent = text;
+        }
+        for (let col = 0; col < cols; col++) label(geom.gx + col * (geom.cellW + geom.gap) + geom.cellW / 2, geom.labelY, `${col + 1}列`);
+        for (let row = 0; row < rows; row++) label(geom.labelX, geom.gy + row * (geom.cellH + geom.gap) + geom.cellH / 2, `${row + 1}行`);
+      }
+
+      function drawWallGrid(parent, m, geom, editable = false) {
+        const {gx, gy, cellW, cellH, gap} = geom;
+        const defs = createSvgElement("defs", {}, parent);
+        drawWallAxes(parent, geom, m.cfg);
+        for (let row = 0; row < m.cfg.rows; row++) {
+          for (let col = 0; col < m.cfg.cols; col++) {
+            const x = gx + col * (cellW + gap), y = gy + row * (cellH + gap);
+            const count = m.grid[row][col];
+            const name = `${wallCellName(row, col)}，记录 ${count} 次`;
+            const corner = Math.min(10, Math.min(cellW, cellH) * .15);
+            const sides = m.sides[row][col];
+            const center = `translate(${x + cellW / 2} ${y + cellH / 2})`;
+            const group = createSvgElement("g", {"data-wall-cell": `${row}:${col}`}, parent);
+            const surface = count ? "#f1eaf7" : "#f3f2f5";
+            if (editable) {
+              group.style.clipPath = `inset(0 round ${corner}px) fill-box`;
+              group.style.setProperty("--wall-cell-surface", surface);
+            }
+            createSvgElement("rect", {x, y, width: cellW, height: cellH, rx: corner, fill: surface}, group);
+            for (const {deg} of PLANAR_GAP_DIRS) {
+              const n = sides[deg].count;
+              const joinedStart = sides[(deg + 270) % 360].count > 0;
+              const joinedEnd = sides[(deg + 90) % 360].count > 0;
+              if (n) createSvgElement("path", {...wallSideBand(geom, center, deg, joinedStart, joinedEnd), "data-wall-side": deg,
+                fill: wallBandFill(defs, geom, sides, deg, m.cfg.target), "pointer-events": "none"}, group);
+              if (editable) {
+                const hit = wallSideBand(geom, center, deg, joinedStart, joinedEnd, true, n > 0);
+                bindWallEdge(group, hit, deg, row, col, name, n > 0);
+              }
+            }
+            if (count) createSvgElement("text", {x: x + cellW / 2, y: y + cellH / 2, "text-anchor": "middle",
+              "dominant-baseline": "central", "font-size": Math.min(18, cellH * .29), "font-weight": 600,
+              fill: "#332a3d", "pointer-events": "none"}, group).textContent = count;
+          }
+        }
+        drawWallMarks(parent, m, geom, defs);
+      }
+
+      // Joined sides meet halfway around the corner. A free end reaches farther
+      // across the turn, leaving a narrower opening centered on the missing side.
+      function wallSideBand({cellW, cellH}, center, deg, joinedStart, joinedEnd, hit = false, covered = true) {
+        const vertical = deg === 90 || deg === 270;
+        const length = vertical ? cellH : cellW, depth = vertical ? cellW : cellH;
+        const size = Math.min(cellW, cellH);
+        const radius = size * .33, inset = hit ? 0 : size * .03;
+        const thickness = size * (hit ? .29 : .215);
+        const outer = radius - inset, inner = outer - thickness;
+        const cornerX = length / 2 - radius, cornerY = -depth / 2 + radius;
+        function cornerPoint(sign, r, joined) {
+          let degrees = joined ? 46 : 55;
+          if (hit) {
+            // Move the input boundary past the round cap. The complementary
+            // angles meet on the same ray for both sides of the corner.
+            degrees = covered === joined ? 45 : covered ? 89 : 1;
+          }
+          const angle = degrees * Math.PI / 180;
+          return `${sign * (cornerX + r * Math.sin(angle))} ${cornerY - r * Math.cos(angle)}`;
+        }
+        function cap(joined) {
+          return hit || joined ? "L" : `A ${thickness / 2} ${thickness / 2} 0 0 1`;
+        }
+        const d = [
+          `M ${cornerPoint(-1, outer, joinedStart)} A ${outer} ${outer} 0 0 1 ${-cornerX} ${cornerY - outer}`,
+          `H ${cornerX} A ${outer} ${outer} 0 0 1 ${cornerPoint(1, outer, joinedEnd)}`,
+          `${cap(joinedEnd)} ${cornerPoint(1, inner, joinedEnd)} A ${inner} ${inner} 0 0 0 ${cornerX} ${cornerY - inner}`,
+          `H ${-cornerX} A ${inner} ${inner} 0 0 0 ${cornerPoint(-1, inner, joinedStart)}`,
+          `${cap(joinedStart)} ${cornerPoint(-1, outer, joinedStart)} Z`,
+        ].join(" ");
+        return {d, transform: `${center} rotate(${deg})`};
+      }
+
+      function bindWallEdge(group, hit, deg, row, col, name, covered) {
+        const tabindex = syncRole === "mirror" ? -1 : 0;
+        const action = mapEditMode === "segment" ? "节段补消" : mapEditMode === "remove" ? "去除本格最近一次记录" : "记录缺口方向";
+        const edge = createSvgElement("path", {...hit, class: covered ? "wall-edge-hit" : "wall-edge-hit is-uncovered", role: "button", tabindex, "data-planar-site": "lapw",
+          "data-planar-row": row, "data-planar-col": col, "data-planar-edge": deg,
+          "aria-label": `${name} · ${PLANAR_EDGE_META[deg].label}边 · ${action}`,
+        }, group);
+        bindSvgButton(edge, () => {
+          const keyboardFocus = edge.matches(":focus-visible");
+          handlePlanarCellClick("lapw", row, col, deg);
+          if (keyboardFocus) svg.querySelector(`[data-wall-cell="${row}:${col}"] [data-planar-edge="${deg}"]`)?.focus({preventScroll: true});
+        });
+      }
+
+      function recordPlanarEndpoint(siteId, value) {
+        if (syncWriteBlocked() || !PLANAR_ENDPOINT_OPTIONS.some(([v]) => v === value)) return false;
+        if ((planarState.endpoints[siteId] || "not-assessed") === value) return true;
+        pushHistory(`更新${PLANAR_SITE_MAP[siteId].short}终点评估`);
+        planarState.endpoints[siteId] = value;
+        saveCounts();
+        updateAll();
+        return true;
+      }
+
+      function computePlanarSiteMetrics(siteId) {
+        const site = PLANAR_SITE_MAP[siteId];
+        const cfg = planarState.configs[siteId];
+        if (site === SVC_RING) {
+          const { counts, applications } = planarState.svcRing;
+          const targetMetCells = counts.filter(value => value >= cfg.target).length;
+          const complete = applications >= 1;
+          return {
+            site, cfg, grid: [counts], applicationCount: applications, coveredCells: counts.filter(value => value > 0).length,
+            targetMetCells, totalCells: RingSectors.count, complete, inProgress: false,
+            unablatedGaps: [], layoutLabel: "单环 A–J",
+          };
+        }
+        const { rows, cols, target } = cfg;
+        const grid = Array.from({ length: rows }, () => Array(cols).fill(0));
+        const siteEvents = planarState.events.filter((ev) => ev.siteId === siteId);
+        if (siteId === "lapw") return wallMetrics(site, cfg, siteEvents, planarState.wallReviews, {
+          left: posteriorAntrumAtTarget("L"), right: posteriorAntrumAtTarget("R"),
+        });
+        const projections = siteEvents.map((ev) => ({
+          ev,
+          ...planarEventProjection(ev, rows, cols),
+        }));
+
+        for (const { row, col, weight } of projections) {
+          grid[row][col] += weight;
+        }
+
+        let coveredCells = 0;
+        let targetMetCells = 0;
+        for (let r = 0; r < rows; r += 1) {
+          for (let c = 0; c < cols; c += 1) {
+            if (grid[r][c] > 0) coveredCells += 1;
+            if (grid[r][c] >= target) targetMetCells += 1;
+          }
+        }
+        const totalCells = rows * cols;
+        const unablatedGaps = planarComputeSiteEdgeGaps(rows, cols, projections);
+        const complete = siteEvents.length > 0 && targetMetCells === totalCells;
+        const inProgress = siteEvents.length > 0 && !complete;
+        return {
+          site,
+          cfg,
+          grid,
+          applicationCount: siteEvents.length,
+          layoutLabel: `${rows}×${cols}`,
+          events: siteEvents,
+          projections,
+          unablatedGaps,
+          coveredCells,
+          targetMetCells,
+          totalCells,
+          complete,
+          inProgress,
+        };
+      }
+
+      function planarLevelForCount(count, target) {
+        if (count >= target + 2) return 4;
+        if (count >= target + 1) return 3;
+        if (count >= target) return 2;
+        if (count > 0) return 1;
+        return 0;
+      }
+
+      function planarCellGeometry(site, rows, cols) {
+        const wall = site.id === "lapw";
+        const headerH = wall ? 26 : 22;
+        const pad = 5;
+        const gap = wall ? 3 : 2.6;
+        const labelGutter = wall ? 18 : 0;
+        const width = site.w - 2 * pad - labelGutter;
+        const height = site.h - headerH - 4 - pad - labelGutter;
+        const colWidth = (width - (cols - 1) * gap) / cols;
+        const rowHeight = (height - (rows - 1) * gap) / rows;
+        const cellW = wall ? Math.min(colWidth, rowHeight * 1.3) : colWidth;
+        const cellH = wall ? cellW / 1.3 : rowHeight;
+        const gw = cellW * cols + (cols - 1) * gap;
+        const gh = cellH * rows + (rows - 1) * gap;
+        const gx = site.x + pad + labelGutter + (width - gw) / 2;
+        const gy = site.y + headerH + 4 + labelGutter + (height - gh) / 2;
+        return { headerH, gx, gy, gw, gh, gap, cellW, cellH, labelX: gx - 11, labelY: gy - 9 };
+      }
+
+      function planarEdgeLineCoords(cx, cy, cellW, cellH, deg, inset = 1.6) {
+        const size = Math.min(cellW, cellH);
+        cx += (cellW - size) / 2;
+        cy += (cellH - size) / 2;
+        cellW = cellH = size;
+        if (deg === 0) return { x1: cx + inset, y1: cy + inset, x2: cx + cellW - inset, y2: cy + inset, tx: cx + cellW / 2, ty: cy + inset + 6.5 };
+        if (deg === 90) return { x1: cx + cellW - inset, y1: cy + inset, x2: cx + cellW - inset, y2: cy + cellH - inset, tx: cx + cellW - inset - 9, ty: cy + cellH / 2 };
+        if (deg === 180) return { x1: cx + inset, y1: cy + cellH - inset, x2: cx + cellW - inset, y2: cy + cellH - inset, tx: cx + cellW / 2, ty: cy + cellH - inset - 6.5 };
+        return { x1: cx + inset, y1: cy + inset, x2: cx + inset, y2: cy + cellH - inset, tx: cx + inset + 9, ty: cy + cellH / 2 };
+      }
+
+      function planarFanSectors(x, y, geom) {
+        const {cellW, cellH} = geom;
+        const radius = Math.min(cellW, cellH) * .48;
+        const hub = Math.min(10, radius * .44);
+        const cx = x + cellW / 2, cy = y + cellH / 2;
+        return [0, 90, 180, 270].map(deg => {
+          const outer = [], inner = [];
+          for (let step = 0; step <= 12; step++) {
+            const angle = (deg - 43 + 86 * step / 12) * Math.PI / 180;
+            const dx = Math.sin(angle), dy = -Math.cos(angle);
+            outer.push({ x: cx + radius * dx, y: cy + radius * dy });
+            inner.push({ x: cx + hub * dx, y: cy + hub * dy });
+          }
+          return { deg, points: outer.concat(inner.reverse()) };
+        });
+      }
+
+      function recordSvcSector(sector) {
+        if (syncWriteBlocked()) return;
+        const ring = planarState.svcRing;
+        const index = sector - 1;
+        const label = `SVC ${sectorLabel(sector)} 区`;
+        if (mapEditMode === "remove") {
+          if (!ring.counts[index]) return showToast(`${label} 当前为 0 次`);
+          pushHistory(`${label} 减少覆盖次数`);
+          ring.counts[index] = Math.max(0, ring.counts[index] - 1);
+          ring.lastGap = null;
+        } else if (mapEditMode === "segment") {
+          pushHistory(`${label} 节段消融 +1 次`);
+          ring.counts[index] += 1;
+          ring.applications += 1;
+          ring.lastGap = null;
+        } else {
+          const active = activeElectrodeNumbers();
+          if (!active.length) return showToast("请至少开启一个放电电极");
+          pushHistory(`SVC 消融，${sectorLabel(sector)} 区为缺口，${active.length} 个电极`);
+          ring.counts = ring.counts.map((value, i) => value + RingSectors.coverageIncrement(i + 1, sector));
+          ring.applications += 1;
+          ring.lastGap = sector;
+        }
+        saveCounts();
+        updateAll();
+        showToast(mapEditMode === "ablate" ? `SVC 已记录 1 次消融 · ${sectorLabel(sector)} 区为缺口` : `${label} 累计 ${ring.counts[index]} 次`);
+      }
+
+      function svcSectorGeometry(index) {
+        const { x, y, inner, outer } = SVC_RING;
+        const angle = (index + 0.5) * RingSectors.degrees;
+        return {
+          start: index * RingSectors.degrees + 1.4, end: (index + 1) * RingSectors.degrees - 1.4,
+          countPoint: polar(x, y, (inner + outer) / 2, angle),
+          labelPoint: polar(x, y, outer + 9, angle),
+        };
+      }
+
+      function drawSvcRing(zone, metrics) {
+        const { x, y, inner, outer } = SVC_RING;
+        metrics.grid[0].forEach((count, index) => {
+          const sector = index + 1;
+          const { start, end, countPoint, labelPoint } = svcSectorGeometry(index);
+          const d = ringSegmentPath(x, y, inner, outer, start, end);
+          const level = planarLevelForCount(count, metrics.cfg.target);
+          const path = createSvgElement("path", {
+            d, class: `planar-cell svc-sector level-${level}`, role: "button", tabindex: 0,
+            "data-svc-sector": sector, "aria-label": `SVC ${sectorLabel(sector)} 区，累计 ${count} 次`,
+          }, zone);
+          bindSvgButton(path, () => recordSvcSector(sector));
+          if (planarState.svcRing.lastGap === sector) {
+            for (const cls of ["segment-excluded-outline", "segment-excluded-marker"]) {
+              createSvgElement("path", { d, class: `${cls} visible` }, zone);
+            }
+          }
+          createSvgElement("text", { ...labelPoint, class: "sector-label" }, zone).textContent = sectorLabel(sector);
+          if (count) createSvgElement("text", {
+            ...countPoint, class: `segment-count visible${level >= 2 ? " on-dark" : ""}`,
+          }, zone).textContent = count;
+        });
+        const center = createSvgElement("g", {
+          class: `planar-dim-btn ${metrics.complete ? "plan-complete" : metrics.inProgress ? "plan-in-progress" : ""}`,
+          role: "button", tabindex: 0, "aria-label": `SVC 消融 ${metrics.applicationCount} 次，调整单个扇区的覆盖阈值`,
+        }, zone);
+        createSvgElement("circle", { cx: x, cy: y, r: inner - 3, class: "vein-center" }, center);
+        createSvgElement("text", { x, y: y - 3, class: "vein-code" }, center).textContent = "SVC";
+        createSvgElement("text", { x, y: y + 12, class: "vein-cn" }, center).textContent = "上腔静脉";
+        bindSvgButton(center, () => togglePlanarPopover(SVC_RING.id));
+      }
+
+      const structureOptions = document.getElementById("optional-structures");
+      const structurePreferenceKey = "victorypvi-plus-anatomy-positions";
+      let savedStructures = safeStorageGet(structurePreferenceKey);
+      if (savedStructures === null) {
+        const previousExtras = safeStorageGet("victorypvi-plus-visible-structures");
+        savedStructures = planarState.enabled ? ["lapw", previousExtras].filter(Boolean).join(",") : "";
+        safeStorageSet(structurePreferenceKey, savedStructures);
+      }
+      const savedSelections = new Set(savedStructures.split(","));
+      const visibleStructures = new Set();
+      for (const input of structureOptions.querySelectorAll("input:enabled")) {
+        input.checked = savedSelections.has(input.value);
+        if (input.checked) visibleStructures.add(input.value);
+        input.addEventListener("change", () => {
+          if (input.checked) visibleStructures.add(input.value);
+          else visibleStructures.delete(input.value);
+          safeStorageSet(structurePreferenceKey, [...visibleStructures].join(","));
+          if (!input.checked && activePlanarPopoverSiteId === input.value) closePlanarPopover();
+          else planarRenderLayer();
+          updateMapView();
+        });
+      }
+
+      function structureVisible(site) {
+        return visibleStructures.has(site.id);
+      }
+
+      function siteVisibleInView(site, view) {
+        return view === "all" || site.side === view || (view === "posterior" && site.id === "lapw");
+      }
+
+      function positionPosteriorMapPart(element, part, placements) {
+        const placement = placements?.[part];
+        if (placement) element.setAttribute("transform", `translate(${placement.x} ${placement.y}) scale(${placement.scaleX ?? placement.scale} ${placement.scale})`);
+        else element.removeAttribute("transform");
+      }
+
+      function fullMapPlacements(view) {
+        if (view !== "all") return null;
+        return mapPlacements(visibleStructures.has("lapw"), visibleStructures.has("svcRing"));
+      }
+
+      function planarRenderLayer() {
+        const view = svg.dataset.view || "all";
+        const posterior = view === "posterior";
+        const existing = svg.querySelector(".planar-layer");
+        if (existing) existing.remove();
+        const showWall = posterior || visibleStructures.has("lapw");
+        svg.classList.toggle("has-planar-grid", showWall);
+        if (!visibleStructures.size && !posterior) return;
+
+        const layer = createSvgElement("g", {
+          class: "planar-layer",
+          "aria-label": "PVI+解剖位置消融区",
+        });
+
+        for (const site of PLANAR_SITES) {
+          if (!structureVisible(site) && !(posterior && site.id === "lapw")) continue;
+          const metrics = computePlanarSiteMetrics(site.id);
+          const { cfg, grid, projections, unablatedGaps, complete, inProgress } = metrics;
+          const { rows, cols, target } = cfg;
+          const isOpenPopover = activePlanarPopoverSiteId === site.id;
+          const visibleInMobile = siteVisibleInView(site, view);
+          const wall = site.id === "lapw";
+
+          const zone = createSvgElement("g", {
+            class: `planar-zone${complete ? " is-complete" : inProgress ? " is-in-progress" : ""}${isOpenPopover ? " is-configured" : ""}`,
+            "data-planar-site": site.id,
+            "aria-hidden": String(!visibleInMobile),
+          }, layer);
+          positionPosteriorMapPart(zone, site.id, fullMapPlacements(view));
+
+          if (site === SVC_RING) {
+            drawSvcRing(zone, metrics);
+            continue;
+          }
+          const geom = planarCellGeometry(site, rows, cols);
+          createSvgElement("rect", {
+            x: site.x, y: site.y, width: site.w, height: site.h, rx: 10,
+            class: "planar-zone-frame",
+          }, zone);
+
+          createSvgElement("path", {
+            d: `M ${site.x + 1} ${site.y + geom.headerH} L ${site.x + 1} ${site.y + 10} Q ${site.x + 1} ${site.y + 1} ${site.x + 10} ${site.y + 1} L ${site.x + site.w - 10} ${site.y + 1} Q ${site.x + site.w - 1} ${site.y + 1} ${site.x + site.w - 1} ${site.y + 10} L ${site.x + site.w - 1} ${site.y + geom.headerH} Z`,
+            class: "planar-zone-header-bg",
+          }, zone);
+
+          createSvgElement("circle", {
+            cx: site.x + 10, cy: site.y + geom.headerH / 2, r: 3,
+            class: "planar-zone-status-dot",
+          }, zone);
+
+          const titleEl = createSvgElement("text", {
+            x: site.x + 17, y: site.y + geom.headerH / 2 + 3.5,
+            class: "planar-zone-title",
+          }, zone);
+          titleEl.textContent = site.short;
+          if (wall) {
+            createSvgElement("tspan", { dx: 8, fill: "#51485c", "font-size": 12 }, titleEl)
+              .textContent = `消融 ${metrics.applicationCount} 次`;
+          }
+
+          const axes = wall ? ["rows", "cols"] : ["cols"];
+          const stepWidth = wall ? 20 : 14;
+          const badgeW = wall ? 30 : 32;
+          const buttonHeight = wall ? 20 : 15;
+          const buttonTop = site.y + (geom.headerH - buttonHeight) / 2;
+          const buttonCenterY = site.y + geom.headerH / 2;
+          axes.forEach((axis, i) => {
+            const right = site.x + site.w - 3 - (axes.length - 1 - i) * (badgeW + 2 * stepWidth + 9);
+            const badgeX = right - badgeW - (site.quickCols ? stepWidth + 2 : 2);
+            const name = axis === "rows" ? "行" : "列";
+            const dimBtn = createSvgElement("g", {
+              class: "planar-dim-btn", role: "button", tabindex: 0,
+              "aria-label": `${site.name}当前 ${rows} 行 ${cols} 列，点击调整分区`,
+            }, zone);
+            createSvgElement("rect", { x: badgeX, y: buttonTop, width: badgeW, height: buttonHeight, rx: 7, class: "planar-dim-pill" }, dimBtn);
+            createSvgElement("text", { x: badgeX + badgeW / 2, y: buttonCenterY, class: "planar-dim-text" }, dimBtn)
+              .textContent = wall ? `${cfg[axis]}${name}` : `${rows}×${cols}`;
+            bindSvgButton(dimBtn, () => togglePlanarPopover(site.id));
+            if (!site.quickCols) return;
+            for (const delta of [-1, 1]) {
+              const x = delta < 0 ? badgeX - stepWidth - 1 : badgeX + badgeW + 1;
+              const disabled = delta < 0 ? cfg[axis] <= minimumPlanarDimension(site, cfg, axis) :
+                cfg[axis] >= (axis === "rows" ? site.maxRows : site.maxCols);
+              const button = createSvgElement("g", {
+                class: "planar-mini-step", role: "button", tabindex: 0,
+                "aria-disabled": String(disabled),
+                "aria-label": `${delta < 0 ? "减少" : "增加"}${site.short}${name}数`,
+              }, zone);
+              createSvgElement("rect", { x, y: buttonTop, width: stepWidth, height: buttonHeight, rx: 4, class: "planar-mini-step-bg" }, button);
+              createSvgElement("text", { x: x + stepWidth / 2, y: buttonCenterY }, button).textContent = delta < 0 ? "−" : "+";
+              if (!disabled) bindSvgButton(button, () => adjustPlanarDimension(site.id, axis, delta));
+              else if (delta < 0 && wall && cfg[axis] > (axis === "rows" ? site.minRows : site.minCols)) {
+                createSvgElement("title", {}, button).textContent = axis === "rows" ? "最下行已有消融记录" : "最右列已有消融记录";
+              }
+            }
+          });
+
+          if (wall) {
+            drawWallGrid(zone, metrics, geom, true);
+            if (metrics.retained.length) {
+              const detail = createSvgElement("g", { role: "button", tabindex: 0, class: "planar-dim-btn",
+                "aria-label": "查看后壁收起行列的记录" }, zone);
+              createSvgElement("rect", { x: site.x, y: site.y + site.h + 1, width: site.w, height: 12, rx: 4, class: "planar-dim-pill" }, detail);
+              createSvgElement("text", { x: site.x + site.w / 2, y: site.y + site.h + 7, class: "planar-dim-text" }, detail)
+                .textContent = `当前网格 ${metrics.assignedCount} 次 · 收起行列 ${metrics.retained.length} 次 ›`;
+              bindSvgButton(detail, () => {
+                activePlanarPopoverSiteId = site.id;
+                renderPlanarPopover();
+                planarPopover.querySelector(".wall-records").open = true;
+              });
+            }
+            continue;
+          }
+
+          for (let r = 0; r < rows; r += 1) {
+            for (let c = 0; c < cols; c += 1) {
+              const val = grid[r][c];
+              const display = val || "";
+              const level = metrics.levels?.[r][c] ?? planarLevelForCount(val, target);
+              const cx = geom.gx + c * (geom.cellW + geom.gap);
+              const cy = geom.gy + r * (geom.cellH + geom.gap);
+              const cell = createSvgElement("rect", {
+                x: cx, y: cy, width: geom.cellW, height: geom.cellH, rx: 5,
+                class: `planar-cell${level ? ` level-${level}` : ""}`,
+                role: "button",
+                tabindex: visibleInMobile && syncRole !== "mirror" ? "0" : "-1",
+                "data-planar-site": site.id,
+                "data-planar-row": r,
+                "data-planar-col": c,
+                "aria-label": `${site.name} 第${r + 1}行第${c + 1}列，已归格 ${val} 次，达标 ${target} 次；点击四边设定缺口方向`,
+              }, zone);
+
+              cell.addEventListener("keydown", (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  handlePlanarCellClick(site.id, r, c, planarState.gapOrientation);
+                }
+              });
+
+              planarFanSectors(cx, cy, geom).forEach(({ deg, points }) => {
+                const edgeEl = createSvgElement("polygon", {
+                  points: points.map(point => `${point.x},${point.y}`).join(" "),
+                  class: `planar-cell-edge level-${level}`,
+                  "data-planar-site": site.id,
+                  "data-planar-row": r,
+                  "data-planar-col": c,
+                  "data-planar-edge": deg,
+                  "aria-label": `${site.name} 第${r + 1}行第${c + 1}列 ${PLANAR_EDGE_META[deg].label}边 · ${mapEditMode === "segment" ? "节段补消" : mapEditMode === "remove" ? "去除本格最近一次记录" : "记录缺口方向"}`,
+                }, zone);
+                bindSvgButton(edgeEl, () => handlePlanarCellClick(site.id, r, c, deg));
+              });
+              const countText = createSvgElement("text", {
+                x: cx + geom.cellW / 2,
+                y: cy + geom.cellH / 2,
+                class: `planar-cell-count${display !== "" ? " visible" : ""}`,
+              }, zone);
+              countText.textContent = display;
+            }
+          }
+
+          // Draw each recorded footprint at its stored position.
+          for (const proj of projections) {
+            if (proj.ev.mode !== "ablate" || proj.assigned === false) continue;
+            const u = proj.source ? (proj.col + 0.5) / cols : proj.ev.u;
+            const v = proj.source ? (proj.row + 0.5) / rows : proj.ev.v;
+            const px = geom.gx + u * (geom.gw + geom.gap) - geom.gap / 2;
+            const py = geom.gy + v * (geom.gh + geom.gap) - geom.gap / 2;
+            const radius = Math.max(5.5, Math.min(geom.cellW, geom.cellH) * 0.34);
+
+            createSvgElement("circle", {
+              cx: px, cy: py, r: radius,
+              class: "planar-stamp-ring",
+            }, zone);
+            const gStart = (proj.ev.gapOrientation - 22 + 360) % 360;
+            const gEnd = (proj.ev.gapOrientation + 22) % 360;
+            const p0 = polar(px, py, radius, gStart);
+            const p1 = polar(px, py, radius, gEnd);
+            createSvgElement("path", {
+              d: `M ${p0.x} ${p0.y} A ${radius} ${radius} 0 0 1 ${p1.x} ${p1.y}`,
+              class: "planar-stamp-gap",
+            }, zone);
+          }
+
+          // Render Unablated 1-10 Gap Warnings directly on the missing edges
+          unablatedGaps.forEach((gapItem) => {
+            const emphasis = gapItem.outerEdge ? " is-outer-edge" : "";
+            const lineCoords = gapLine(geom, gapItem);
+            createSvgElement("line", {
+              x1: lineCoords.x1, y1: lineCoords.y1, x2: lineCoords.x2, y2: lineCoords.y2,
+              class: "planar-gap-warning-underlay",
+            }, zone);
+            createSvgElement("line", {
+              x1: lineCoords.x1, y1: lineCoords.y1, x2: lineCoords.x2, y2: lineCoords.y2,
+              class: `planar-gap-warning-edge${emphasis}`,
+              "data-unablated-gap": `${site.id}-${gapItem.row}-${gapItem.col}-${gapItem.deg}`,
+            }, zone);
+            if (!gapItem.outerEdge) return;
+            const tagWidth = Math.min(20, Math.max(9, Math.abs(lineCoords.x2 - lineCoords.x1)));
+            createSvgElement("rect", {
+              x: lineCoords.tx - tagWidth / 2, y: lineCoords.ty - 5, width: tagWidth, height: 10, rx: 4,
+              class: "planar-gap-warning-tag-bg",
+            }, zone);
+            const tagText = createSvgElement("text", {
+              x: lineCoords.tx, y: lineCoords.ty,
+              class: "planar-gap-warning-tag",
+              ...(tagWidth < 18 ? { textLength: tagWidth - 3, lengthAdjust: "spacingAndGlyphs" } : {}),
+            }, zone);
+            tagText.textContent = "缺口";
+          });
+
+        }
+      }
+
+      function handlePlanarCellClick(siteId, row, col, clickedEdgeDeg = null, mode = mapEditMode) {
+        if (syncWriteBlocked()) return;
+        const site = PLANAR_SITE_MAP[siteId];
+        const cfg = planarState.configs[siteId];
+        if (!site || !cfg || !Number.isInteger(row) || !Number.isInteger(col) ||
+            row < 0 || row >= cfg.rows || col < 0 || col >= cfg.cols || !["remove","segment","ablate"].includes(mode)) return;
+
+        if (mode === "remove") {
+          for (let i = planarState.events.length - 1; i >= 0; i -= 1) {
+            const ev = planarState.events[i];
+            if (ev.siteId !== siteId) continue;
+            const proj = siteId === "lapw" ? wallProjection(ev, cfg.rows, cfg.cols) : planarEventProjection(ev, cfg.rows, cfg.cols);
+            if (proj.assigned !== false && proj.row === row && proj.col === col && proj.weight > 0) {
+              pushHistory(`撤销 ${site.short} (${row + 1},${col + 1}) 相关消融`);
+              planarState.events.splice(i, 1);
+              saveCounts();
+              updateAll();
+              showToast(`已移除 ${site.short} 最近一次覆盖该点的消融`);
+              return;
+            }
+          }
+          showToast(siteId === "lapw" ? "该格没有可去除的已归格记录。" : `${site.short} 该格当前无消融记录可去除`);
+          return;
+        }
+
+        const effectiveEdge = clickedEdgeDeg != null && PLANAR_GAP_DIRS.some((d) => d.deg === Number(clickedEdgeDeg))
+          ? Number(clickedEdgeDeg)
+          : planarState.gapOrientation;
+        const dirObj = PLANAR_GAP_DIRS.find((d) => d.deg === effectiveEdge) || PLANAR_GAP_DIRS[0];
+
+        if (mode === "ablate") {
+          const activeElectrodes = activeElectrodeNumbers();
+          if (!activeElectrodes.length) {
+            showToast("请至少开启一个放电电极");
+            electrodeSelector.querySelector(".electrode-center-button")?.focus();
+            return;
+          }
+          pushHistory(`${site.short} (${row + 1},${col + 1})消融 · 缺口朝${dirObj.label}`);
+          planarState.gapOrientation = effectiveEdge;
+          planarState.events.push({
+            id: `pe-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            siteId,
+            u: (col + 0.5) / cfg.cols,
+            v: (row + 0.5) / cfg.rows,
+            du: 1 / cfg.cols,
+            dv: 1 / cfg.rows,
+            mode: "ablate",
+            activeElectrodes,
+            gapOrientation: effectiveEdge,
+            recordedAt: new Date().toISOString(),
+          });
+          saveCounts();
+          updateAll();
+          const metrics = computePlanarSiteMetrics(siteId);
+          const hasThisUnablated = metrics.unablatedGaps.some((g) => g.row === row && g.col === col && g.deg === effectiveEdge);
+          const pending = metrics.interfaces?.some(e => e.state === "pending" && e.missing.row === row &&
+            e.missing.col === col && e.missing.deg === effectiveEdge);
+          showToast(
+            pending ? `${site.short} 本格已计数 · ${dirObj.label}边邻格衔接待核对` : hasThisUnablated
+              ? `${site.short} 已记录 · (${row + 1},${col + 1})${dirObj.label}边仍有缺口`
+              : siteId === "lapw" && !metrics.sides[row][col][effectiveEdge].count
+                ? `${site.short} 本格已计数 · 同侧前庭后壁已达标`
+                : `${site.short} 本格已计数（${dirObj.label}边已有覆盖记录）`,
+          );
+          return;
+        }
+
+        // segment mode: touch-up on cell or specific unablated edge
+        const hasSpecificEdge = clickedEdgeDeg != null && PLANAR_GAP_DIRS.some((d) => d.deg === Number(clickedEdgeDeg));
+        pushHistory(`${site.short} (${row + 1},${col + 1})${hasSpecificEdge ? dirObj.label + "边" : ""}节段补消 +1`);
+        planarState.events.push({
+          id: `pe-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          siteId,
+          u: (col + 0.5) / cfg.cols,
+          v: (row + 0.5) / cfg.rows,
+          du: 1 / cfg.cols,
+          dv: 1 / cfg.rows,
+          mode: "segment",
+          activeElectrodes: activeElectrodeNumbers(),
+          electrodesRecorded: true,
+          gapOrientation: effectiveEdge,
+          targetEdge: hasSpecificEdge ? effectiveEdge : null,
+          recordedAt: new Date().toISOString(),
+        });
+        saveCounts();
+        updateAll();
+        showToast(`${site.short} (${row + 1},${col + 1})${hasSpecificEdge ? dirObj.label + "边缺口已补消 " : " "}节段 +1 次`);
+      }
+
+      function minimumPlanarDimension(site, cfg, axis) {
+        let minimum = axis === "rows" ? site.minRows : site.minCols;
+        if (site.id === "lapw") {
+          for (const ev of planarState.events) {
+            if (ev.siteId !== site.id) continue;
+            const { row, col } = wallProjection(ev, cfg.rows, cfg.cols);
+            const index = axis === "rows" ? row : col;
+            if (index < cfg[axis]) minimum = Math.max(minimum, index + 1);
+          }
+        }
+        return minimum;
+      }
+
+      function adjustPlanarDimension(siteId, axis, delta) {
+        if (syncWriteBlocked()) return;
+        const site = PLANAR_SITE_MAP[siteId];
+        const cfg = planarState.configs[siteId];
+        if (!site || !cfg) return;
+        const prevRows = cfg.rows;
+        const prevCols = cfg.cols;
+        let nextRows = prevRows;
+        let nextCols = prevCols;
+        if (axis === "rows") {
+          nextRows = Math.min(site.maxRows, Math.max(site.minRows, prevRows + delta));
+        }
+        if (axis === "cols") {
+          nextCols = Math.min(site.maxCols, Math.max(site.minCols, prevCols + delta));
+        }
+        const nextSize = axis === "rows" ? nextRows : nextCols;
+        if (nextSize < cfg[axis] && nextSize < minimumPlanarDimension(site, cfg, axis)) {
+          showToast(axis === "rows" ? "该行已有消融记录，无法减少行数" : "该列已有消融记录，无法减少列数");
+          return;
+        }
+        if (nextRows === prevRows && nextCols === prevCols) {
+          showToast(`${site.short}已达分区范围上限/下限`);
+          return;
+        }
+        const hadEvents = planarState.events.some((ev) => ev.siteId === siteId);
+        pushHistory(`调整 ${site.short} 分区为 ${nextRows}×${nextCols}`);
+        cfg.rows = nextRows;
+        cfg.cols = nextCols;
+        saveCounts();
+        updateAll();
+        renderPlanarPopover();
+        showToast(`${site.short} 分区调整为 ${nextRows}×${nextCols}${hadEvents ? (siteId === "lapw" ? " · " + wallCountSummary(computePlanarSiteMetrics(siteId)) : "（已重映射消融点）") : ""}`);
+      }
+
+      function adjustPlanarTarget(siteId, delta) {
+        if (syncWriteBlocked()) return;
+        const site = PLANAR_SITE_MAP[siteId];
+        const cfg = planarState.configs[siteId];
+        if (!site || !cfg) return;
+        const nextTarget = Math.min(4, Math.max(1, cfg.target + delta));
+        if (nextTarget === cfg.target) return;
+        pushHistory(`更新 ${site.short} 达标阈值为 ${nextTarget} 次`);
+        cfg.target = nextTarget;
+        saveCounts();
+        updateAll();
+        renderPlanarPopover();
+      }
+
+      function setPlanarGapOrientation(deg) {
+        if (syncWriteBlocked() || !PLANAR_GAP_DIRS.some((d) => d.deg === deg)) return;
+        planarState.gapOrientation = deg;
+        saveCounts();
+        updateAll();
+        renderPlanarPopover();
+        const dirObj = PLANAR_GAP_DIRS.find((d) => d.deg === deg);
+        showToast(`缺口已旋至${dirObj.symbol} ${dirObj.label}`);
+      }
+
+      function togglePlanarPopover(siteId) {
+        if (activePlanarPopoverSiteId === siteId) {
+          closePlanarPopover();
+          return;
+        }
+        activePlanarPopoverSiteId = siteId;
+        renderPlanarPopover();
+        planarRenderLayer();
+      }
+
+      function closePlanarPopover() {
+        activePlanarPopoverSiteId = null;
+        if (planarPopover) {
+          planarPopover.hidden = true;
+          planarPopover.replaceChildren();
+        }
+        planarRenderLayer();
+      }
+
+      function renderPlanarPopover() {
+        if (!planarPopover || !activePlanarPopoverSiteId) return;
+        const site = PLANAR_SITE_MAP[activePlanarPopoverSiteId];
+        const cfg = planarState.configs[activePlanarPopoverSiteId];
+        if (!site || !cfg) {
+          closePlanarPopover();
+          return;
+        }
+        const metrics = computePlanarSiteMetrics(site.id);
+        const gapSuffix = metrics.unablatedGaps.length ? ` · ${metrics.unablatedGaps.length} 处缺口` : "";
+        planarPopover.hidden = false;
+        planarPopover.innerHTML = `
+          <div class="planar-popover-head">
+            <div>
+              <strong>${escapeHtml(site.name)}</strong>
+              <small>已记录 ${metrics.applicationCount} 次 · 已覆盖 ${metrics.coveredCells}/${metrics.totalCells} ${site === SVC_RING ? "区" : "格"}${gapSuffix}</small>
+            </div>
+            <button type="button" class="planar-popover-close" id="planar-pop-close" aria-label="关闭设置">×</button>
+          </div>
+          <div class="planar-popover-rows">
+            ${site === SVC_RING ? "" : `<div class="planar-popover-row">
+              <span>横向分区（行）</span>
+              <div class="planar-stepper">
+                <button type="button" data-pop-axis="rows" data-pop-delta="-1" ${cfg.rows <= minimumPlanarDimension(site, cfg, "rows") ? "disabled" : ""}>−</button>
+                <b>${cfg.rows}</b>
+                <button type="button" data-pop-axis="rows" data-pop-delta="1" ${cfg.rows >= site.maxRows ? "disabled" : ""}>+</button>
+              </div>
+            </div>
+            <div class="planar-popover-row">
+              <span>纵向分区（列）</span>
+              <div class="planar-stepper">
+                <button type="button" data-pop-axis="cols" data-pop-delta="-1" ${cfg.cols <= minimumPlanarDimension(site, cfg, "cols") ? "disabled" : ""}>−</button>
+                <b>${cfg.cols}</b>
+                <button type="button" data-pop-axis="cols" data-pop-delta="1" ${cfg.cols >= site.maxCols ? "disabled" : ""}>+</button>
+              </div>
+            </div>`}
+            <div class="planar-popover-row">
+              <span>${site === SVC_RING ? "单区" : "单格"}达标次数</span>
+              <div class="planar-stepper">
+                <button type="button" data-pop-target="-1" ${cfg.target <= 1 ? "disabled" : ""}>−</button>
+                <b>${cfg.target} 次</b>
+                <button type="button" data-pop-target="1" ${cfg.target >= 4 ? "disabled" : ""}>+</button>
+              </div>
+            </div>
+            ${site === SVC_RING ? "" : `<div class="planar-popover-row">
+              <span>缺口朝向</span>
+              <div class="planar-gap-segment" role="group" aria-label="缺口朝向">
+                ${PLANAR_GAP_DIRS.map((d) => `<button type="button" data-pop-gap="${d.deg}" aria-pressed="${planarState.gapOrientation === d.deg}">${d.symbol}${d.label}</button>`).join("")}
+              </div>
+            </div>`}
+          </div>
+          ${site.id === "lapw" && metrics.applicationCount ? `<p class="planar-popover-note">${wallCountSummary(metrics)}。新增行在下方，新增列在右侧。</p>` : ""}
+          ${metrics.retained?.length ? `<details class="wall-records"><summary>收起行列的记录（${metrics.retained.length} 次）</summary>
+            <p>恢复相应行列后，记录会重新显示在原格。</p><ol>${metrics.retained.map(({ev, source}, index) => {
+              const angle = ev.mode === "segment" ? ev.targetEdge : ev.gapOrientation;
+              const dir = angle == null ? "" : PLANAR_EDGE_META[planarDisplayEdge(angle)].label;
+              const action = ev.mode === "segment" ? "节段补记" + (dir ? " · " + dir + "边" : "") :
+                "缺口朝" + dir + " · 电极 " + ev.activeElectrodes.join("、");
+              return `<li>${wallRegionName(source)} · ${escapeHtml(formatOperationTime(ev.recordedAt))} · ${escapeHtml(action)}
+                <button type="button" data-remove-wall-record="${index}" ${syncRole === "mirror" ? "disabled" : ""}>去除</button></li>`;
+            }).join("")}</ol></details>` : ""}
+          <p class="planar-popover-note">${site === SVC_RING ? "记录 1 次 SVC 消融后圆心变绿。单区达标次数用于扇区着色。" : site.id === "lapw" ?
+            "点击矩形的一条边记录该格缺口方向。上下缘缺口标红，其余缺口标淡黄。同侧肺静脉前庭后壁全部达标后，隐藏该侧外缘缺口提示。紫色点线标记待核对的交界。" :
+            "点击格子边缘可指定缺口方向，只有点中的格子计数。上下外缘的潜在缺口标红，其余标黄。"}</p>
+        `;
+        planarPopover.querySelectorAll("[data-remove-wall-record]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            if (syncWriteBlocked()) return;
+            const { ev, source } = metrics.retained[Number(btn.dataset.removeWallRecord)];
+            const index = planarState.events.indexOf(ev);
+            if (index < 0) return;
+            pushHistory(`去除后壁收起行列的记录 · ${wallRegionName(source)}`);
+            planarState.events.splice(index, 1);
+            saveCounts();
+            updateAll();
+          });
+        });
+        planarPopover.querySelector("#planar-pop-close")?.addEventListener("click", closePlanarPopover);
+        planarPopover.querySelectorAll("[data-pop-axis]").forEach((btn) => {
+          btn.addEventListener("click", () => adjustPlanarDimension(site.id, btn.dataset.popAxis, Number(btn.dataset.popDelta)));
+        });
+        planarPopover.querySelectorAll("[data-pop-target]").forEach((btn) => {
+          btn.addEventListener("click", () => adjustPlanarTarget(site.id, Number(btn.dataset.popTarget)));
+        });
+        planarPopover.querySelectorAll("[data-pop-gap]").forEach((btn) => {
+          btn.addEventListener("click", () => setPlanarGapOrientation(Number(btn.dataset.popGap)));
+        });
+      }
+
+      // Hook into core lifecycle functions cleanly
+      const _baseHasAnyClinicalRecords = hasAnyClinicalRecords;
+      hasAnyClinicalRecords = function () {
+        return _baseHasAnyClinicalRecords() || planarState.svcRing.applications > 0 || planarState.events.length > 0 || Object.keys(planarState.endpoints).some((k) => planarState.endpoints[k] && planarState.endpoints[k] !== "not-assessed");
+      };
+
+      const _baseClearClinicalRecordState = clearClinicalRecordState;
+      clearClinicalRecordState = function () {
+        _baseClearClinicalRecordState();
+        planarState.events = [];
+        planarState.wallReviews = {};
+        planarState.svcRing = sanitizePlanarState(null).svcRing;
+        planarState.endpoints = {};
+      };
+
+      const _baseGetAblationOverviewMetrics = getAblationOverviewMetrics;
+      getAblationOverviewMetrics = function () {
+        const base = _baseGetAblationOverviewMetrics();
+        if (!planarState.events.length && !planarState.svcRing.applications) return base;
+        let extraCovered = 0;
+        let extraCells = 0;
+        let extraMet = 0;
+        for (const site of RECORD_SITES) {
+          const m = computePlanarSiteMetrics(site.id);
+          if (!m.applicationCount) continue;
+          extraCovered += m.coveredCells;
+          extraCells += m.totalCells;
+          extraMet += m.targetMetCells;
+        }
+        const planarAppTotal = planarState.events.length + planarState.svcRing.applications;
+        const totalPositions = base.totalPositions + extraCells;
+        const covered = base.covered + extraCovered;
+        const pvCells = veins.length * Object.keys(layers).length * RingSectors.count;
+        const denom = pvCells + extraCells;
+        return {
+          ...base,
+          total: base.total + planarAppTotal,
+          covered,
+          totalPositions,
+          targetMet: base.targetMet + extraMet,
+          targetMetPercentage: denom ? Math.round(((base.targetMet + extraMet) / denom) * 100) : base.targetMetPercentage,
+          planarApplications: planarAppTotal,
+        };
+      };
+
+      const _baseUpdateMapView = updateMapView;
+      updateMapView = function () {
+        const previous = svg.dataset.view;
+        _baseUpdateMapView();
+        const view = svg.dataset.view;
+        if (view !== previous) {
+          if (activePlanarPopoverSiteId && !siteVisibleInView(PLANAR_SITE_MAP[activePlanarPopoverSiteId], view)) closePlanarPopover();
+          else if (!visibleStructures.has("lapw") && (previous === "posterior" || view === "posterior")) planarRenderLayer();
+        }
+        if (view === "left") svg.setAttribute("viewBox", "0 36 470 594");
+        else if (view === "right") svg.setAttribute("viewBox", "510 36 470 594");
+        if (view === "posterior") {
+          const {x, y, w, h} = PLANAR_SITE_MAP.lapw;
+          // Include the original-region link that can appear below the frame.
+          svg.setAttribute("viewBox", `${x - 8} ${y - 8} ${w + 16} ${h + 30}`);
+          svg.style.aspectRatio = `${w + 16} / ${h + 30}`;
+          recordHint.textContent = mapEditMode === "remove" ? "点格子边缘，去除本格最近一次记录" :
+            mapEditMode === "segment" ? "点格子边缘，记录该方向的一次节段补消" : "点格子边缘，记录一次消融并标记缺口方向";
+        } else {
+          svg.style.removeProperty("aspect-ratio");
+          if (previous === "posterior") updateMapEditMode();
+        }
+        const placements = fullMapPlacements(view);
+        for (const part of svg.querySelectorAll("[data-pv-side], [data-map-part]")) {
+          positionPosteriorMapPart(part, part.dataset.pvSide ?? part.dataset.mapPart, placements);
+        }
+        svg.querySelectorAll(".planar-zone").forEach((zone) => {
+          const site = PLANAR_SITE_MAP[zone.dataset.planarSite];
+          positionPosteriorMapPart(zone, site.id, placements);
+          const visible = siteVisibleInView(site, view);
+          zone.setAttribute("aria-hidden", String(!visible));
+          zone.querySelectorAll("[role='button']").forEach((btn) => {
+            btn.setAttribute("tabindex", visible && syncRole !== "mirror" && btn.getAttribute("aria-disabled") !== "true" ? "0" : "-1");
+          });
+        });
+      };
+
+      const _baseUpdateAll = updateAll;
+      updateAll = function () {
+        planarRenderLayer();
+        _baseUpdateAll();
+        updateMapView();
+        renderPlanarPopover();
+      };
+
+      function recordedStructureSites() {
+        const observed = new Set(planarState.events.map(event => event.siteId));
+        if (planarState.svcRing.applications) observed.add(SVC_RING.id);
+        return RECORD_SITES.filter(site => observed.has(site.id) ||
+          (planarState.endpoints[site.id] && planarState.endpoints[site.id] !== "not-assessed"));
+      }
+
+      const _baseUpdateSummary = updateSummary;
+      updateSummary = function () {
+        _baseUpdateSummary();
+        const recordedSites = recordedStructureSites();
+        if (!recordedSites.length) return;
+        const groupLabel = document.createElement("div");
+        groupLabel.className = "planar-summary-group-label";
+        groupLabel.textContent = "PVI+解剖位置";
+        veinList.appendChild(groupLabel);
+        recordedSites.forEach((site) => {
+          const m = computePlanarSiteMetrics(site.id);
+          const epOptions = PLANAR_ENDPOINT_OPTIONS.map(
+            ([val, label]) => `<option value="${val}"${(planarState.endpoints[site.id] || "not-assessed") === val ? " selected" : ""}>${label}</option>`,
+          ).join("");
+          const gapText = m.unablatedGaps.map(gapLocation).join("、");
+          const gapHintHtml = site.id !== "lapw" && site !== SVC_RING && m.applicationCount
+            ? `<div class="planar-unablated-hint${m.unablatedGaps.length ? "" : " is-closed"}">${
+                m.unablatedGaps.length ? `⚠ 未消融缺口：${escapeHtml(gapText)}` : "✓ 无未消融缺口"
+              }</div>`
+            : "";
+          const card = document.createElement("div");
+          card.className = `vein-summary planar-summary-item${m.complete ? " plan-complete" : m.inProgress ? " plan-in-progress" : ""}`;
+          card.innerHTML = `
+            <span class="vein-summary-name">${escapeHtml(site.short)}<span class="planar-summary-badge">${HISTORICAL_GRID_SITES.includes(site) ? "历史网格 " : ""}${m.layoutLabel}</span></span>
+            <span class="progress-track" style="--segments: ${Math.max(1, m.totalCells)}" role="progressbar" aria-valuemin="0" aria-valuemax="${m.totalCells}" aria-valuenow="${m.targetMetCells}">
+              ${progressSegments(m.targetMetCells, Math.max(1, m.totalCells))}
+            </span>
+            <span class="vein-summary-count">${m.targetMetCells}/${m.totalCells} 达标 · ${m.applicationCount}次</span>
+            ${gapHintHtml}
+            <label class="endpoint-control">
+              <span>${site.id === "lapw" ? "后壁电隔离评估" : escapeHtml(site.endpointLabel)}</span>
+              <select data-planar-endpoint="${site.id}" aria-label="${escapeHtml(site.name)} 终点评估">${epOptions}</select>
+            </label>
+          `;
+          veinList.appendChild(card);
+          const sel = card.querySelector("select");
+          sel.disabled = HISTORICAL_GRID_SITES.includes(site) || syncRole === "mirror" || syncBootstrapping || syncHandoffPending;
+          sel.addEventListener("change", (event) => {
+            if (!recordPlanarEndpoint(site.id, event.target.value)) {
+              event.target.value = planarState.endpoints[site.id] || "not-assessed";
+            }
+          });
+        });
+      };
+
+      const _baseSyncSnapshotPayload = syncSnapshotPayload;
+      syncSnapshotPayload = function () {
+        const payload = _baseSyncSnapshotPayload();
+        payload.planarState = clonePlanarState(planarState);
+        return payload;
+      };
+
+      const _baseApplySyncedSnapshot = applySyncedSnapshot;
+      applySyncedSnapshot = function (payload, envelope = {}) {
+        if (syncRole !== "mirror" && !envelope.restoreHost) return _baseApplySyncedSnapshot(payload, envelope);
+        const prevPlanar = clonePlanarState(planarState);
+        if (payload && typeof payload === "object" && payload.planarState) {
+          planarState = sanitizePlanarState(payload.planarState);
+        } else if (payload && typeof payload === "object") {
+          planarState = sanitizePlanarState(null);
+        }
+        const ok = _baseApplySyncedSnapshot(payload, envelope);
+        if (!ok) {
+          planarState = prevPlanar;
+        }
+        return ok;
+      };
+
+      // Vector PDF support for planar zones & details
+      function pdfDrawWallGrid(pdf, area, metrics, geom) {
+        const layer = document.createElementNS(NS, "g");
+        layer.setAttribute("transform", `translate(${area.x} ${area.y}) scale(${area.scale})`);
+        drawWallGrid(layer, metrics, geom);
+        pdf.page.push(layer.outerHTML);
+      }
+
+      const _basePdfDrawWebAnatomy = pdfDrawWebAnatomy;
+      pdfDrawWebAnatomy = function (pdf, mapGeometry) {
+        _basePdfDrawWebAnatomy(pdf, mapGeometry, !mapGeometry.showWall);
+        for (const site of PLANAR_SITES) {
+          const m = computePlanarSiteMetrics(site.id);
+          if (!structureVisible(site) && !m.applicationCount) continue;
+          const geometry = posteriorMapGeometry(mapGeometry, site.id);
+          if (site === SVC_RING) {
+            const { x, y, inner, outer } = site;
+            m.grid[0].forEach((count, i) => {
+              const { start, end, countPoint, labelPoint } = svcSectorGeometry(i);
+              const level = planarLevelForCount(count, m.cfg.target);
+              pdfDrawMapAnnularSector(pdf, geometry, x, y, inner, outer, start, end, PDF_SEGMENT_COLORS[level]);
+              const style = { fontSizePx: 11, align: "center", baseline: "middle", color: PDF_COLORS.muted };
+              pdfDrawMapText(pdf, sectorLabel(i + 1), geometry, labelPoint.x, labelPoint.y, style);
+              if (count) pdfDrawMapText(pdf, String(count), geometry, countPoint.x, countPoint.y,
+                { ...style, color: level >= 2 ? "#ffffff" : PDF_COLORS.ink });
+            });
+            const center = pdfMapPoint(geometry, x, y);
+            pdf.fill = m.complete ? PDF_COLORS.greenCenter : PDF_COLORS.surface;
+            pdf.stroke = m.complete ? PDF_COLORS.greenCenter : m.inProgress ? PDF_COLORS.orange : PDF_COLORS.line;
+            pdf.lineWidth = 2 * geometry.scale;
+            pdf.circle(center.x, center.y, (inner - 3) * geometry.scale, "FD");
+            const style = { align: "center", baseline: "middle", color: m.complete ? "#ffffff" : PDF_COLORS.muted };
+            pdfDrawMapText(pdf, "SVC", geometry, x, y, { ...style, fontSizePx: 13 });
+            continue;
+          }
+          const { rows, cols, target } = m.cfg;
+          const geom = planarCellGeometry(site, rows, cols);
+          pdf.fill = "#ffffff";
+          pdf.stroke = m.complete ? PDF_COLORS.greenCenter : "#d7dbe4";
+          pdf.lineWidth = (m.complete ? 1.8 : 1.1) * geometry.scale;
+          const framePos = pdfMapPoint(geometry, site.x, site.y);
+          pdf.rect(framePos.x, framePos.y, site.w * geometry.scale, site.h * geometry.scale, "FD");
+          const title = `${site.short} ${rows}×${cols}` + (site.id === "lapw" ? ` · 消融 ${m.applicationCount} 次` : "");
+          pdfDrawMapText(pdf, title, geometry, site.x + site.w / 2, site.y + 12, {
+            fontSizePx: 9,
+            color: PDF_COLORS.ink,
+            align: "center",
+            baseline: "middle",
+          });
+          if (site.id === "lapw") {
+            pdfDrawWallGrid(pdf, geometry, m, geom);
+            continue;
+          }
+          for (let r = 0; r < rows; r += 1) {
+            for (let c = 0; c < cols; c += 1) {
+              const val = m.grid[r][c];
+              const level = m.levels?.[r][c] ?? planarLevelForCount(val, target);
+              const cx = geom.gx + c * (geom.cellW + geom.gap);
+              const cy = geom.gy + r * (geom.cellH + geom.gap);
+              for (const { points } of planarFanSectors(cx, cy, geom)) {
+                pdf.fill = level ? PDF_SEGMENT_COLORS[level] : "#e5e3eb";
+                pdfDrawPolygon(pdf, pdfTransformMapPoints(geometry, points), "F");
+              }
+              if (val > 0) {
+                pdfDrawMapText(pdf, String(val), geometry, cx + geom.cellW / 2, cy + geom.cellH / 2, {
+                  fontSizePx: 10,
+                  color: "#403a49",
+                  align: "center",
+                  baseline: "middle",
+                });
+              }
+            }
+          }
+          m.unablatedGaps.forEach((gapItem) => {
+            const lineCoords = gapLine(geom, gapItem);
+            const p1 = { x: lineCoords.x1, y: lineCoords.y1 };
+            const p2 = { x: lineCoords.x2, y: lineCoords.y2 };
+            pdfDrawMapPolyline(pdf, geometry, [p1, p2],
+              gapItem.outerEdge ? "#d32030" : "#f4c430",
+              (gapItem.outerEdge ? 3.5 : 1.8) * geometry.scale,
+              gapItem.outerEdge ? [] : [2 * geometry.scale, 1.5 * geometry.scale]);
+          });
+        }
+      };
+
+      const _basePdfDrawRecordDetails = pdfDrawRecordDetails;
+      pdfDrawRecordDetails = function (pdf, model, y) {
+        const nextY = _basePdfDrawRecordDetails(pdf, model, y);
+        const recorded = recordedStructureSites();
+        if (!recorded.length) return nextY;
+        const epMap = Object.fromEntries(PLANAR_ENDPOINT_OPTIONS);
+        const text = recorded.map((s) => {
+          const m = computePlanarSiteMetrics(s.id);
+          const ep = epMap[planarState.endpoints[s.id] || "not-assessed"] || "未评估";
+          if (s === SVC_RING) return `${s.name}（单环 A–J，${m.applicationCount} 次消融，达标 ${m.targetMetCells}/${m.totalCells} 区，${ep}）`;
+          if (s.id === "lapw") return `左房后壁（${m.layoutLabel}）：${wallProgressText(m)}。后壁电隔离评估：${ep}。`;
+          const gapSummary = m.unablatedGaps.length
+            ? `未消融缺口：${m.unablatedGaps.map(gapLocation).join("、")}`
+            : "无未消融缺口";
+          const recordCount = s.id === "lapw" ? wallCountSummary(m) : `${m.applicationCount} 次消融`;
+          const hiddenCells = new Set(m.retained?.map(({row, col}) => `第${row + 1}行第${col + 1}列`));
+          const sources = hiddenCells.size ? "，收起位置：" + [...hiddenCells].join("、") : "";
+          return `${s.name}（${m.layoutLabel} ${HISTORICAL_GRID_SITES.includes(s) ? "历史网格" : "网格"}，${recordCount}${sources}，达标 ${m.targetMetCells}/${m.totalCells} 格，${ep}，${gapSummary}）`;
+        }).join("；");
+        const lines = pdfWrappedLines(pdf, text, 182, 7.5);
+        const height = 10 + lines.length * 3.8;
+        const startY = pdfEnsureRoom(pdf, model, nextY + 3, height, "PVI+解剖位置消融");
+        pdf.fill = PDF_COLORS.canvas;
+        pdf.rect(10, startY, 190, height, "F");
+        pdfDrawText(pdf, "PVI+解剖位置消融记录", 14, startY + 4.4, { fontSize: 7, color: PDF_COLORS.purple3 });
+        lines.forEach((line, idx) => pdfDrawText(pdf, line, 14, startY + 9 + idx * 3.8, { fontSize: 7.5 }));
+        return startY + height;
+      };
+
+      function pdfDrawWallAppendix(pdf, model) {
+        if (!recordedStructureSites().some(site => site.id === "lapw")) return;
+        const m = computePlanarSiteMetrics("lapw");
+        let y = pdfStartContinuation(pdf, model, "左房后壁 · 交界覆盖图与逐次印迹");
+        pdfDrawSectionHeading(pdf, m.complete ? "记录完成" : "记录状态", "后壁交界覆盖图", y);
+        y += 6;
+        function write(text, color = PDF_COLORS.ink) {
+          for (const line of pdfWrappedLines(pdf, text, 186, 8)) {
+            y = pdfEnsureRoom(pdf, model, y, 5, "左房后壁记录（续）");
+            pdfDrawText(pdf, line, 12, y, {fontSize:8, color});
+            y += 4.4;
+          }
+        }
+        write(wallProgressText(m));
+        const endpoint = PLANAR_ENDPOINT_OPTIONS.find(([v]) => v === (planarState.endpoints.lapw || "not-assessed"));
+        write("后壁电隔离评估：" + endpoint[1]);
+        const layout = wallMapGeometry(m);
+        const scale = Math.min(165 / layout.width, 65 / layout.height);
+        const area = {x: (210 - layout.width * scale) / 2, y, scale};
+        pdfDrawWallGrid(pdf, area, m, layout);
+        y += layout.height * scale + 3;
+        write("紫色色块表示本格覆盖，相邻色块连在一起表示双侧覆盖。上下缘缺口标红，其余缺口标淡黄。点线表示邻格待核对，长虚线表示已核对衔接。", PDF_COLORS.muted);
+        for (const gap of m.unablatedGaps) write("缺口 · " + gapLocation(gap));
+        for (const edge of m.interfaces.filter(e => e.evidence)) {
+          const time = edge.review ? " · " + (formatOperationTime(edge.review.recordedAt) || "时间未记录") : "";
+          write(`${wallInterfaceName(edge)} · ${wallLineStyles[edge.state].label}${time}`);
+        }
+        y = pdfEnsureRoom(pdf, model, y + 5, 17, "左房后壁逐次印迹");
+        pdfDrawSectionHeading(pdf, `共 ${m.applicationCount} 次`, "逐次印迹（按记录顺序）", y);
+        y += 6;
+        for (const p of m.recordedPositions) {
+          y = pdfEnsureRoom(pdf, model, y, 14, "左房后壁逐次印迹（续）");
+          write(`#${p.ordinal} · ${wallRegionName(p.source)}${p.assigned ? "" : "（收起原区）"} · ${wallRecordDescription(p.ev)}`);
+          write([formatOperationTime(p.ev.recordedAt) || "时间未记录", wallElectrodeText(p.ev)].join(" · "), PDF_COLORS.muted);
+          y += 1;
+        }
+      }
+
+      function showReleaseNotesOnFirstVisit() {
+        const list = document.getElementById("release-changes");
+        const aboutList = document.getElementById("about-changes");
+        for (const change of APP_RELEASE.changes) {
+          const item = document.createElement("li");
+          item.textContent = change;
+          list.append(item);
+          aboutList.append(item.cloneNode(true));
+        }
+        const seenKey = "victorypvi-plus-last-release-shown";
+        if (!list.childElementCount || safeStorageGet(seenKey) === APP_RELEASE.version) return;
+        document.getElementById("release-title").textContent = `v${APP_RELEASE.version} 本次更新`;
+        document.getElementById("release-dialog").showModal();
+        safeStorageSet(seenKey, APP_RELEASE.version);
+      }
 
       renderReleaseMetadata();
       updateMapEditMode();
@@ -6226,6 +9096,7 @@
       renderMap();
       initializeSyncClient();
       restoreSyncSession();
+      showReleaseNotesOnFirstVisit();
 
     </script>
   </body>
