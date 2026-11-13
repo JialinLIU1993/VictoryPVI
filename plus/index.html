@@ -8235,11 +8235,14 @@
       }
 
       const structureOptions = document.getElementById("optional-structures");
-      const structurePreferenceKey = "victorypvi-plus-anatomy-positions";
+      const structurePreferenceKey = "victorypvi-plus-anatomy-positions-v2";
       let savedStructures = safeStorageGet(structurePreferenceKey);
       if (savedStructures === null) {
-        const previousExtras = safeStorageGet("victorypvi-plus-visible-structures");
-        savedStructures = planarState.enabled ? ["lapw", previousExtras].filter(Boolean).join(",") : "";
+        // The old preference also stored automatically selected walls. Start the
+        // wall unchecked once, then remember the user's own choices on this device.
+        const previous = safeStorageGet("victorypvi-plus-anatomy-positions")
+          ?? (planarState.enabled ? safeStorageGet("victorypvi-plus-visible-structures") : "");
+        savedStructures = (previous || "").split(",").includes("svcRing") ? "svcRing" : "";
         safeStorageSet(structurePreferenceKey, savedStructures);
       }
       const savedSelections = new Set(savedStructures.split(","));
