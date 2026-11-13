@@ -4,21 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f5f5f7" />
-    <meta name="application-version" content="1.21.0" />
-    <meta name="application-iteration" content="2026-11-13T20:52:28+08:00" />
+    <meta name="application-version" content="1.21.1" />
+    <meta name="application-iteration" content="2026-11-13T20:58:50+08:00" />
     <script id="app-release" type="application/json">
       {
-        "version": "1.21.0",
+        "version": "1.21.1",
         "edition": "量化版",
-        "iteration": "2026-11-13T20:52:28+08:00",
-        "summary": "新增左房后壁交界覆盖图和 SVC 单环记录，可在同一张图上查看各区域消融次数。",
+        "iteration": "2026-11-13T20:58:50+08:00",
+        "summary": "更新软件版权说明，左房后壁默认关闭，可在「PVI+解剖位置」中开启。",
         "changes": [
-          "后壁默认 3 行 4 列。点灰色边缘记录缺口方向，仅本格加 1 次，紫色显示覆盖与邻格衔接。",
-          "加行向下、加列向右，原有次数和缺口保留在原格。有记录的末行、末列不可删除。",
-          "上下缘缺口标红，内部缺口标淡黄。同侧肺静脉前庭后壁达标后，隐藏对应侧缘提示。",
-          "可在「PVI+解剖位置」分别显示后壁和 SVC。SVC 按 A–J 单环记录，首次消融后圆心变绿。",
-          "肺静脉圆心和后壁标题显示各自消融次数，前脊、后脊分别标名计数。PDF 增加后壁覆盖图、逐次记录和终点评估。",
-          "手机可切换左侧、右侧、后壁和全图。记录模式移到图下方，图例在卡片底部，「PVI 消融与终点」默认收起。"
+          "左房后壁默认关闭，可在「PVI+解剖位置」中开启。",
+          "本版更新了软件版权说明。"
         ]
       }
     </script>
@@ -1772,17 +1768,6 @@
       .release-notes li + li { margin-top: .55em; }
       .release-notes li::marker { color: var(--purple-3); }
 
-      .about-links {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px 14px;
-      }
-
-      .about-links a {
-        color: var(--purple-3);
-        text-underline-offset: 3px;
-      }
-
       .patient-privacy-note {
         margin: 14px 0 0;
         padding: 10px 12px;
@@ -2812,8 +2797,6 @@
       .sync-status-panel, .sync-qr-layout { border: 0; border-radius: 16px; background: var(--canvas); }
       .sync-code { border: 0.5px solid var(--line-strong); border-radius: 10px; background: #fff; color: var(--ink); }
       .sync-device-row { border-radius: 12px; background: var(--canvas); }
-      .about-links a { color: var(--accent); text-decoration: none; }
-      .about-links a:hover { text-decoration: underline; }
 
       /* Grouped action list */
       .action-list { padding: 8px 24px 24px; }
@@ -3468,12 +3451,12 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>肺静脉消融记录 <span class="plus-mark">PLUS</span></h1>
-            <p class="app-meta" id="app-meta" aria-label="软件版本 1.21.0，独立社区维护的非官方工具，迭代时间 2026年11月13日 20点52分">
-              <span class="app-version" id="app-version">v1.21.0 · 量化版</span>
+            <p class="app-meta" id="app-meta" aria-label="软件版本 1.21.1，独立社区维护的非官方工具，迭代时间 2026年11月13日 20点58分">
+              <span class="app-version" id="app-version">v1.21.1 · 量化版</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
               <span>社区维护 · 非官方</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
-              <time id="app-iteration" datetime="2026-11-13T20:52:28+08:00">迭代于 2026-11-13 20:52</time>
+              <time id="app-iteration" datetime="2026-11-13T20:58:50+08:00">迭代于 2026-11-13 20:58</time>
             </p>
           </div>
         </div>
@@ -3946,11 +3929,11 @@
           <section class="about-section">
             <h3>当前版本</h3>
             <p>
-              <strong id="about-release-version">v1.21.0 · 量化版</strong>
+              <strong id="about-release-version">v1.21.1 · 量化版</strong>
               <span aria-hidden="true"> · </span>
-              <time id="about-release-iteration" datetime="2026-11-13T20:52:28+08:00">迭代于 2026-11-13 20:52</time>
+              <time id="about-release-iteration" datetime="2026-11-13T20:58:50+08:00">迭代于 2026-11-13 20:58</time>
             </p>
-            <p id="about-release-summary">更新内容：新增左房后壁交界覆盖图和 SVC 单环记录，可在同一张图上查看各区域消融次数。</p>
+            <p id="about-release-summary">更新内容：更新软件版权说明，左房后壁默认关闭，可在「PVI+解剖位置」中开启。</p>
           </section>
           <section class="about-section">
             <h3>本次更新</h3>
@@ -3964,15 +3947,7 @@
             <h3>用途边界</h3>
             <p>本工具仅用于记录与整理，不替代发生器或三维系统数据、肺静脉隔离终点评估、医疗器械说明书、机构规范或临床专业判断。</p>
           </section>
-          <section class="about-section">
-            <h3>开源与署名</h3>
-            <p>项目以 GNU AGPL-3.0 发布，并使用 VictoryPVI Community 作为匿名社区署名。</p>
-            <p class="about-links">
-              <a href="./README.md">项目说明</a>
-              <a href="./LICENSE">开源许可证</a>
-              <a href="./NOTICE">来源声明</a>
-            </p>
-          </section>
+          <p>© 2026 VictoryPVI Community。保留所有权利。</p>
         </div>
       </article>
     </dialog>
@@ -3980,10 +3955,10 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <div class="remove-cursor" id="remove-cursor" aria-hidden="true"></div>
 
-    <script src="./miniprogram/utils/sector-grid.js?v=1.21.0"></script>
+    <script src="./miniprogram/utils/sector-grid.js?v=1.21.1"></script>
     <script src="./vendor/qrcode-generator.js"></script>
-    <script src="./sync-client.js?v=1.21.0"></script>
-    <script src="./direct-sync-ui.js?v=1.21.0"></script>
+    <script src="./sync-client.js?v=1.21.1"></script>
+    <script src="./direct-sync-ui.js?v=1.21.1"></script>
     <script>
       const NS = "http://www.w3.org/2000/svg";
       // Historical storage identifiers are retained so existing records, undo history,
@@ -4000,9 +3975,9 @@
       const MIN_SINGLE_VEIN_TOTAL_APPLICATIONS = 4;
       const APP_RELEASE = Object.freeze((() => {
         const fallback = {
-          version: "1.21.0",
-          iteration: "2026-11-13T20:52:28+08:00",
-          summary: "新增左房后壁交界覆盖图和 SVC 单环记录，可在同一张图上查看各区域消融次数。",
+          version: "1.21.1",
+          iteration: "2026-11-13T20:58:50+08:00",
+          summary: "更新软件版权说明，左房后壁默认关闭，可在「PVI+解剖位置」中开启。",
           changes: [],
         };
         try {
