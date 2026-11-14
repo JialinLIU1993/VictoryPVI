@@ -4,17 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f5f5f7" />
-    <meta name="application-version" content="1.22.0" />
-    <meta name="application-iteration" content="2026-11-14T07:03:21+08:00" />
+    <meta name="application-version" content="1.23.0" />
+    <meta name="application-iteration" content="2026-11-14T09:11:40+08:00" />
     <script id="app-release" type="application/json">
       {
-        "version": "1.22.0",
+        "version": "1.23.0",
         "edition": "量化版",
-        "iteration": "2026-11-14T07:03:21+08:00",
-        "summary": "主画布新增记录时长，从本例最早的带时间消融记录起自动计时。",
+        "iteration": "2026-11-14T09:11:40+08:00",
+        "summary": "节段模式支持在同一环上连续拖选扇区，一次拖动记录一次消融。",
         "changes": [
-          "肺静脉、脊部、后壁和 SVC 共用一个计时器，刷新页面或切换视图后继续计时。",
-          "清空记录后计时归零，撤回清空可恢复。旧记录没有可用时间时显示「起点未知」。"
+          "在肺静脉前庭、口部或 SVC 按住并滑过扇面，松开后所选扇区各加 1，总次数加 1。",
+          "同次拖动经过同一扇面只计一次。撤回可移除整次拖选记录。"
         ]
       }
     </script>
@@ -3278,6 +3278,12 @@
         pointer-events: fill;
       }
       .wall-edge-hit:focus-visible { stroke: var(--ink); stroke-width: 1.5px; }
+      .segment-mode :is(.pv-segment, .svc-sector) { touch-action: none; user-select: none; }
+      .segment-mode :is(.pv-segment, .svc-sector).drag-selected {
+        fill: #9667c4;
+        stroke: #fff;
+        filter: none;
+      }
       @media (any-hover: hover) {
         .wall-edge-hit:hover { fill: rgb(135 84 189 / 12%); }
         .wall-edge-hit.is-uncovered:hover { fill: #bfc2cb; }
@@ -3454,12 +3460,12 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>肺静脉消融记录 <span class="plus-mark">PLUS</span></h1>
-            <p class="app-meta" id="app-meta" aria-label="软件版本 1.22.0，独立社区维护的非官方工具，迭代时间 2026年11月14日 7点3分">
-              <span class="app-version" id="app-version">v1.22.0 · 量化版</span>
+            <p class="app-meta" id="app-meta" aria-label="软件版本 1.23.0，独立社区维护的非官方工具，迭代时间 2026年11月14日 9点11分">
+              <span class="app-version" id="app-version">v1.23.0 · 量化版</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
               <span>社区维护 · 非官方</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
-              <time id="app-iteration" datetime="2026-11-14T07:03:21+08:00">迭代于 2026-11-14 07:03</time>
+              <time id="app-iteration" datetime="2026-11-14T09:11:40+08:00">迭代于 2026-11-14 09:11</time>
             </p>
           </div>
         </div>
@@ -3936,11 +3942,11 @@
           <section class="about-section">
             <h3>当前版本</h3>
             <p>
-              <strong id="about-release-version">v1.22.0 · 量化版</strong>
+              <strong id="about-release-version">v1.23.0 · 量化版</strong>
               <span aria-hidden="true"> · </span>
-              <time id="about-release-iteration" datetime="2026-11-14T07:03:21+08:00">迭代于 2026-11-14 07:03</time>
+              <time id="about-release-iteration" datetime="2026-11-14T09:11:40+08:00">迭代于 2026-11-14 09:11</time>
             </p>
-            <p id="about-release-summary">更新内容：主画布新增记录时长，从本例最早的带时间消融记录起自动计时。</p>
+            <p id="about-release-summary">更新内容：节段模式支持在同一环上连续拖选扇区，一次拖动记录一次消融。</p>
           </section>
           <section class="about-section">
             <h3>本次更新</h3>
@@ -3962,10 +3968,10 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <div class="remove-cursor" id="remove-cursor" aria-hidden="true"></div>
 
-    <script src="./miniprogram/utils/sector-grid.js?v=1.22.0"></script>
+    <script src="./miniprogram/utils/sector-grid.js?v=1.23.0"></script>
     <script src="./vendor/qrcode-generator.js"></script>
-    <script src="./sync-client.js?v=1.22.0"></script>
-    <script src="./direct-sync-ui.js?v=1.22.0"></script>
+    <script src="./sync-client.js?v=1.23.0"></script>
+    <script src="./direct-sync-ui.js?v=1.23.0"></script>
     <script>
       const NS = "http://www.w3.org/2000/svg";
       // Historical storage identifiers are retained so existing records, undo history,
@@ -3982,9 +3988,9 @@
       const MIN_SINGLE_VEIN_TOTAL_APPLICATIONS = 4;
       const APP_RELEASE = Object.freeze((() => {
         const fallback = {
-          version: "1.22.0",
-          iteration: "2026-11-14T07:03:21+08:00",
-          summary: "主画布新增记录时长，从本例最早的带时间消融记录起自动计时。",
+          version: "1.23.0",
+          iteration: "2026-11-14T09:11:40+08:00",
+          summary: "节段模式支持在同一环上连续拖选扇区，一次拖动记录一次消融。",
           changes: [],
         };
         try {
@@ -4944,7 +4950,7 @@
         recordHint.textContent = removeMode
           ? "点击扇区、脊部或解剖网格，将该位置消融次数减 1"
           : mapEditMode === "segment"
-            ? "点击目标扇区或网格，单区/补齐缺口 +1 次；无需选择电极"
+            ? "点按或沿同一环拖选扇区，松开记录；点网格边缘补消"
             : "点击扇区指定环形缺口；点击网格边缘指定该格缺口，仅该格计数";
         mapPanel.classList.toggle("remove-mode", removeMode);
         mapPanel.classList.toggle("segment-mode", mapEditMode === "segment");
@@ -4955,13 +4961,14 @@
 
       function toggleMapEditMode(mode) {
         if (syncWriteBlocked() || !["ablate", "segment", "remove"].includes(mode)) return;
+        cancelSectorStroke();
         mapEditMode = mode;
         selectedKey = null;
         selectedSector = null;
         selectedRidgeId = null;
         updateMapEditMode();
         updateAll();
-        showToast(mapEditMode === "remove" ? "已切换为去除状态" : mapEditMode === "segment" ? "已切换为节段模式：点击单个扇区 +1 次" : "已切换为消融状态");
+        showToast(mapEditMode === "remove" ? "已切换为去除状态" : mapEditMode === "segment" ? "节段模式：点按或沿环拖选扇区" : "已切换为消融状态");
       }
 
       function moveRemoveCursor(event) {
@@ -5159,6 +5166,10 @@
             !Number.isInteger(event.sector) || event.sector < 1 || event.sector > RingSectors.count
           )) return [];
           const normalized = { ...event };
+          if (event.type === "segment" && Array.isArray(event.sectors)) {
+            normalized.sectors = [...new Set([event.sector, ...event.sectors.filter(n =>
+              Number.isInteger(n) && n >= 1 && n <= RingSectors.count)])];
+          }
           delete normalized.status;
           if (Array.isArray(normalized.activeElectrodes)) {
             normalized.activeElectrodes = sanitizeElectrodeSelection(
@@ -5858,21 +5869,24 @@
         showToast(`${site.ridgeName}消融次数已减至 ${nextCount}`);
       }
 
-      function applySegment(key, sector) {
+      function applySegment(key, sector, sectors = [sector]) {
         if (syncWriteBlocked()) return;
         const parsed = parseKey(key);
         if (!parsed.vein || !parsed.layer || !Number.isInteger(sector) || sector < 1 || sector > RingSectors.count) return;
-        pushHistory(`${parsed.vein.name}${parsed.layer.name} ${sectorLabel(sector)}区节段消融 +1 次`);
-        const countKey = sectorKey(key, sector);
-        counts[countKey] = Number(counts[countKey] || 0) + 1;
+        const label = sectors.map(n => sectorLabel(n)).join("、");
+        pushHistory(`${parsed.vein.name}${parsed.layer.name} ${label}区节段消融 +1 次`);
+        for (const n of sectors) {
+          const countKey = sectorKey(key, n);
+          counts[countKey] = Number(counts[countKey] || 0) + 1;
+        }
         applications[key] = Number(applications[key] || 0) + 1;
-        sequenceEvents.push({ type: "segment", key, sector, recordedAt: new Date().toISOString() });
+        sequenceEvents.push({ type: "segment", key, sector, ...(sectors.length > 1 ? { sectors } : {}), recordedAt: new Date().toISOString() });
         selectedKey = key;
         selectedSector = null;
         selectedRidgeId = null;
         saveCounts();
         updateAll();
-        showToast(`${sectorLabel(sector)} 区 +1 次 · 累计 ${counts[countKey]} 次`);
+        showToast(`${label} 区 · 已记录 1 次节段消融`);
       }
 
       function applyRingExcluding(key, excludedSector) {
@@ -5972,7 +5986,7 @@
           return null;
         }
         if (latestAblation.type === "segment") {
-          return { key: latestAblation.key, sector: latestAblation.sector };
+          return { key: latestAblation.key, sector: latestAblation.sector, sectors: latestAblation.sectors || [latestAblation.sector] };
         }
         const excludedSector = Number(latestAblation.excludedSector);
         if (!Number.isInteger(excludedSector) || excludedSector < 1 || excludedSector > RingSectors.count) {
@@ -6005,7 +6019,7 @@
           const increasedByLastAblation =
             lastIncrease?.key === key &&
             (!lastIncrease.legacyEightSectors || RingSectors.legacySectors.includes(sector)) &&
-            (lastIncrease.sector ? lastIncrease.sector === sector : lastIncrease.excludedSector !== sector) &&
+            (lastIncrease.sectors ? lastIncrease.sectors.includes(sector) : lastIncrease.excludedSector !== sector) &&
             count > 0;
           const innerHighlight = document.querySelector(
             `[data-inner-highlight-for="${keyForSector}"]`,
@@ -7336,6 +7350,85 @@
       mapWrap.addEventListener("pointerleave", hideRemoveCursor);
       mapWrap.addEventListener("pointercancel", hideRemoveCursor);
       window.addEventListener("blur", hideRemoveCursor);
+      let sectorStroke = null;
+      let suppressStrokeClick = false;
+      const sectorSelector = ".pv-segment, .svc-sector";
+      // Some mobile browsers pan the outer SVG despite touch-action on its paths.
+      svg.addEventListener("touchstart", event => {
+        if (sectorStroke && event.target.matches(sectorSelector) && event.cancelable) event.preventDefault();
+      }, {passive: false});
+
+      function addStrokeSector(path) {
+        if (!path?.matches(sectorSelector) || !svg.contains(path)) return;
+        const key = path.dataset.key || "svcRing";
+        if (key !== sectorStroke.key) return;
+        const sector = Number(path.dataset.sector || path.dataset.svcSector);
+        if (sectorStroke.selected.has(sector)) return;
+        sectorStroke.selected.set(sector, path);
+        path.classList.add("drag-selected");
+      }
+
+      function sampleSectorStroke(event) {
+        const {x, y} = sectorStroke;
+        const dx = event.clientX - x, dy = event.clientY - y;
+        // Sample the path between pointer events so a quick swipe on a small ring
+        // can still reach a sector narrower than one delivered movement.
+        const steps = Math.max(1, Math.ceil(Math.hypot(dx, dy) / 4));
+        for (let i = 1; i <= steps; i++) {
+          addStrokeSector(document.elementFromPoint(x + dx * i / steps, y + dy * i / steps));
+        }
+        sectorStroke.x = event.clientX;
+        sectorStroke.y = event.clientY;
+      }
+
+      function cancelSectorStroke() {
+        if (!sectorStroke) return;
+        const {pointerId, selected} = sectorStroke;
+        sectorStroke = null;
+        for (const path of selected.values()) path.classList.remove("drag-selected");
+        if (svg.hasPointerCapture(pointerId)) svg.releasePointerCapture(pointerId);
+      }
+
+      svg.addEventListener("pointerdown", event => {
+        if (!event.isPrimary || event.button !== 0) return;
+        suppressStrokeClick = false;
+        if (mapEditMode !== "segment" || !event.target.matches(sectorSelector) || syncWriteBlocked()) return;
+        sectorStroke = {pointerId: event.pointerId, key: event.target.dataset.key || "svcRing",
+          x: event.clientX, y: event.clientY, selected: new Map()};
+        addStrokeSector(event.target);
+        svg.setPointerCapture(event.pointerId);
+        suppressStrokeClick = true;
+        event.preventDefault();
+      });
+      svg.addEventListener("pointermove", event => {
+        if (sectorStroke?.pointerId !== event.pointerId) return;
+        for (const point of event.getCoalescedEvents?.() || []) sampleSectorStroke(point);
+        sampleSectorStroke(event);
+      });
+      svg.addEventListener("pointerup", event => {
+        if (sectorStroke?.pointerId !== event.pointerId) return;
+        sampleSectorStroke(event);
+        const {key, selected} = sectorStroke;
+        const sectors = [...selected.keys()];
+        const valid = [...selected.values()].every(path => svg.contains(path));
+        cancelSectorStroke();
+        if (!valid || mapEditMode !== "segment" || syncWriteBlocked()) return;
+        if (key === "svcRing") recordSvcSector(sectors[0], sectors);
+        else applySegment(key, sectors[0], sectors);
+      });
+      for (const type of ["pointercancel", "lostpointercapture"]) svg.addEventListener(type, event => {
+        if (sectorStroke?.pointerId === event.pointerId) cancelSectorStroke();
+      });
+      window.addEventListener("blur", cancelSectorStroke);
+      document.addEventListener("keydown", event => {
+        if (event.key === "Escape") cancelSectorStroke();
+      });
+      svg.addEventListener("click", event => {
+        if (!suppressStrokeClick || event.detail === 0) return;
+        suppressStrokeClick = false;
+        event.stopImmediatePropagation();
+        event.preventDefault();
+      }, true);
       svg.addEventListener("click", (event) => {
         if (event.target.closest?.(".pv-segment, .ridge-segment, .planar-zone")) return;
         clearSelection();
@@ -8147,7 +8240,7 @@
         });
       }
 
-      function recordSvcSector(sector) {
+      function recordSvcSector(sector, sectors = [sector]) {
         if (syncWriteBlocked()) return;
         const ring = planarState.svcRing;
         const index = sector - 1;
@@ -8158,8 +8251,8 @@
           ring.counts[index] = Math.max(0, ring.counts[index] - 1);
           ring.lastGap = null;
         } else if (mapEditMode === "segment") {
-          pushHistory(`${label} 节段消融 +1 次`);
-          ring.counts[index] += 1;
+          pushHistory(`SVC ${sectors.map(n => sectorLabel(n)).join("、")} 区节段消融 +1 次`);
+          for (const n of sectors) ring.counts[n - 1] += 1;
           ring.applications += 1;
           ring.lastGap = null;
         } else {
@@ -8173,7 +8266,8 @@
         if (mapEditMode !== "remove" && ring.applications === 1) ring.firstRecordedAt = new Date().toISOString();
         saveCounts();
         updateAll();
-        showToast(mapEditMode === "ablate" ? `SVC 已记录 1 次消融 · ${sectorLabel(sector)} 区为缺口` : `${label} 累计 ${ring.counts[index]} 次`);
+        showToast(mapEditMode === "segment" ? `SVC 已记录 1 次节段消融 · 覆盖 ${sectors.length} 区` :
+          mapEditMode === "ablate" ? `SVC 已记录 1 次消融 · ${sectorLabel(sector)} 区为缺口` : `${label} 累计 ${ring.counts[index]} 次`);
       }
 
       function svcSectorGeometry(index) {
