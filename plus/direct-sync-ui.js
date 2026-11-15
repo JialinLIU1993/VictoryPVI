@@ -1,8 +1,28 @@
 /* Phone-first sync UI. Desktop connection is an optional, collapsed path. */
 (function (global) {
+  const allowedScripts = new Set(['./direct-sync-client.js', './vendor/jsqr.js']);
+  const ttPolicy = global.trustedTypes?.createPolicy?.('victorypvi-direct-ui', {
+    createHTML: html => html,
+    createScriptURL: src => {
+      if (!allowedScripts.has(src)) throw new TypeError(`Blocked untrusted script URL: ${src}`);
+      return src;
+    },
+  });
+  const isOutsideDialogContentBox = (dialog, event) => {
+    if (!dialog.open || event.detail === 0) return false;
+    const rect = dialog.getBoundingClientRect();
+    if (!rect.width && !rect.height) return false;
+    return (
+      event.clientX < rect.left ||
+      event.clientX > rect.right ||
+      event.clientY < rect.top ||
+      event.clientY > rect.bottom
+    );
+  };
   const loading = new Map();
   const load = src => loading.get(src) || loading.set(src, new Promise((resolve, reject) => {
-    const script = document.createElement('script'); script.src = src;
+    const script = document.createElement('script');
+    script.src = ttPolicy ? ttPolicy.createScriptURL(src) : src;
     script.onload = resolve; script.onerror = () => { loading.delete(src); script.remove(); reject(new Error('连接组件未加载，请联网打开网页一次后重试。')); };
     document.head.append(script);
   })).get(src);
@@ -11,8 +31,9 @@
       this.options = options; this.role = 'local'; this.state = 'local'; this.peers = 0; this.code = ''; this.busy = false;
       this.dialog = document.createElement('dialog');
       this.dialog.className = 'settings-dialog sync-dialog'; this.dialog.id = 'direct-dialog';
+      this.dialog.setAttribute('closedby', 'any');
       this.dialog.setAttribute('aria-labelledby', 'direct-title');
-      this.dialog.innerHTML = `<div class="settings-card">
+      const dialogHtml = `<div class="settings-card">
         <header class="settings-header"><div><p class="dialog-kicker">设备同步</p><h2 id="direct-title" tabindex="-1">手机互联</h2><p class="settings-header-help">先将手机连接同一 Wi-Fi 或热点</p></div><button class="dialog-close" id="direct-close" type="button" aria-label="关闭手机互联">×</button></header>
         <div class="settings-body">
           <div class="direct-connection direct-stage" id="direct-connection" hidden>
@@ -55,6 +76,7 @@
         </div>
         <footer class="settings-footer"><button class="direct-text-button" id="direct-leave" type="button" hidden>结束互联</button><button class="button" id="direct-done" type="button">返回记录</button></footer>
       </div>`;
+      this.dialog.innerHTML = ttPolicy ? ttPolicy.createHTML(dialogHtml) : dialogHtml;
       document.body.append(this.dialog);
       this.get = id => this.dialog.querySelector(`#direct-${id}`);
       if (options.desktopContent) this.get('desktop-content').append(options.desktopContent);
@@ -73,7 +95,9 @@
       this.get('close').onclick = this.get('done').onclick = () => this.close();
       this.dialog.addEventListener('close', () => this.stopCamera());
       this.dialog.addEventListener('cancel', () => this.stopCamera());
-      this.dialog.addEventListener('click', event => { if (event.target === this.dialog) this.close(); });
+      if (!('closedBy' in HTMLDialogElement.prototype)) {
+        this.dialog.addEventListener('click', event => { if (isOutsideDialogContentBox(this.dialog, event)) this.close(); });
+      }
       this.restore();
     }
     persist() { try { localStorage.setItem('vpvi-direct-role', this.role); } catch {} }

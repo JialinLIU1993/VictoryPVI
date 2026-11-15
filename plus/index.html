@@ -3,7 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#f5f5f7" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#111216" media="(prefers-color-scheme: dark)" />
+    <meta name="text-scale" content="scale" />
     <meta name="application-version" content="1.23.0" />
     <meta name="application-iteration" content="2026-11-14T09:11:40+08:00" />
     <script id="app-release" type="application/json">
@@ -21,8 +24,20 @@
     <link rel="icon" href="data:," />
     <title>VictoryPVI plus · 肺静脉消融记录</title>
     <style>
+      @layer reset, base, theme, utilities;
+
+      @layer reset {
+        html, body, header, main, aside, section, article, nav, footer,
+        dialog, div, form, fieldset, details, summary, p, h1, h2, h3, h4,
+        ul, ol, li, dl, dt, dd, button, input, select, textarea, label,
+        span, strong, small, b, i, time, a, svg {
+          box-sizing: border-box;
+        }
+      }
+
+      @layer base {
       :root {
-        color-scheme: light;
+        color-scheme: light dark;
         --ink: #172033;
         --muted: #6f7787;
         --line: #dfe3eb;
@@ -43,10 +58,6 @@
         font-family:
           Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
           "PingFang SC", "Microsoft YaHei", sans-serif;
-      }
-
-      * {
-        box-sizing: border-box;
       }
 
       body {
@@ -113,7 +124,7 @@
 
       .brand h1 {
         margin: 0;
-        font-size: 17px;
+        font-size: 1.0625rem;
         line-height: 1.2;
         letter-spacing: -0.01em;
       }
@@ -124,7 +135,7 @@
         align-items: center;
         gap: 6px;
         color: var(--muted);
-        font-size: 10.5px;
+        font-size: 0.6563rem;
         line-height: 1.2;
         white-space: nowrap;
       }
@@ -147,7 +158,7 @@
 
       .save-state {
         color: var(--muted);
-        font-size: 12px;
+        font-size: 0.75rem;
         display: inline-flex;
         align-items: center;
         gap: 7px;
@@ -179,7 +190,7 @@
         background: #fff;
         color: var(--muted);
         cursor: pointer;
-        font-size: 11px;
+        font-size: 0.6875rem;
         white-space: nowrap;
         transition: 160ms ease;
       }
@@ -206,7 +217,7 @@
         border-radius: 7px;
         background: #f3eef9;
         color: var(--purple-3);
-        font-size: 15px;
+        font-size: 0.9375rem;
         font-weight: 760;
         line-height: 1;
       }
@@ -219,21 +230,21 @@
 
       .sync-status-name {
         color: var(--ink);
-        font-size: 10px;
+        font-size: 0.625rem;
         font-weight: 760;
         line-height: 1.1;
       }
 
       .sync-status-state {
         color: var(--muted);
-        font-size: 10px;
+        font-size: 0.625rem;
         line-height: 1.1;
       }
 
       .sync-status-chevron {
         margin-left: 1px;
         color: #a4a9b3;
-        font-size: 17px;
+        font-size: 1.0625rem;
         line-height: 1;
       }
 
@@ -267,7 +278,7 @@
         border-top: 1px solid #e3ddea;
         border-radius: 0;
         color: var(--muted);
-        font-size: 12px;
+        font-size: 0.75rem;
         line-height: 1.5;
         animation: rise-in 500ms 100ms ease both;
       }
@@ -365,7 +376,7 @@
 
       .stage-title h2 {
         margin: 0;
-        font-size: 22px;
+        font-size: 1.375rem;
         line-height: 1.25;
         letter-spacing: -0.02em;
       }
@@ -373,7 +384,7 @@
       .stage-title p {
         margin: 7px 0 0;
         color: var(--muted);
-        font-size: 13px;
+        font-size: 0.8125rem;
       }
 
       .legend {
@@ -381,7 +392,7 @@
         align-items: center;
         gap: 13px;
         color: var(--muted);
-        font-size: 12px;
+        font-size: 0.75rem;
         white-space: nowrap;
       }
 
@@ -419,7 +430,7 @@
         border-bottom: 1px solid var(--line);
         background: #fbfbfc;
         color: var(--muted);
-        font-size: 12px;
+        font-size: 0.75rem;
       }
 
       .record-hint {
@@ -448,7 +459,7 @@
         border-radius: 999px;
         background: #eceff4;
         color: var(--muted);
-        font-size: 11px;
+        font-size: 0.6875rem;
         font-weight: 780;
         white-space: nowrap;
         cursor: pointer;
@@ -589,12 +600,7 @@
 
       .map-panel.remove-mode .pv-segment,
       .map-panel.remove-mode .ridge-segment {
-        cursor: none !important;
-      }
-
-      html.remove-cursor-active,
-      html.remove-cursor-active * {
-        cursor: none !important;
+        cursor: none;
       }
 
       .map-panel.remove-mode .pv-segment:hover,
@@ -857,7 +863,7 @@
       }
 
       .atrium-label {
-        font-size: 18px;
+        font-size: 1.125rem;
         fill: #aeb4bf;
         font-weight: 760;
         letter-spacing: 0.08em;
@@ -876,7 +882,7 @@
       .summary-kicker,
       .section-kicker {
         color: var(--muted);
-        font-size: 11px;
+        font-size: 0.6875rem;
         font-weight: 750;
         letter-spacing: 0.1em;
         text-transform: uppercase;
@@ -896,14 +902,14 @@
 
       .quality-metric strong {
         display: block;
-        font-size: 19px;
+        font-size: 1.1875rem;
       }
 
       .quality-metric span {
         display: block;
         margin-top: 4px;
         color: var(--muted);
-        font-size: 11px;
+        font-size: 0.6875rem;
       }
 
       .inspector-section {
@@ -930,7 +936,7 @@
 
       .vein-summary-name {
         color: var(--muted);
-        font-size: 12px;
+        font-size: 0.75rem;
         font-weight: 750;
       }
 
@@ -973,7 +979,7 @@
       .vein-summary-count {
         min-width: 34px;
         color: var(--muted);
-        font-size: 11px;
+        font-size: 0.6875rem;
         text-align: right;
       }
 
@@ -988,11 +994,11 @@
 
       .ablation-criteria span {
         color: var(--muted);
-        font-size: 10px;
+        font-size: 0.625rem;
       }
 
       .ablation-criteria strong {
-        font-size: 10.5px;
+        font-size: 0.6563rem;
         font-weight: 720;
         line-height: 1.4;
       }
@@ -1021,7 +1027,7 @@
 
       .endpoint-control span {
         color: var(--muted);
-        font-size: 10px;
+        font-size: 0.625rem;
       }
 
       .endpoint-control select {
@@ -1032,7 +1038,7 @@
         border-radius: 7px;
         background: white;
         color: var(--ink);
-        font-size: 11px;
+        font-size: 0.6875rem;
       }
 
       .electrode-selector-header {
@@ -1044,7 +1050,7 @@
 
       .electrode-selection-count {
         color: var(--purple-dark);
-        font-size: 11px;
+        font-size: 0.6875rem;
         font-weight: 780;
         font-variant-numeric: tabular-nums;
       }
@@ -1188,7 +1194,7 @@
         background: white;
         border-radius: 8px;
         color: var(--ink);
-        font-size: 20px;
+        font-size: 1.25rem;
         cursor: pointer;
       }
 
@@ -1204,7 +1210,7 @@
 
       .stepper-value {
         text-align: center;
-        font-size: 22px;
+        font-size: 1.375rem;
         font-weight: 780;
       }
 
@@ -1213,7 +1219,7 @@
         padding-top: 14px;
         border-top: 1px solid var(--line);
         color: #8a919e;
-        font-size: 10px;
+        font-size: 0.625rem;
         line-height: 1.6;
       }
 
@@ -1225,13 +1231,13 @@
         border-radius: 18px;
         background: var(--surface);
         color: var(--ink);
+        overscroll-behavior: contain;
         box-shadow: 0 30px 90px rgba(24, 20, 32, 0.28);
       }
 
       .sync-device-row[data-connected="false"]::before { background: #bf8748; }
-      .sync-dialog [hidden] { display: none !important; }
       .sync-dialog details { margin-top: 14px; }
-      .sync-dialog summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+      .sync-dialog summary { cursor: pointer; color: var(--muted); font-size: 0.8125rem; }
       .sync-dialog details[open] summary { margin-bottom: 12px; }
       .sync-dialog {
         width: min(720px, calc(100vw - 28px));
@@ -1252,7 +1258,7 @@
         display: block;
         margin: 0 0 5px;
         color: var(--muted);
-        font-size: 10px;
+        font-size: 0.625rem;
         font-weight: 760;
         letter-spacing: 0.08em;
         line-height: 1.2;
@@ -1271,7 +1277,7 @@
         max-width: 520px;
         margin: 6px 0 0;
         color: var(--muted);
-        font-size: 11px;
+        font-size: 0.6875rem;
         line-height: 1.5;
       }
 
@@ -1335,13 +1341,13 @@
       }
 
       .sync-state-line strong {
-        font-size: 15px;
+        font-size: 0.9375rem;
       }
 
       .sync-detail {
         margin: 8px 0 0;
         color: var(--muted);
-        font-size: 11px;
+        font-size: 0.6875rem;
         line-height: 1.65;
       }
 
@@ -1398,14 +1404,14 @@
 
       .sync-qr-caption {
         color: var(--muted);
-        font-size: 10px;
+        font-size: 0.625rem;
         line-height: 1.2;
       }
 
       #direct-dialog { width: min(480px, calc(100vw - 24px)); max-width: calc(100vw - 24px); inset: 50dvh auto auto 50vw; margin: 0; translate: -50% -50%; }
       #direct-dialog .settings-header { align-items: flex-start; }
       #direct-dialog .dialog-kicker { color: var(--purple-3); }
-      #direct-dialog .settings-header-help { font-size: 12px; }
+      #direct-dialog .settings-header-help { font-size: 0.75rem; }
       #direct-title:focus { outline: none; }
       #direct-dialog .dialog-close { flex: 0 0 auto; width: 40px; height: 40px; }
       #direct-dialog .settings-footer { justify-content: space-between; }
@@ -1436,19 +1442,19 @@
       .direct-choice:focus-visible, .direct-text-button:focus-visible { outline: 3px solid #b794e2; outline-offset: 3px; }
       .direct-choice:disabled { opacity: .55; cursor: wait; }
       .direct-choice svg { width: 27px; height: 27px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-      .direct-choice strong { display: block; font-size: 17px; line-height: 1.4; font-weight: 650; }
-      .direct-choice small { display: block; margin-top: 5px; font-size: 12px; line-height: 1.5; color: var(--muted); }
+      .direct-choice strong { display: block; font-size: 1.0625rem; line-height: 1.4; font-weight: 650; }
+      .direct-choice small { display: block; margin-top: 5px; font-size: 0.75rem; line-height: 1.5; color: var(--muted); }
       .direct-choice-primary small { color: #eee3fc; }
-      .direct-choice-arrow { margin-left: auto; font-size: 26px; font-weight: 400; }
+      .direct-choice-arrow { margin-left: auto; font-size: 1.625rem; font-weight: 400; }
       .direct-steps { display: flex; justify-content: center; gap: 28px; list-style: none; padding: 0; margin: 0 0 20px; }
-      .direct-steps li { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12px; }
+      .direct-steps li { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 0.75rem; }
       .direct-steps span { display: grid; place-items: center; width: 23px; height: 23px; border-radius: 50%; background: #f0edf4; }
       .direct-steps b { font-weight: 500; }
       .direct-steps [aria-current="step"] { color: var(--purple-3); }
       .direct-steps [aria-current="step"] span { background: var(--purple-3); color: #fff; }
       .direct-pairing, .direct-camera, .direct-connection { text-align: center; }
-      #direct-dialog h3 { margin: 0; font-size: 17px; line-height: 1.45; }
-      .direct-pairing .settings-help { margin: 6px 0 14px; font-size: 12px; }
+      #direct-dialog h3 { margin: 0; font-size: 1.0625rem; line-height: 1.45; }
+      .direct-pairing .settings-help { margin: 6px 0 14px; font-size: 0.75rem; }
       #direct-dialog .sync-qr-frame { width: 100%; gap: 8px; }
       #direct-dialog .sync-qr { width: min(100%, 304px); height: auto; aspect-ratio: 1; box-shadow: none; border: 1px solid #e9e3f0; border-radius: 12px; padding: 9px; }
       #direct-scan-answer { width: 100%; margin-top: 18px; }
@@ -1456,20 +1462,20 @@
       .direct-viewfinder video { display: block; width: 100%; height: 100%; object-fit: cover; }
       .direct-viewfinder span { position: absolute; inset: 13%; border: 2px solid rgba(255,255,255,.9); border-radius: 14px; box-shadow: 0 0 0 120px rgba(15,10,25,.2); pointer-events: none; }
       .direct-camera .button { width: 100%; }
-      #direct-camera-status { font-size: 12px; margin: 12px 0; }
-      .direct-connection-icon { display: grid; place-items: center; width: 48px; height: 48px; margin: 0 auto 12px; border-radius: 50%; background: #f1edf7; color: var(--purple-3); font-size: 25px; }
-      #direct-status { margin: 8px 0 20px; text-align: center; font-size: 12px; }
-      .direct-note { color: var(--muted); margin: 16px 0 0; font-size: 11px; line-height: 1.6; text-align: center; }
+      #direct-camera-status { font-size: 0.75rem; margin: 12px 0; }
+      .direct-connection-icon { display: grid; place-items: center; width: 48px; height: 48px; margin: 0 auto 12px; border-radius: 50%; background: #f1edf7; color: var(--purple-3); font-size: 1.5625rem; }
+      #direct-status { margin: 8px 0 20px; text-align: center; font-size: 0.75rem; }
+      .direct-note { color: var(--muted); margin: 16px 0 0; font-size: 0.6875rem; line-height: 1.6; text-align: center; }
       #direct-dialog .direct-secondary { margin-top: 18px; }
       #direct-dialog .direct-secondary summary { min-height: 44px; padding: 12px 0; line-height: 1.4; }
       #direct-dialog .direct-desktop { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 20px; }
-      .direct-desktop summary span { float: right; font-size: 11px; color: #9095a1; }
-      #direct-desktop-content h3 { margin: 16px 0 10px; font-size: 14px; }
-      #direct-desktop-content .settings-help { font-size: 12px; }
+      .direct-desktop summary span { float: right; font-size: 0.6875rem; color: #9095a1; }
+      #direct-desktop-content h3 { margin: 16px 0 10px; font-size: 0.875rem; }
+      #direct-desktop-content .settings-help { font-size: 0.75rem; }
       #direct-manual-code .button { margin: 5px 5px 10px 0; }
       #direct-input { margin: 7px 0 10px; }
-      .direct-text-button { min-height: 44px; border: 0; background: none; color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; padding: 6px 0; }
-      .direct-loading { min-height: 160px; display: grid; place-items: center; color: var(--muted); font-size: 14px; }
+      .direct-text-button { min-height: 44px; border: 0; background: none; color: var(--muted); font: inherit; font-size: 0.8125rem; cursor: pointer; padding: 6px 0; }
+      .direct-loading { min-height: 160px; display: grid; place-items: center; color: var(--muted); font-size: 0.875rem; }
       #direct-dialog[open] { animation: direct-enter 180ms ease-out; }
       .direct-stage:not([hidden]) { animation: direct-enter 160ms ease-out; }
       @keyframes direct-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
@@ -1481,14 +1487,14 @@
       .sync-qr-copy strong {
         display: block;
         color: var(--ink);
-        font-size: 14px;
+        font-size: 0.875rem;
         line-height: 1.4;
       }
 
       .sync-qr-copy p {
         margin: 6px 0 13px;
         color: var(--muted);
-        font-size: 11px;
+        font-size: 0.6875rem;
         line-height: 1.65;
       }
       .sync-join-wrap[hidden]  {
@@ -1504,7 +1510,7 @@
         background: #faf8fc;
         color: var(--purple-dark);
         font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        font-size: 10px;
+        font-size: 0.625rem;
         line-height: 1.55;
         overflow-wrap: anywhere;
         resize: vertical;
@@ -1518,7 +1524,7 @@
       .sync-code-note {
         margin: 0;
         color: var(--muted);
-        font-size: 10px;
+        font-size: 0.625rem;
         line-height: 1.6;
       }
 
@@ -1537,7 +1543,7 @@
         border-radius: 9px;
         background: #f7f6fa;
         color: var(--ink);
-        font-size: 11px;
+        font-size: 0.6875rem;
       }
 
       .sync-device-row::before {
@@ -1553,7 +1559,7 @@
       .sync-device-row small {
         margin-left: auto;
         color: var(--muted);
-        font-size: 10px;
+        font-size: 0.625rem;
       }
 
       .sync-privacy-note {
@@ -1562,14 +1568,14 @@
         border-radius: 9px;
         background: #f7f5fa;
         color: var(--muted);
-        font-size: 10px;
+        font-size: 0.625rem;
         line-height: 1.65;
       }
 
       .sync-error {
         margin: 10px 0 0;
         color: #a44b4b;
-        font-size: 11px;
+        font-size: 0.6875rem;
         line-height: 1.6;
       }
 
@@ -1593,7 +1599,7 @@
         border-radius: 999px;
         background: rgba(255, 255, 255, 0.9);
         color: var(--purple-3);
-        font-size: 10px;
+        font-size: 0.625rem;
         box-shadow: 0 4px 14px rgba(40, 28, 61, 0.08);
         pointer-events: none;
       }
@@ -1607,6 +1613,8 @@
       .settings-dialog::backdrop {
         background: rgba(28, 29, 36, 0.48);
         backdrop-filter: blur(3px);
+        overflow: hidden;
+        overscroll-behavior: contain;
       }
 
       .settings-card {
@@ -1630,7 +1638,7 @@
 
       .settings-header h2 {
         margin: 0;
-        font-size: 19px;
+        font-size: 1.1875rem;
       }
 
       .dialog-close {
@@ -1641,13 +1649,14 @@
         background: #f4f5f8;
         color: var(--muted);
         cursor: pointer;
-        font-size: 22px;
+        font-size: 1.375rem;
         line-height: 1;
       }
 
       .settings-body {
         padding: 20px 22px;
         overflow-y: auto;
+        overscroll-behavior: contain;
       }
 
       .settings-section + .settings-section {
@@ -1658,7 +1667,7 @@
 
       .settings-section h3 {
         margin: 0 0 12px;
-        font-size: 13px;
+        font-size: 0.8125rem;
       }
 
       .settings-grid {
@@ -1671,7 +1680,7 @@
         display: grid;
         gap: 7px;
         color: var(--muted);
-        font-size: 11px;
+        font-size: 0.6875rem;
       }
 
       .field.full {
@@ -1686,12 +1695,15 @@
         padding: 0 11px;
         border: 1px solid var(--line-strong);
         border-radius: 8px;
-        background: white;
+        background: var(--surface);
         color: var(--ink);
       }
 
       .field textarea {
         min-height: 92px;
+        min-block-size: 3lh;
+        max-block-size: 10lh;
+        field-sizing: content;
         padding-top: 10px;
         padding-bottom: 10px;
         line-height: 1.55;
@@ -1706,12 +1718,19 @@
         outline: 3px solid rgba(155, 112, 216, 0.16);
       }
 
+      .field input:user-invalid,
+      .field select:user-invalid,
+      .field textarea:user-invalid {
+        border-color: var(--danger, #e30000);
+        outline: 3px solid rgba(227, 0, 0, 0.16);
+      }
+
       .toggle-field {
         display: flex;
         align-items: flex-start;
         gap: 10px;
         color: var(--ink);
-        font-size: 12px;
+        font-size: 0.75rem;
         line-height: 1.5;
       }
 
@@ -1722,10 +1741,17 @@
         accent-color: var(--purple-3);
       }
 
+      .toggle-field input[switch] {
+        width: auto;
+        min-width: 17px;
+        height: auto;
+        min-height: 17px;
+      }
+
       .settings-help {
         margin: 9px 0 0;
         color: var(--muted);
-        font-size: 10px;
+        font-size: 0.625rem;
         line-height: 1.6;
       }
 
@@ -1741,7 +1767,7 @@
         display: grid;
         gap: 18px;
         color: var(--muted);
-        font-size: 12px;
+        font-size: 0.75rem;
         line-height: 1.75;
       }
 
@@ -1753,7 +1779,7 @@
       .about-section h3 {
         margin: 0 0 7px;
         color: var(--ink);
-        font-size: 13px;
+        font-size: 0.8125rem;
       }
 
       .about-section p {
@@ -1774,7 +1800,7 @@
         border-radius: 8px;
         background: #f7f5fa;
         color: var(--muted);
-        font-size: 10px;
+        font-size: 0.625rem;
         line-height: 1.6;
       }
 
@@ -1790,17 +1816,23 @@
 
       .toast {
         position: fixed;
-        left: 50%;
-        bottom: 24px;
+        inset: auto;
+        inset-block-end: 24px;
+        inset-inline-start: 50%;
+        margin: 0;
+        border: 0;
         transform: translate(-50%, 16px);
         padding: 10px 14px;
         border-radius: 9px;
         background: #222735;
         color: white;
-        font-size: 12px;
+        font-size: 0.75rem;
         opacity: 0;
         pointer-events: none;
-        transition: 200ms ease;
+        transition-property: opacity, transform, display, overlay;
+        transition-duration: 200ms;
+        transition-timing-function: ease;
+        transition-behavior: allow-discrete;
         z-index: 40;
         box-shadow: 0 10px 28px rgba(25, 29, 41, 0.2);
       }
@@ -1808,6 +1840,17 @@
       .toast.show {
         opacity: 1;
         transform: translate(-50%, 0);
+      }
+      .toast:popover-open {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+
+      @starting-style {
+        .toast:popover-open {
+          opacity: 0;
+          transform: translate(-50%, 16px);
+        }
       }
 
       .mobile-pan-hint {
@@ -1950,7 +1993,7 @@
           border-bottom: 1px solid var(--line);
           background: #f7f6fa;
           color: var(--muted);
-          font-size: 11px;
+          font-size: 0.6875rem;
           letter-spacing: 0.02em;
         }
 
@@ -2009,7 +2052,7 @@
 
         /* iOS and in-app browsers zoom focused controls below 16px. */
         .sync-code {
-          font-size: 16px;
+          font-size: 1rem;
         }
       }
 
@@ -2035,7 +2078,7 @@
           width: 100%;
           padding-right: 8px;
           padding-left: 8px;
-          font-size: 13px;
+          font-size: 0.8125rem;
         }
 
         .sync-status {
@@ -2053,12 +2096,12 @@
         }
 
         .brand h1 {
-          font-size: 16px;
+          font-size: 1rem;
         }
 
         .app-meta {
           gap: 5px;
-          font-size: 10px;
+          font-size: 0.625rem;
         }
 
         .operation-status-bar {
@@ -2079,7 +2122,7 @@
           width: 100%;
           margin-left: 0;
           padding-left: 21px;
-          font-size: 11px;
+          font-size: 0.6875rem;
         }
 
         .stage {
@@ -2091,11 +2134,11 @@
         }
 
         .stage-title h2 {
-          font-size: 20px;
+          font-size: 1.25rem;
         }
 
         .stage-title p {
-          font-size: 12px;
+          font-size: 0.75rem;
           line-height: 1.6;
         }
 
@@ -2133,7 +2176,7 @@
         }
 
         .sync-dialog-title h2 {
-          font-size: 17px;
+          font-size: 1.0625rem;
         }
 
         .sync-qr-layout {
@@ -2168,7 +2211,7 @@
       .workspace { grid-template-columns: minmax(0, 1fr) 318px; }
       .topbar { gap: 16px; }
       .top-actions { gap: 8px; flex: 0 0 auto; }
-      .more-button { min-width: 40px; padding: 0 9px; font-size: 15px; letter-spacing: 2px; }
+      .more-button { min-width: 40px; padding: 0 9px; font-size: 0.9375rem; letter-spacing: 2px; }
       .button:focus-visible, .action-item:focus-visible, .mobile-dock button:focus-visible, .map-view-switch button:focus-visible { outline: 3px solid #b794e2; outline-offset: 3px; }
       .button:active:not(:disabled), .mobile-dock button:active:not(:disabled) { transform: translateY(1px); }
       .settings-dialog { max-width: calc(100vw - 24px); inset: 50dvh auto auto 50vw; margin: 0; translate: -50% -50%; }
@@ -2176,20 +2219,20 @@
       .settings-dialog .settings-header { align-items: flex-start; }
       .settings-dialog .dialog-close { width: 40px; height: 40px; flex: 0 0 auto; }
       .settings-header h2[tabindex="-1"]:focus { outline: none; }
-      .settings-header-help { font-size: 12px; }
+      .settings-header-help { font-size: 0.75rem; }
       .settings-body { overscroll-behavior: contain; }
       .actions-dialog, .confirm-dialog { width: min(430px, calc(100vw - 24px)); }
       .action-list { padding-top: 6px; padding-bottom: 6px; }
-      .action-item { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; background: none; border: 0; border-bottom: 1px solid var(--line); text-align: left; color: var(--ink); cursor: pointer; font: inherit; font-size: 15px; }
+      .action-item { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; background: none; border: 0; border-bottom: 1px solid var(--line); text-align: left; color: var(--ink); cursor: pointer; font: inherit; font-size: 0.9375rem; }
       .action-item:last-child { border-bottom: 0; }
-      .action-item small { display: block; color: var(--muted); font-size: 12px; line-height: 1.5; margin-top: 5px; }
-      .action-item b { font-weight: 400; color: var(--muted); font-size: 23px; }
+      .action-item small { display: block; color: var(--muted); font-size: 0.75rem; line-height: 1.5; margin-top: 5px; }
+      .action-item b { font-weight: 400; color: var(--muted); font-size: 1.4375rem; }
       .action-item-danger { color: #ae3434; }
       .action-item:disabled { opacity: .45; cursor: default; }
       .action-item:hover:not(:disabled) span { color: var(--purple-3); }
       .button.danger { border-color: #b63e38; background: #b63e38; color: white; }
-      .confirm-dialog .settings-body p { font-size: 14px; line-height: 1.6; margin: 0 0 10px; }
-      .confirm-dialog .settings-body .settings-help { font-size: 12px; margin-bottom: 0; }
+      .confirm-dialog .settings-body p { font-size: 0.875rem; line-height: 1.6; margin: 0 0 10px; }
+      .confirm-dialog .settings-body .settings-help { font-size: 0.75rem; margin-bottom: 0; }
       .mobile-dock, .map-view-switch, .mobile-action { display: none; }
       .quick-dialog { width: min(520px, calc(100vw - 24px)); }
       .quick-dialog .inspector { display: block; padding: 0; background: transparent; border: 0; }
@@ -2201,18 +2244,10 @@
       .quick-dialog #electrode-selector { width: min(100%, 300px); max-height: 40dvh; }
       .quick-dialog .settings-footer .button { width: 100%; min-height: 44px; }
       #print-report { display: none; }
-      body.report-open > :not(#print-report) { display: none !important; }
-      body.report-open #print-report { display: block; }
-      .print-actions { position: sticky; top: 0; z-index: 1; display: flex; justify-content: center; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px; background: white; border-bottom: 1px solid var(--line); }
-      .print-actions p { margin: 0; color: var(--muted); font-size: 13px; }
-      .report-sheet { display: block; width: min(100%, 210mm); height: auto; margin: 12px auto; background: white; }
-      @page { size: A4 portrait; margin: 0; }
-      @media print {
-        body.report-open { min-width: 0; min-height: 0; background: white; }
-        #print-report .print-actions { display: none; }
-        .report-sheet { width: 210mm; height: 297mm; margin: 0; break-inside: avoid; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-        .report-sheet + .report-sheet { break-before: page; }
-      }
+      .print-actions { position: sticky; top: 0; z-index: 1; display: flex; justify-content: center; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px; background: var(--surface); border-bottom: 1px solid var(--line); }
+      .print-actions p { margin: 0; color: var(--muted); font-size: 0.8125rem; }
+      .report-sheet { display: block; width: min(100%, 210mm); height: auto; margin: 12px auto; background: white; content-visibility: auto; contain-intrinsic-size: 210mm 297mm; }
+      .about-section { content-visibility: auto; contain-intrinsic-size: auto 96px; }
       body[data-sync-role="mirror"] #more-settings, body[data-sync-role="mirror"] #more-export, body[data-sync-role="mirror"] #reset-button, body[data-sync-role="mirror"] #mobile-undo { display: none; }
       @media (min-width: 721px) and (max-width: 1180px) {
         .topbar { flex-wrap: wrap; height: auto; min-height: 72px; padding: 12px 20px; gap: 12px; }
@@ -2230,24 +2265,24 @@
         .topbar { display: flex; flex-wrap: nowrap; gap: 10px; min-height: 72px; padding: 12px; }
         .brand { width: auto; flex: 1 1 0; gap: 8px; }
         .brand-mark { width: 26px; height: 26px; border-width: 5px; }
-        .brand h1 { font-size: 13px; line-height: 1.4; }
-        .app-meta { white-space: normal; font-size: 9px; gap: 4px; }
+        .brand h1 { font-size: 0.8125rem; line-height: 1.4; }
+        .app-meta { white-space: normal; font-size: 0.5625rem; gap: 4px; }
         #app-iteration, #app-iteration + span, .app-meta-separator:last-of-type { display: none; }
         .top-actions { display: flex; width: auto; gap: 6px; }
         .top-actions > #settings-button, .top-actions > #undo-button, .top-actions > #export-button, .top-actions > .save-state { display: none; }
         .top-actions .sync-status { min-height: 42px; width: auto; padding: 7px; gap: 6px; }
-        .sync-status-mark { width: 18px; font-size: 14px; }
+        .sync-status-mark { width: 18px; font-size: 0.875rem; }
         .sync-status-chevron, .sync-status-dot { display: none; }
-        .sync-status-name, .sync-status-state { font-size: 9px; }
+        .sync-status-name, .sync-status-state { font-size: 0.5625rem; }
         .top-actions .more-button { width: 36px; min-width: 36px; min-height: 42px; padding: 0 4px; }
         .workspace { display: block; }
         .workspace > .inspector { display: none; }
         .mobile-action { display: flex; }
         .stage { padding: 14px 10px 18px; }
         .stage-header { gap: 8px; margin-bottom: 12px; }
-        .stage-title h2 { font-size: 17px; }
-        .stage-title p { font-size: 11px; line-height: 1.5; margin-top: 4px; }
-        .legend { gap: 8px; font-size: 10px; }
+        .stage-title h2 { font-size: 1.0625rem; }
+        .stage-title p { font-size: 0.6875rem; line-height: 1.5; margin-top: 4px; }
+        .legend { gap: 8px; font-size: 0.625rem; }
         .legend-item { gap: 4px; }
         .legend-swatch { width: 10px; height: 10px; }
         .map-panel { box-shadow: 0 5px 22px #35234408; }
@@ -2255,57 +2290,57 @@
         .map-action-row { display: contents; }
         .map-mode-toggle { height: 40px; width: 126px; }
         .map-mode-slider { height: 32px; top: 3px; }
-        .record-hint { grid-column: 1 / -1; font-size: 11px; }
-        .layer-key { font-size: 11px; }
+        .record-hint { grid-column: 1 / -1; font-size: 0.6875rem; }
+        .layer-key { font-size: 0.6875rem; }
         .map-view-switch { display: grid; grid-template-columns: repeat(4, 1fr); padding: 0 12px; border-bottom: 1px solid var(--line); }
-        .map-view-switch button { padding: 10px 6px; min-height: 44px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; }
+        .map-view-switch button { padding: 10px 6px; min-height: 44px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); font-size: 0.8125rem; cursor: pointer; }
         .map-view-switch button[aria-pressed="true"] { border-bottom-color: var(--purple-3); color: var(--purple-3); font-weight: 700; }
         .map-wrap { overflow: hidden; padding: 8px 0 10px; }
-        #pv-map { width: 100%; max-width: 100%; aspect-ratio: 400 / 580; max-height: none; }
+        #pv-map { width: 100%; max-width: 100%; height: auto; aspect-ratio: 400 / 608; max-height: none; }
         #pv-map[data-view="all"] { aspect-ratio: 980 / 650; }
         #pv-map:not([data-view="all"]) .anatomy-field, #pv-map:not([data-view="all"]) .atrium-line, #pv-map:not([data-view="all"]) .atrium-label { visibility: hidden; }
-        .operation-status-bar { padding: 10px 12px; gap: 4px 8px; min-height: 48px; font-size: 11px; }
+        .operation-status-bar { padding: 10px 12px; gap: 4px 8px; min-height: 48px; font-size: 0.6875rem; }
         .operation-status-time { display: none; }
-        .operation-status-label { font-size: 10px; }
+        .operation-status-label { font-size: 0.625rem; }
         .mobile-dock { display: flex; align-items: center; justify-content: space-between; gap: 5px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 35; padding: 10px max(10px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); background: #fffffffa; border-top: 1px solid var(--line); box-shadow: 0 -4px 20px #17203308; }
         .mobile-dock button { display: grid; gap: 4px; place-content: center; min-height: 50px; padding: 6px 10px; border: 0; border-radius: 10px; background: transparent; color: var(--ink); cursor: pointer; }
-        .mobile-dock strong { font-size: 13px; font-weight: 650; white-space: nowrap; }
-        .mobile-dock small { font-size: 10px; font-weight: 400; color: var(--muted); }
+        .mobile-dock strong { font-size: 0.8125rem; font-weight: 650; white-space: nowrap; }
+        .mobile-dock small { font-size: 0.625rem; font-weight: 400; color: var(--muted); }
         .mobile-dock button:disabled { opacity: .4; cursor: default; }
         #mobile-electrodes { background: #f3edf9; color: var(--purple-3); }
         #mobile-electrodes[data-empty="true"] { background: #fff0e4; color: #a94d00; }
         .mobile-total { display: grid; gap: 5px; padding-left: 2px; }
-        .mobile-total strong { font-size: 19px; font-variant-numeric: tabular-nums; }
-        .mobile-total strong small { font-size: 9px; }
-        .mobile-total > span { font-size: 9px; color: var(--muted); }
+        .mobile-total strong { font-size: 1.1875rem; font-variant-numeric: tabular-nums; }
+        .mobile-total strong small { font-size: 0.5625rem; }
+        .mobile-total > span { font-size: 0.5625rem; color: var(--muted); }
         .mobile-total[data-storage="memory"] > span { color: #a94d00; }
         .toast { bottom: calc(88px + env(safe-area-inset-bottom)); }
         .toast { width: max-content; max-width: calc(100vw - 24px); line-height: 1.5; }
         .settings-dialog { width: calc(100vw - 24px); max-height: calc(100dvh - 24px); }
-        .settings-dialog input, .settings-dialog select, .settings-dialog textarea, .endpoint-control select { font-size: 16px; min-height: 44px; }
+        .settings-dialog input, .settings-dialog select, .settings-dialog textarea, .endpoint-control select { font-size: 1rem; min-height: 44px; }
         .settings-dialog .settings-header, .settings-dialog .settings-footer { padding-top: 16px; padding-bottom: 16px; }
         .quick-dialog { inset: auto auto 0 50vw; translate: -50% 0; width: 100vw; max-width: 100vw; max-height: min(88dvh, 820px); border-radius: 20px 20px 0 0; }
         .quick-dialog .settings-footer { padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
         .quick-dialog .clinical-note { margin-top: 22px; }
-        .quick-dialog .quality-metric strong { font-size: 22px; }
-        .quick-dialog .quality-metric span { font-size: 10px; }
+        .quick-dialog .quality-metric strong { font-size: 1.375rem; }
+        .quick-dialog .quality-metric span { font-size: 0.625rem; }
       }
 
       /* Plus visual system: map first, quiet surfaces, explicit reading hierarchy. */
       :root { --muted: #596579; --canvas: #f5f6f9; --line: #e3e6ed; --shadow: 0 4px 20px rgba(31, 39, 58, .045); }
       .topbar { background: #fff; backdrop-filter: none; }
-      .plus-mark { display: inline-block; margin-left: 5px; color: var(--purple-3); font-size: 10px; font-weight: 800; letter-spacing: .08em; vertical-align: middle; }
+      .plus-mark { display: inline-block; margin-left: 5px; color: var(--purple-3); font-size: 0.625rem; font-weight: 800; letter-spacing: .08em; vertical-align: middle; }
       .app-meta { line-height: 1.5; }
       .stage-header { align-items: center; flex-wrap: wrap; gap: 12px 24px; }
-      .stage-title h2 { font-size: 21px; font-weight: 750; }
+      .stage-title h2 { font-size: 1.3125rem; font-weight: 750; }
       .stage-title p { line-height: 1.6; }
-      .legend { flex-wrap: wrap; gap: 8px 14px; font-size: 11px; }
+      .legend { flex-wrap: wrap; gap: 8px 14px; font-size: 0.6875rem; }
       .map-panel { border-radius: 14px; }
       .map-toolbar { min-height: 56px; padding: 10px 18px; background: #fff; flex-wrap: wrap; gap: 10px 20px; }
       .layer-key { flex-wrap: wrap; gap: 14px; flex-shrink: 0; }
-      .map-reading-key { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; padding: 11px 18px; background: #f8f9fc; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; line-height: 1.5; }
+      .map-reading-key { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; padding: 11px 18px; background: #f8f9fc; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 0.6875rem; line-height: 1.5; }
       .map-reading-key > span { display: inline-flex; align-items: center; gap: 8px; }
-      .sector-key-sample { color: #445269; font-size: 12px; letter-spacing: .08em; }
+      .sector-key-sample { color: #445269; font-size: 0.75rem; letter-spacing: .08em; }
       .count-key-sample { color: var(--purple-3); font-weight: 650; }
       .sector-label { fill: #445269; font-size: 12px; font-weight: 750; stroke: #fff; stroke-width: 2px; }
       .segment-count, .ridge-count, .quality-metric strong, .vein-summary-count { font-variant-numeric: tabular-nums; }
@@ -2313,16 +2348,16 @@
       .atrium-label { fill: #7b8698; font-weight: 600; letter-spacing: .03em; }
       .side-title { fill: #445269; font-size: 15px; font-weight: 650; }
       .inspector-section { margin-top: 26px; }
-      .section-kicker, .summary-kicker { font-size: 12px; letter-spacing: .04em; }
+      .section-kicker, .summary-kicker { font-size: 0.75rem; letter-spacing: .04em; }
       .quality-row { gap: 12px; }
       .quality-metric strong { font-weight: 750; line-height: 1.2; }
       .quality-metric span { line-height: 1.5; }
       .vein-list { gap: 0; }
       .vein-summary { padding: 14px 0; border-bottom: 1px solid var(--line); row-gap: 9px; }
       .vein-summary:last-child { border-bottom: 0; }
-      .ablation-criteria span, .endpoint-control span { font-size: 11px; }
-      .ablation-criteria strong { font-size: 11px; line-height: 1.6; }
-      .endpoint-control select { min-height: 36px; font-size: 12px; border-radius: 8px; }
+      .ablation-criteria span, .endpoint-control span { font-size: 0.6875rem; }
+      .ablation-criteria strong { font-size: 0.6875rem; line-height: 1.6; }
+      .endpoint-control select { min-height: 36px; font-size: 0.75rem; border-radius: 8px; }
       .button { min-height: 38px; border-radius: 9px; transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease; }
       .settings-dialog { border: 1px solid var(--line); box-shadow: 0 20px 70px #17203326; }
       .settings-header-help, .settings-help { line-height: 1.7; }
@@ -2331,17 +2366,17 @@
       @media (min-width: 951px) { .inspector { padding: 28px 24px; } }
       @media (max-width: 720px) {
         .stage-header { gap: 10px; }
-        .stage-title h2 { font-size: 18px; }
+        .stage-title h2 { font-size: 1.125rem; }
         .map-toolbar { padding: 10px 12px; display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; }
         .record-hint { width: auto; white-space: normal; line-height: 1.6; }
-        .map-reading-key { padding: 9px 12px; gap: 5px 16px; font-size: 10px; }
+        .map-reading-key { padding: 9px 12px; gap: 5px 16px; font-size: 0.625rem; }
         .map-reading-key > span { gap: 6px; }
         .map-panel { border-radius: 12px; box-shadow: none; }
         .map-view-switch button { min-height: 46px; transition: color 160ms ease, background-color 160ms ease; }
         .map-view-switch button[aria-pressed="true"] { background: #f7f3fc; }
         .mobile-dock { background: rgba(255,255,255,.97); border-top: 1px solid #dce1ea; box-shadow: 0 -4px 16px #17203306; }
         .mobile-dock button { min-height: 48px; }
-        .endpoint-control select { min-height: 44px; font-size: 16px; }
+        .endpoint-control select { min-height: 44px; font-size: 1rem; }
         .quick-dialog .vein-summary { padding: 16px 0; }
       }
 
@@ -2363,50 +2398,143 @@
         .map-toolbar { grid-template-columns: 1fr; }
         #map-mode-toggle { width: 100%; }
       }
+      } /* end @layer base */
 
+      @layer theme {
       /* ==========================================================
          Apple-inspired visual system
          SF typography, translucent chrome, pill controls, grouped
          cards, generous whitespace. Data heatmap colors unchanged.
          ========================================================== */
       :root {
-        --ink: #1d1d1f;
-        --muted: #6e6e73;
-        --muted-2: #86868b;
-        --line: rgba(0, 0, 0, 0.08);
-        --line-strong: rgba(0, 0, 0, 0.14);
+        --ink: #18181f;
+        --muted: #5f5f6d;
+        --muted-2: #7e7e8c;
+        --line: rgba(24, 24, 38, 0.085);
+        --line-strong: rgba(24, 24, 38, 0.16);
         --surface: #ffffff;
-        --canvas: #f5f5f7;
-        --fill: rgba(118, 118, 128, 0.12);
-        --fill-hover: rgba(118, 118, 128, 0.18);
-        --accent: #0071e3;
-        --accent-hover: #0077ed;
-        --accent-press: #006edb;
-        --accent-soft: rgba(0, 113, 227, 0.1);
-        --danger: #e30000;
-        --radius-card: 22px;
-        --radius-control: 12px;
-        --shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.04);
+        --surface-elevated: rgba(255, 255, 255, 0.96);
+        --canvas: #f3f3f7;
+        --fill: rgba(96, 94, 118, 0.1);
+        --fill-hover: rgba(96, 94, 118, 0.16);
+        --accent: #5a278f;
+        --accent-hover: #6d36a8;
+        --accent-press: #461c72;
+        --accent-soft: rgba(90, 39, 143, 0.1);
+        --accent-ring: rgba(90, 39, 143, 0.24);
+        --danger: #d92d20;
+        --topbar-bg: rgba(250, 250, 253, 0.86);
+        --dialog-bg: rgba(255, 255, 255, 0.98);
+        --popover-bg: rgba(255, 255, 255, 0.95);
+        --backdrop-bg: rgba(16, 15, 24, 0.34);
+        --toast-bg: rgba(26, 24, 36, 0.92);
+        --toast-ink: #ffffff;
+        --control-bg: #ffffff;
+        --hover-surface: #eceaf2;
+        --map-empty-fill: #f3f2f5;
+        --map-edge-empty: #e5e3eb;
+        --map-stroke: #ffffff;
+        --map-label-stroke: #fbfbfd;
+        --map-grid-dot: rgba(24, 24, 38, 0.065);
+        --track-bg: #e6e4ee;
+        --chevron-ink: #b9b7c4;
+        --hint-warn-bg: #fff6d6;
+        --hint-warn-ink: #6e5000;
+        --hint-ok-bg: #eaf8ee;
+        --hint-ok-ink: #167a3e;
+        --radius-card: 20px;
+        --radius-control: 11px;
+        --shadow:
+          0 0 0 0.5px var(--line),
+          0 4px 18px -4px rgba(24, 18, 44, 0.07),
+          0 1px 3px rgba(24, 18, 44, 0.04);
         --ease-apple: cubic-bezier(0.25, 0.1, 0.25, 1);
         font-family:
           -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
-          "PingFang SC", "Helvetica Neue", "Hiragino Sans GB", "Microsoft YaHei",
-          Inter, sans-serif;
+          "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
       }
-      body { background: var(--canvas); color: var(--ink); letter-spacing: -0.003em; }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --ink: #f4f4f8;
+          --muted: #a4a3b2;
+          --muted-2: #8a8999;
+          --line: rgba(255, 255, 255, 0.11);
+          --line-strong: rgba(255, 255, 255, 0.21);
+          --surface: #1b1b22;
+          --surface-elevated: rgba(27, 27, 34, 0.96);
+          --canvas: #111116;
+          --fill: rgba(255, 255, 255, 0.1);
+          --fill-hover: rgba(255, 255, 255, 0.17);
+          --accent: #b38cf0;
+          --accent-hover: #c5a4f7;
+          --accent-press: #9b6ee6;
+          --accent-soft: rgba(179, 140, 240, 0.18);
+          --accent-ring: rgba(179, 140, 240, 0.34);
+          --danger: #ff6058;
+          --topbar-bg: rgba(21, 21, 27, 0.88);
+          --dialog-bg: rgba(27, 27, 34, 0.98);
+          --popover-bg: rgba(32, 32, 41, 0.95);
+          --backdrop-bg: rgba(0, 0, 0, 0.6);
+          --toast-bg: rgba(40, 40, 50, 0.95);
+          --toast-ink: #f4f4f8;
+          --control-bg: #24242e;
+          --hover-surface: rgba(255, 255, 255, 0.1);
+          --map-empty-fill: #272732;
+          --map-edge-empty: #323240;
+          --map-stroke: #1b1b22;
+          --map-label-stroke: #1b1b22;
+          --map-grid-dot: rgba(255, 255, 255, 0.06);
+          --track-bg: rgba(255, 255, 255, 0.14);
+          --chevron-ink: #6e6d7a;
+          --hint-warn-bg: rgba(244, 196, 48, 0.18);
+          --hint-warn-ink: #ffd75e;
+          --hint-ok-bg: rgba(52, 199, 89, 0.18);
+          --hint-ok-ink: #6be58d;
+          --shadow:
+            0 0 0 0.5px var(--line),
+            0 8px 28px rgba(0, 0, 0, 0.36);
+        }
+        body {
+          background-image: radial-gradient(ellipse 85% 50% at 50% -10%, rgba(179, 140, 240, 0.08), transparent);
+        }
+        .map-panel .map-reading-key,
+        .map-panel .operation-status-bar { background: rgba(255, 255, 255, 0.035); }
+        .map-panel .pv-segment,
+        .map-panel .ridge-segment { stroke: var(--map-stroke); }
+        .map-panel .pv-segment:not(.level-1):not(.level-2):not(.level-3):not(.level-4) { fill: var(--map-empty-fill); }
+        .map-panel .ridge-segment:not(.level-1):not(.level-2):not(.level-3):not(.level-4) { fill: var(--map-empty-fill); }
+        .map-panel .vein-center { fill: var(--control-bg); stroke: rgba(255, 255, 255, 0.22); }
+        .map-panel .sector-label { fill: #b8bfcc; stroke: var(--map-label-stroke); }
+        .map-panel .electrode-center-ring { fill: var(--control-bg); stroke: var(--line-strong); }
+        .map-panel .planar-zone-frame { fill: rgba(27, 27, 34, 0.9); stroke: var(--line-strong); }
+        .map-panel .planar-zone-header-bg { fill: #24242f; }
+        .map-panel .planar-zone.is-complete .planar-zone-header-bg { fill: rgba(52, 199, 89, 0.18); }
+        .map-panel .planar-dim-pill,
+        .map-panel .planar-mini-step-bg { fill: var(--control-bg); stroke: var(--line-strong); }
+        .map-panel .planar-cell:not(.level-1):not(.level-2):not(.level-3):not(.level-4) { fill: var(--map-empty-fill); stroke: var(--map-stroke); }
+        .map-panel .planar-cell { stroke: var(--map-stroke); }
+        .map-panel .planar-cell-edge:not(.level-1):not(.level-2):not(.level-3):not(.level-4) { fill: var(--map-edge-empty); }
+      }
+      body {
+        background-color: var(--canvas);
+        background-image: radial-gradient(ellipse 85% 50% at 50% -10%, rgba(90, 39, 143, 0.045), transparent);
+        color: var(--ink);
+        letter-spacing: -0.003em;
+      }
 
       /* Translucent navigation bar — aligned with workspace container */
       .topbar {
         position: sticky;
         top: 0;
-        height: 56px;
-        min-height: 56px;
+        height: 54px;
+        min-height: 54px;
         padding: 0 max(24px, calc((100vw - 1440px) / 2 + 24px));
-        background: rgba(251, 251, 253, 0.82);
-        border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+        background: var(--topbar-bg);
+        border-bottom: 0.5px solid var(--line);
         -webkit-backdrop-filter: saturate(180%) blur(20px);
         backdrop-filter: saturate(180%) blur(20px);
       }
@@ -2415,49 +2543,58 @@
         width: 28px; height: 28px;
         border: 0;
         background:
-          radial-gradient(circle, #fff 0 34%, transparent 35%),
+          radial-gradient(circle, var(--surface) 0 34%, transparent 36%),
           conic-gradient(from 210deg, #5a278f, #8754bd, #c7a3e8, #5a278f);
-        box-shadow: 0 1px 3px rgba(53, 16, 83, 0.25);
+        box-shadow: 0 1px 3px rgba(53, 16, 83, 0.24), inset 0 0 0 0.5px rgba(255, 255, 255, 0.25);
       }
-      .brand h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.022em; }
+      .brand h1 { font-size: 1.0313rem; font-weight: 650; letter-spacing: -0.022em; }
       .plus-mark {
         margin-left: 6px; padding: 2px 6px; border-radius: 6px;
-        background: linear-gradient(135deg, #5a278f, #8754bd);
-        color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+        background: var(--accent-soft);
+        border: 0.5px solid color-mix(in srgb, var(--accent) 28%, transparent);
+        color: var(--accent); font-size: 0.5625rem; font-weight: 700; letter-spacing: 0.06em;
         vertical-align: 2px;
       }
-      .app-meta { margin-top: 2px; color: var(--muted-2); font-size: 11px; letter-spacing: 0; }
+      .app-meta { margin-top: 2px; color: var(--muted-2); font-size: 0.6875rem; letter-spacing: 0; font-variant-numeric: tabular-nums; }
       .app-version { color: var(--muted); font-weight: 600; letter-spacing: 0; }
-      .app-meta-separator { color: #d2d2d7; }
-      .save-state { color: var(--muted-2); font-size: 12px; }
-      .save-state::before { width: 6px; height: 6px; background: #34c759; box-shadow: none; }
-      .save-state[data-storage="memory"]::before { background: #ff9f0a; box-shadow: none; }
+      .app-meta-separator { color: var(--line-strong); }
+      .save-state { color: var(--muted-2); font-size: 0.75rem; }
+      .save-state::before { width: 6px; height: 6px; background: #2da854; box-shadow: 0 0 0 3px rgba(45, 168, 84, 0.14); }
+      .save-state[data-storage="memory"]::before { background: #e88f0c; box-shadow: 0 0 0 3px rgba(232, 143, 12, 0.16); }
 
       /* Pill buttons */
       .button {
         min-height: 34px;
-        padding: 0 16px;
+        padding: 0 15px;
         border: 0;
         border-radius: 980px;
         background: var(--fill);
         color: var(--ink);
-        font-size: 14px;
-        font-weight: 500;
+        font-size: 0.8438rem;
+        font-weight: 550;
         letter-spacing: -0.01em;
-        transition: background-color 200ms var(--ease-apple), transform 120ms var(--ease-apple), opacity 200ms ease;
+        transition: background-color 200ms var(--ease-apple), transform 120ms var(--ease-apple), opacity 200ms ease, box-shadow 200ms ease;
       }
       .button:hover:not(:disabled) { border-color: transparent; background: var(--fill-hover); }
       .button:active:not(:disabled) { transform: scale(0.97); }
-      .button:disabled { opacity: 0.35; }
-      .button.primary { border: 0; background: var(--accent); color: #fff; }
+      .button:disabled { opacity: 0.36; }
+      .button.primary {
+        border: 0;
+        background: var(--accent);
+        color: #fff;
+        box-shadow: 0 1px 2px rgba(53, 16, 83, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+      }
       .button.primary:hover:not(:disabled) { background: var(--accent-hover); }
       .button.primary:active:not(:disabled) { background: var(--accent-press); }
+      @media (prefers-color-scheme: dark) {
+        .button.primary { color: #16111e; font-weight: 650; }
+      }
       .button.danger { border: 0; background: var(--danger); color: #fff; }
       .button:focus-visible, .action-item:focus-visible, .mobile-dock button:focus-visible,
       .map-view-switch button:focus-visible, .direct-choice:focus-visible, .direct-text-button:focus-visible {
-        outline: 0; box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.35);
+        outline: 0; box-shadow: 0 0 0 4px var(--accent-ring);
       }
-      .more-button { width: 34px; min-width: 34px; padding: 0; font-size: 13px; letter-spacing: 1px; }
+      .more-button { width: 34px; min-width: 34px; padding: 0; font-size: 0.8125rem; letter-spacing: 1px; }
 
       .sync-status {
         min-height: 34px;
@@ -2468,16 +2605,16 @@
         transition: background-color 200ms var(--ease-apple);
       }
       .sync-status:hover { border-color: transparent; background: var(--fill-hover); }
-      .sync-status-mark { width: 24px; height: 24px; border-radius: 50%; background: #fff; color: var(--accent); font-size: 13px; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+      .sync-status-mark { width: 24px; height: 24px; border-radius: 50%; background: var(--control-bg); color: var(--accent); font-size: 0.8125rem; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
       .sync-status-dot { width: 6px; height: 6px; box-shadow: none; background: #aeaeb2; }
       .sync-status[data-state="connected"] .sync-status-dot,
       .sync-status[data-state="synced"] .sync-status-dot { background: #34c759; box-shadow: none; }
       .sync-status[data-state="connecting"] .sync-status-dot,
       .sync-status[data-state="offline"] .sync-status-dot { background: #ff9f0a; box-shadow: none; }
       .sync-status[data-state="error"] .sync-status-dot { background: #ff3b30; box-shadow: none; }
-      .sync-status-name { font-size: 11px; font-weight: 600; }
-      .sync-status-state { font-size: 10px; color: var(--muted); }
-      .sync-status-chevron { color: #c7c7cc; }
+      .sync-status-name { font-size: 0.6875rem; font-weight: 600; }
+      .sync-status-state { font-size: 0.625rem; color: var(--muted); }
+      .sync-status-chevron { color: var(--chevron-ink); }
 
       /* Symmetrical Workspace & Unified Stage Card */
       .workspace {
@@ -2503,7 +2640,7 @@
         max-width: none;
         width: 100%;
         margin: 0;
-        padding: 16px 24px 14px;
+        padding: 13px 22px 12px;
         border-bottom: 0.5px solid var(--line);
         display: flex;
         flex-wrap: nowrap;
@@ -2513,12 +2650,23 @@
       }
       .stage-title { min-width: 0; flex: 1 1 auto; }
       .stage-header:has(.case-clock) { flex-flow: row wrap; text-align: start; }
-      .case-clock { display: flex; align-items: baseline; gap: 7px; white-space: nowrap; color: var(--muted); font-size: 12px; }
-      .case-clock [role="timer"] { color: var(--ink); font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
-      .stage-title h2 { font-size: 22px; font-weight: 700; line-height: 1.2; letter-spacing: -0.024em; }
-      .stage-title p { margin-top: 3px; color: var(--muted); font-size: 13px; line-height: 1.4; letter-spacing: -0.008em; }
-      .legend { flex: 0 0 auto; gap: 6px 14px; color: var(--muted); font-size: 12px; justify-content: flex-end; }
-      .legend-swatch { width: 10px; height: 10px; border-radius: 50%; border: 0; box-shadow: inset 0 0 0 0.5px rgba(0,0,0,.12); }
+      .case-clock {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 8px;
+        padding: 4px 10px;
+        border-radius: 980px;
+        background: var(--canvas);
+        border: 0.5px solid var(--line);
+        white-space: nowrap;
+        color: var(--muted);
+        font-size: 0.7188rem;
+      }
+      .case-clock [role="timer"] { color: var(--ink); font-size: 0.9375rem; font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
+      .stage-title h2 { font-size: 1.25rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.022em; }
+      .stage-title p { margin-top: 2px; color: var(--muted); font-size: 0.8125rem; line-height: 1.4; letter-spacing: -0.008em; }
+      .legend { flex: 0 0 auto; gap: 6px 14px; color: var(--muted); font-size: 0.7188rem; justify-content: flex-end; }
+      .legend-swatch { width: 10px; height: 10px; border-radius: 50%; border: 0; box-shadow: inset 0 0 0 0.5px rgba(0,0,0,.14); }
 
       /* Map panel inside unified stage card */
       .map-panel {
@@ -2535,14 +2683,14 @@
         flex-direction: column;
       }
       .map-toolbar {
-        min-height: 50px;
-        padding: 10px 24px 8px;
-        border-top: 1px solid var(--line);
+        min-height: 44px;
+        padding: 7px 22px;
+        border-top: 0.5px solid var(--line);
         border-bottom: 0;
         background: var(--surface);
         flex-shrink: 0;
         color: var(--muted);
-        font-size: 12.5px;
+        font-size: 0.7813rem;
         display: grid;
         grid-template-columns: auto 1fr auto;
         align-items: center;
@@ -2557,29 +2705,32 @@
         width: auto;
         max-width: 100%;
         color: var(--muted);
-        font-size: 12px;
+        font-size: 0.75rem;
         white-space: normal;
       }
-      .layer-key { order: 3; justify-self: end; color: var(--muted); font-size: 12px; gap: 14px; }
-      .ring-icon { border-color: #c7c7cc; }
+      .layer-key { order: 3; justify-self: end; color: var(--muted); font-size: 0.75rem; gap: 14px; }
+      .ring-icon { border-color: var(--muted-2); }
       .map-reading-key {
-        margin: 0 24px;
-        padding: 7px 14px;
+        margin: 0 22px;
+        padding: 5px 12px;
         border: 0;
-        border-radius: 10px;
+        border-radius: 8px;
         background: var(--canvas);
         color: var(--muted);
-        font-size: 11.5px;
+        font-size: 0.6875rem;
         justify-content: center;
         text-align: center;
-        gap: 6px 22px;
+        gap: 4px 18px;
       }
       .sector-key-sample { color: var(--ink); font-weight: 600; letter-spacing: 0.04em; }
       .count-key-sample { color: var(--accent); font-weight: 600; }
       .map-wrap {
         flex: 1;
         min-height: 0;
-        padding: 6px 18px 8px;
+        padding: 8px 20px;
+        background-image: radial-gradient(circle, var(--map-grid-dot) 1px, transparent 1px);
+        background-size: 22px 22px;
+        background-position: center;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -2593,58 +2744,69 @@
         margin: 0 auto;
       }
 
-      /* iOS segmented control */
+      /* Precision segmented control */
       #map-mode-toggle {
-        height: 34px;
+        height: 32px;
         padding: 2px;
         gap: 0;
-        border: 0;
+        border: 0.5px solid var(--line);
         border-radius: 9px;
         background: var(--fill);
         box-shadow: none;
       }
       #map-mode-toggle button {
         border-radius: 7px;
-        color: var(--ink);
-        font-size: 13px;
+        color: var(--muted);
+        font-size: 0.7813rem;
         font-weight: 500;
-        transition: background-color 220ms var(--ease-apple), color 220ms ease, box-shadow 220ms ease;
+        transition: background-color 200ms var(--ease-apple), color 180ms ease, box-shadow 200ms ease;
       }
       #map-mode-toggle button[aria-pressed="true"] {
-        background: #fff;
-        color: var(--ink);
-        font-weight: 600;
-        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 3px 1px rgba(0, 0, 0, 0.04), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+        background: var(--control-bg);
+        color: var(--accent);
+        font-weight: 650;
+        box-shadow: 0 2px 6px rgba(24, 18, 44, 0.1), 0 0 0 0.5px var(--line);
       }
-      #map-mode-toggle button[data-edit-mode="remove"][aria-pressed="true"] { background: #fff; color: var(--danger); }
-      #map-mode-toggle button:focus-visible { outline: 0; box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.35); }
+      #map-mode-toggle button[data-edit-mode="remove"][aria-pressed="true"] {
+        background: color-mix(in srgb, var(--danger) 10%, var(--control-bg));
+        color: var(--danger);
+      }
+      #map-mode-toggle button:focus-visible { outline: 0; box-shadow: 0 0 0 3px var(--accent-ring); }
 
       /* SVG neutrals */
-      .anatomy-field { fill: #f5f5f7; stroke: #e8e8ed; }
-      .atrium-line { stroke: #e0e0e5; }
-      .atrium-label { fill: #aeaeb2; font-weight: 600; letter-spacing: 0.04em; }
+      .anatomy-field { fill: var(--canvas); stroke: var(--line); }
+      .atrium-line { stroke: var(--line-strong); }
+      .atrium-label { fill: var(--muted-2); font-weight: 600; letter-spacing: 0.04em; }
       .side-title { fill: var(--ink); font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
-      .sector-label { fill: #6e6e73; font-weight: 600; }
-      .vein-center { stroke: #d2d2d7; }
-      .vein-code { fill: #6e6e73; font-weight: 700; }
-      .vein-cn { fill: #86868b; }
-      .ridge-label { fill: #86868b; }
-      .pv-segment:hover, .ridge-segment:hover { stroke: #fff; filter: brightness(0.94); }
+      .sector-label { fill: var(--muted); font-weight: 600; }
+      .vein-center { stroke: var(--line-strong); }
+      .vein-code { fill: var(--muted); font-weight: 700; }
+      .vein-cn { fill: var(--muted-2); }
+      .ridge-label { fill: var(--muted-2); }
+      .ridge-label.on-dark { fill: #ffffff; }
+      .plan-complete .vein-center { fill: var(--complete-center); stroke: var(--complete-center); }
+      .plan-complete .vein-code,
+      .plan-complete .vein-cn,
+      .plan-complete .vein-total { fill: #ffffff; }
+      .plan-in-progress .vein-center { stroke: var(--in-progress); }
+      .plan-in-progress .vein-code { fill: var(--in-progress-dark); }
+      .pv-segment, .ridge-segment { transition: fill 180ms var(--ease-apple), filter 160ms ease, stroke 160ms ease; }
+      .pv-segment:hover, .ridge-segment:hover { stroke: var(--map-stroke); filter: brightness(0.95); }
       .pv-segment:focus-visible, .ridge-segment:focus-visible { stroke: var(--accent); }
 
       .operation-status-bar {
         margin-top: auto;
-        min-height: 42px;
-        padding: 9px 24px;
+        min-height: 36px;
+        padding: 7px 22px;
         border-top: 0.5px solid var(--line);
-        background: rgba(245, 245, 247, 0.45);
+        background: color-mix(in srgb, var(--canvas) 55%, var(--surface));
         color: var(--muted);
-        font-size: 12.5px;
+        font-size: 0.75rem;
       }
       .operation-status-label { color: var(--muted); font-weight: 500; }
       .operation-status-label::before { width: 6px; height: 6px; background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-      .operation-status-text { color: var(--ink); font-weight: 500; }
-      .operation-status-time { color: var(--muted-2); }
+      .operation-status-text { color: var(--ink); font-weight: 550; }
+      .operation-status-time { color: var(--muted-2); font-variant-numeric: tabular-nums; }
 
       /* Inspector: matched full-height bento stack */
       .workspace > .inspector {
@@ -2653,14 +2815,14 @@
         background: transparent;
         display: flex;
         flex-direction: column;
-        gap: 14px;
+        gap: 12px;
         min-height: 0;
         overflow: hidden;
       }
       .inspector > section,
       .inspector > details.inspector-section {
         margin: 0;
-        padding: 16px 18px;
+        padding: 15px 17px;
         border-radius: var(--radius-card);
         background: var(--surface);
         box-shadow: var(--shadow);
@@ -2668,30 +2830,38 @@
       .inspector-section { margin-top: 0; }
       .summary-kicker, .section-kicker {
         color: var(--ink);
-        font-size: 14px;
-        font-weight: 600;
+        font-size: 0.875rem;
+        font-weight: 650;
         letter-spacing: -0.015em;
         text-transform: none;
       }
       .inspector-section > summary { padding: 0; list-style: none; display: flex; align-items: center; justify-content: space-between; }
       .inspector-section > summary::-webkit-details-marker { display: none; }
-      .inspector-section > summary::after { content: "›"; color: #c7c7cc; font-size: 20px; font-weight: 400; transition: transform 220ms var(--ease-apple); }
+      .inspector-section > summary::after {
+        content: "›";
+        content: "›" / "";
+        color: var(--chevron-ink);
+        font-size: 1.25rem;
+        font-weight: 400;
+        transition: transform 220ms var(--ease-apple);
+      }
       .inspector-section[open] > summary::after { transform: rotate(90deg); }
-      .quality-row { margin-top: 12px; gap: 8px; }
+      .quality-row { margin-top: 10px; gap: 8px; }
       .quality-metric {
         min-width: 0;
-        padding: 10px 6px;
-        border: 0;
+        padding: 11px 6px;
+        border: 0.5px solid var(--line);
         border-radius: 13px;
         background: var(--canvas);
         text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+        display: grid;
+        grid-template-rows: auto auto;
+        align-content: center;
+        justify-items: center;
+        gap: 4px;
       }
-      .quality-metric strong { font-size: 20px; font-weight: 700; letter-spacing: -0.03em; white-space: nowrap; }
-      .quality-metric span { margin-top: 3px; color: var(--muted); font-size: 10.5px; line-height: 1.3; }
+      .quality-metric strong { font-size: 1.25rem; font-weight: 700; line-height: 1.1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .quality-metric span { margin-top: 0; color: var(--muted); font-size: 0.6875rem; line-height: 1.25; white-space: nowrap; }
       .workspace > .inspector > details.inspector-section[open] {
         flex: 1 1 auto;
         min-height: 130px;
@@ -2702,29 +2872,31 @@
       }
       .vein-list { margin-top: 8px; overflow-y: auto; min-height: 0; }
       .vein-summary { padding: 10px 0; border-bottom: 0.5px solid var(--line); row-gap: 6px; }
-      .vein-summary-name { color: var(--ink); font-weight: 600; font-size: 13px; }
+      .vein-summary-name { color: var(--ink); font-weight: 600; font-size: 0.8125rem; }
+      .vein-summary-count { font-variant-numeric: tabular-nums; }
       .progress-track { height: 6px; gap: 3px; }
-      .progress-segment { border-radius: 980px; background: #e8e8ed; box-shadow: none; }
+      .progress-segment { border-radius: 980px; background: var(--track-bg); box-shadow: none; }
       .progress-segment.filled { background: #ff9f0a; }
       .vein-summary.plan-complete .progress-segment.filled { background: #34c759; }
       .endpoint-control select, .field input, .field select, .field textarea {
         border: 0.5px solid var(--line-strong);
         border-radius: 10px;
-        background: #fff;
+        background: var(--control-bg);
+        color: var(--ink);
         transition: box-shadow 200ms ease, border-color 200ms ease;
       }
       .field input:focus, .field select:focus, .field textarea:focus, .endpoint-control select:focus,
       input:focus-visible, select:focus-visible, textarea:focus-visible {
         border-color: var(--accent);
         outline: 0;
-        box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.2);
+        box-shadow: 0 0 0 4px var(--accent-ring);
       }
       .workspace > .inspector > .electrode-selector-section {
         flex: 1 1 0;
         min-height: 0;
         display: flex;
         flex-direction: column;
-        border-radius: var(--radius-card) var(--radius-card) 0 0;
+        border-radius: var(--radius-card);
       }
       .electrode-selector-wrap {
         flex: 1;
@@ -2744,17 +2916,36 @@
         aspect-ratio: 1;
         margin: 0 auto;
       }
-      .electrode-selection-count { padding: 3px 9px; border-radius: 980px; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 600; }
-      .electrode-center-ring { fill: #f5f5f7; stroke: #e8e8ed; }
+      .electrode-selection-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 10px;
+        border-radius: 980px;
+        border: 0.5px solid var(--line);
+        background: var(--canvas);
+        color: var(--ink);
+        font-size: 0.7188rem;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+      .electrode-selection-count::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #e88f0c;
+      }
+      .electrode-center-ring { fill: var(--canvas); stroke: var(--line); }
       .workspace > .inspector > .clinical-note {
         margin: -14px 0 0;
         padding: 10px 16px;
         border-top: 0.5px solid var(--line);
         border-radius: 0 0 var(--radius-card) var(--radius-card);
-        background: rgba(255, 255, 255, 0.92);
+        background: var(--surface-elevated);
         box-shadow: var(--shadow);
         color: var(--muted-2);
-        font-size: 10.5px;
+        font-size: 0.6563rem;
         line-height: 1.45;
         text-align: center;
       }
@@ -2763,42 +2954,67 @@
       .settings-dialog {
         border: 0;
         border-radius: 24px;
-        background: rgba(255, 255, 255, 0.98);
-        box-shadow: 0 0 0 0.5px rgba(0,0,0,.06), 0 24px 80px rgba(0, 0, 0, 0.22);
+        background: var(--dialog-bg);
+        box-shadow: 0 0 0 0.5px var(--line), 0 24px 80px rgba(0, 0, 0, 0.22);
+        opacity: 0;
+        transform: scale(0.96);
+        transition-property: opacity, transform, display, overlay;
+        transition-duration: 220ms, 260ms, 260ms, 260ms;
+        transition-timing-function: var(--ease-apple), cubic-bezier(0.32, 0.72, 0, 1), ease, ease;
+        transition-behavior: allow-discrete;
+      }
+      .settings-dialog[open] {
+        opacity: 1;
+        transform: scale(1);
       }
       .settings-dialog::backdrop {
-        background: rgba(0, 0, 0, 0.32);
+        background: var(--backdrop-bg);
         -webkit-backdrop-filter: blur(8px) saturate(140%);
         backdrop-filter: blur(8px) saturate(140%);
+        opacity: 0;
+        transition-property: opacity, display, overlay;
+        transition-duration: 220ms, 260ms, 260ms;
+        transition-timing-function: var(--ease-apple), ease, ease;
+        transition-behavior: allow-discrete;
       }
-      .settings-dialog[open] { animation: apple-sheet 320ms cubic-bezier(0.32, 0.72, 0, 1); }
-      @keyframes apple-sheet { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+      .settings-dialog[open]::backdrop {
+        opacity: 1;
+      }
+      @starting-style {
+        .settings-dialog[open] {
+          opacity: 0;
+          transform: scale(0.96);
+        }
+        .settings-dialog[open]::backdrop {
+          opacity: 0;
+        }
+      }
       .settings-header, .settings-footer { padding: 22px 24px; border: 0; }
       .settings-header { border-bottom: 0; padding-bottom: 8px; }
       .settings-footer { border-top: 0; padding-top: 12px; }
-      .settings-header h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.024em; }
-      .settings-header-help { color: var(--muted); font-size: 13px; }
+      .settings-header h2 { font-size: 1.375rem; font-weight: 700; letter-spacing: -0.024em; }
+      .settings-header-help { color: var(--muted); font-size: 0.8125rem; }
       .settings-body { padding: 12px 24px 16px; }
       .dialog-close {
-        width: 30px !important; height: 30px !important;
+        width: 30px; height: 30px;
         border-radius: 50%;
         background: var(--fill);
         color: var(--muted);
-        font-size: 18px;
+        font-size: 1.125rem;
         transition: background-color 200ms ease;
       }
       .dialog-close:hover { background: var(--fill-hover); }
       .settings-section + .settings-section { margin-top: 18px; padding-top: 18px; border-top: 0.5px solid var(--line); }
-      .settings-section h3, .about-section h3 { color: var(--ink); font-size: 15px; font-weight: 600; letter-spacing: -0.015em; }
-      .field { color: var(--muted); font-size: 12px; }
-      .toggle-field { font-size: 13px; }
+      .settings-section h3, .about-section h3 { color: var(--ink); font-size: 0.9375rem; font-weight: 600; letter-spacing: -0.015em; }
+      .field { color: var(--muted); font-size: 0.75rem; }
+      .toggle-field { font-size: 0.8125rem; }
       .toggle-field input { accent-color: var(--accent); }
-      .settings-help, .sync-detail, .sync-code-note, .sync-privacy-note, .patient-privacy-note { color: var(--muted); font-size: 12px; }
+      .settings-help, .sync-detail, .sync-code-note, .sync-privacy-note, .patient-privacy-note { color: var(--muted); font-size: 0.75rem; }
       .sync-privacy-note, .patient-privacy-note { border-radius: var(--radius-control); background: var(--canvas); }
-      .dialog-kicker, .sync-section-label { color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 0.02em; text-transform: none; }
+      .dialog-kicker, .sync-section-label { color: var(--muted); font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.02em; text-transform: none; }
       .sync-dialog-title .dialog-kicker, #direct-dialog .dialog-kicker, .sync-section-label-accent { color: var(--accent); }
       .sync-status-panel, .sync-qr-layout { border: 0; border-radius: 16px; background: var(--canvas); }
-      .sync-code { border: 0.5px solid var(--line-strong); border-radius: 10px; background: #fff; color: var(--ink); }
+      .sync-code { border: 0.5px solid var(--line-strong); border-radius: 10px; background: var(--control-bg); color: var(--ink); }
       .sync-device-row { border-radius: 12px; background: var(--canvas); }
 
       /* Grouped action list */
@@ -2808,7 +3024,7 @@
         padding: 14px 16px;
         border-bottom: 0;
         background: var(--canvas);
-        font-size: 15px;
+        font-size: 0.9375rem;
         position: relative;
       }
       @media (min-width: 721px) {
@@ -2818,14 +3034,14 @@
       .action-list > .action-item:first-child { border-top-left-radius: 14px; border-top-right-radius: 14px; }
       .action-list > .action-item:last-child { border-bottom-left-radius: 14px; border-bottom-right-radius: 14px; }
       .action-item + .action-item::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; height: 0.5px; background: var(--line-strong); }
-      .action-item:hover:not(:disabled) { background: #ececf0; }
+      .action-item:hover:not(:disabled) { background: var(--hover-surface); }
       .action-item:hover:not(:disabled) span { color: inherit; }
-      .action-item b { color: #c7c7cc; font-size: 20px; }
+      .action-item b { color: var(--chevron-ink); font-size: 1.25rem; }
       .action-item-danger { color: var(--danger); }
 
       /* Direct sync */
       .direct-choice { border: 0; border-radius: 16px; background: var(--canvas); color: var(--ink); }
-      .direct-choice:hover { background: #ececf0; }
+      .direct-choice:hover { background: var(--hover-surface); }
       .direct-choice-primary { background: var(--accent); color: #fff; }
       .direct-choice-primary:hover { background: var(--accent-hover); }
       .direct-choice-primary small { color: rgba(255,255,255,.82); }
@@ -2838,21 +3054,25 @@
       .direct-viewfinder { border-radius: 18px; }
       .direct-text-button { color: var(--accent); }
 
-      /* Toast: frosted pill */
+      /* Toast: frosted pill in Top Layer */
       .toast {
         padding: 11px 18px;
         border-radius: 980px;
-        background: rgba(29, 29, 31, 0.86);
+        background: var(--toast-bg);
+        color: var(--toast-ink);
         -webkit-backdrop-filter: saturate(180%) blur(20px);
         backdrop-filter: saturate(180%) blur(20px);
-        font-size: 13px;
+        font-size: 0.8125rem;
         font-weight: 500;
         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
-        transition: opacity 260ms var(--ease-apple), transform 360ms cubic-bezier(0.32, 0.72, 0, 1);
+        transition-property: opacity, transform, display, overlay;
+        transition-duration: 240ms, 320ms, 240ms, 240ms;
+        transition-timing-function: var(--ease-apple), cubic-bezier(0.32, 0.72, 0, 1), ease, ease;
+        transition-behavior: allow-discrete;
       }
 
       body[data-sync-role="mirror"] .map-panel::after { top: 18px; right: 22px; padding: 4px 10px; background: var(--accent-soft); color: var(--accent); font-weight: 600; box-shadow: none; }
-      .print-actions { background: rgba(251,251,253,.85); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); border-bottom: 0.5px solid var(--line-strong); }
+      .print-actions { background: var(--topbar-bg); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); border-bottom: 0.5px solid var(--line-strong); }
 
       @keyframes rise-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
       .stage-header, .map-panel, .inspector > * { animation: rise-in 600ms cubic-bezier(0.25, 0.1, 0.25, 1) both; }
@@ -2878,19 +3098,19 @@
         .topbar { height: 54px; min-height: 54px; padding: 0 20px; flex-wrap: nowrap; }
         .workspace { padding: 14px 20px; gap: 14px; grid-template-columns: minmax(0, 1fr) 300px; }
         .stage-header { padding: 12px 18px; }
-        .stage-title h2 { font-size: 19px; }
-        .stage-title p { font-size: 11.5px; }
-        .legend { font-size: 11px; gap: 5px 9px; }
+        .stage-title h2 { font-size: 1.1875rem; }
+        .stage-title p { font-size: 0.7188rem; }
+        .legend { font-size: 0.6875rem; gap: 5px 9px; }
         .map-toolbar { min-height: 44px; padding: 8px 18px 6px; gap: 8px 10px; }
-        .record-hint { font-size: 11.5px; }
-        .map-reading-key { margin: 0 18px; padding: 6px 12px; font-size: 11px; gap: 4px 16px; }
-        .operation-status-bar { min-height: 38px; padding: 7px 18px; font-size: 12px; }
+        .record-hint { font-size: 0.7188rem; }
+        .map-reading-key { margin: 0 18px; padding: 6px 12px; font-size: 0.6875rem; gap: 4px 16px; }
+        .operation-status-bar { min-height: 38px; padding: 7px 18px; font-size: 0.75rem; }
         .workspace > .inspector { gap: 12px; }
         .inspector > section, .inspector > details.inspector-section { padding: 14px 16px; }
         .workspace > .inspector > .clinical-note { margin-top: -12px; padding: 8px 14px; }
         .quality-row { gap: 6px; margin-top: 10px; }
         .quality-metric { padding: 8px 4px; }
-        .quality-metric strong { font-size: 17px; letter-spacing: -0.035em; }
+        .quality-metric strong { font-size: 1.0625rem; letter-spacing: -0.035em; }
         #electrode-selector { max-width: min(100%, 176px); }
       }
 
@@ -2906,15 +3126,15 @@
           grid-template-rows: minmax(0, 1fr) auto;
         }
         .stage-header { padding: 12px 18px 10px; }
-        .stage-title h2 { font-size: 19px; }
-        .stage-title p { font-size: 11.5px; margin-top: 2px; }
-        .legend { font-size: 11px; gap: 4px 9px; }
+        .stage-title h2 { font-size: 1.1875rem; }
+        .stage-title p { font-size: 0.7188rem; margin-top: 2px; }
+        .legend { font-size: 0.6875rem; gap: 4px 9px; }
         .map-toolbar { min-height: 42px; padding: 7px 18px 5px; gap: 6px 10px; }
-        .record-hint { font-size: 11px; }
-        .layer-key { font-size: 11px; gap: 10px; }
-        .map-reading-key { margin: 0 18px; padding: 5px 12px; font-size: 11px; gap: 4px 14px; }
+        .record-hint { font-size: 0.6875rem; }
+        .layer-key { font-size: 0.6875rem; gap: 10px; }
+        .map-reading-key { margin: 0 18px; padding: 5px 12px; font-size: 0.6875rem; gap: 4px 14px; }
         .map-wrap { padding: 4px 14px; }
-        .operation-status-bar { min-height: 36px; padding: 6px 18px; font-size: 11.5px; }
+        .operation-status-bar { min-height: 36px; padding: 6px 18px; font-size: 0.7188rem; }
         .workspace > .inspector {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -2953,43 +3173,91 @@
           border: 0;
           background: transparent;
           box-shadow: none;
-          font-size: 10px;
+          font-size: 0.625rem;
           line-height: 1.3;
         }
         .quality-row { margin-top: 8px; gap: 6px; }
         .quality-metric { padding: 8px 4px; border-radius: 10px; }
-        .quality-metric strong { font-size: 17px; }
-        .quality-metric span { font-size: 10px; margin-top: 2px; }
+        .quality-metric strong { font-size: 1.0625rem; }
+        .quality-metric span { font-size: 0.625rem; margin-top: 2px; }
       }
 
       @media (max-width: 720px) {
-        .topbar { min-height: 54px; height: auto; padding: 8px max(14px, env(safe-area-inset-right)) 8px max(14px, env(safe-area-inset-left)); }
-        .brand-mark { width: 24px; height: 24px; }
-        .brand h1 { font-size: 15px; line-height: 1.3; white-space: nowrap; }
-        .plus-mark { padding: 1px 5px; font-size: 8px; }
-        .app-meta { font-size: 10px; flex-wrap: wrap; row-gap: 2px; }
+        .app-shell {
+          height: 100vh;
+          height: 100dvh;
+          max-height: 100vh;
+          max-height: 100dvh;
+          overflow: hidden;
+          padding-bottom: 0;
+          grid-template-rows: auto minmax(0, 1fr) auto;
+        }
+        .topbar {
+          min-height: 46px;
+          height: auto;
+          padding: clamp(4px, 0.8dvh, 8px) max(12px, env(safe-area-inset-right)) clamp(4px, 0.8dvh, 8px) max(12px, env(safe-area-inset-left));
+        }
+        .brand-mark { width: 22px; height: 22px; }
+        .brand h1 { font-size: clamp(0.8438rem, 3.6vw, 0.9375rem); line-height: 1.25; white-space: nowrap; }
+        .plus-mark { padding: 1px 5px; font-size: 0.5rem; }
+        .app-meta { font-size: 0.625rem; flex-wrap: nowrap; white-space: nowrap; overflow: hidden; }
         .top-actions .sync-status { min-height: 36px; padding: 4px 10px 4px 4px; }
         .top-actions .more-button { width: 36px; min-width: 36px; min-height: 36px; }
-        .workspace { padding: 12px 12px 18px; display: block; }
-        .workspace > .inspector { display: none; }
-        .stage { border-radius: 20px; }
-        .stage-header { padding: 14px 14px 12px; gap: 8px; flex-direction: column; align-items: center; text-align: center; }
-        .stage-title h2 { font-size: 22px; letter-spacing: -0.022em; }
-        .stage-title p { font-size: 12px; line-height: 1.45; margin-top: 4px; }
-        .legend { font-size: 11px; gap: 5px 10px; justify-content: center; }
-        .map-panel { border-radius: 0; box-shadow: none; }
-        .map-toolbar {
-          padding: 10px 14px 8px;
-          font-size: 12px;
-          grid-template-columns: auto 1fr;
-          gap: 8px 10px;
+        .workspace {
+          padding: clamp(4px, 0.9dvh, 10px) clamp(8px, 2.5vw, 12px);
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+          min-height: 0;
+          overflow: hidden;
         }
-        #map-mode-toggle { order: 1; height: 34px; }
+        .workspace > .inspector { display: none; }
+        .stage {
+          flex: 1 1 0;
+          min-height: 0;
+          border-radius: clamp(14px, 3vw, 20px);
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+        }
+        .stage-header {
+          padding: clamp(6px, 0.9dvh, 10px) clamp(10px, 3vw, 14px);
+          gap: 8px;
+          flex-flow: row nowrap;
+          align-items: center;
+          justify-content: space-between;
+          text-align: start;
+          flex-shrink: 0;
+        }
+        .stage-title h2 { font-size: clamp(0.95rem, 3.8vw, 1.125rem); letter-spacing: -0.02em; }
+        .stage-title p { font-size: 0.7188rem; line-height: 1.35; margin-top: 2px; }
+        .case-clock { padding: 3px 8px; gap: 6px; font-size: 0.6875rem; }
+        .case-clock [role="timer"] { font-size: 0.8125rem; }
+        .legend { font-size: 0.6875rem; gap: 5px 10px; justify-content: center; }
+        .map-panel {
+          flex: 1 1 0;
+          min-height: 0;
+          display: flex;
+          flex-direction: column;
+          border-radius: 0;
+          box-shadow: none;
+          overflow: hidden;
+        }
+        .map-toolbar {
+          position: static;
+          flex-shrink: 0;
+          padding: clamp(5px, 0.8dvh, 8px) clamp(10px, 3vw, 14px);
+          font-size: 0.75rem;
+          grid-template-columns: auto 1fr;
+          gap: 4px 10px;
+        }
+        #map-mode-toggle { order: 1; height: clamp(32px, 4.4dvh, 36px); }
         .layer-key { order: 2; justify-self: end; gap: 10px; }
-        .record-hint { order: 3; grid-column: 1 / -1; justify-self: center; text-align: center; font-size: 11px; }
-        .map-reading-key { margin: 0 14px; padding: 8px 12px; font-size: 11px; justify-content: center; text-align: center; gap: 4px 14px; }
+        .record-hint { order: 3; grid-column: 1 / -1; justify-self: center; text-align: center; font-size: 0.6875rem; line-height: 1.3; }
+        .map-reading-key { margin: 0 12px; padding: 6px 10px; font-size: 0.6875rem; justify-content: center; text-align: center; gap: 4px 12px; }
         .map-view-switch {
-          margin: 10px 14px 0;
+          flex-shrink: 0;
+          margin: clamp(4px, 0.7dvh, 8px) clamp(10px, 3vw, 14px) 0;
           padding: 2px;
           gap: 0;
           border: 0;
@@ -2997,12 +3265,12 @@
           background: var(--fill);
         }
         .map-view-switch button {
-          min-height: 32px;
-          padding: 6px;
+          min-height: clamp(34px, 4.8dvh, 42px);
+          padding: 4px 6px;
           border: 0;
           border-radius: 7px;
           color: var(--ink);
-          font-size: 13px;
+          font-size: 0.8125rem;
           font-weight: 500;
         }
         .map-view-switch button[aria-pressed="true"] {
@@ -3012,29 +3280,63 @@
           font-weight: 600;
           box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 3px 1px rgba(0, 0, 0, 0.04);
         }
-        .map-wrap { padding: 6px 0 8px; }
-        #pv-map { width: 100%; max-height: none; aspect-ratio: 400 / 580; }
-        #pv-map[data-view="all"] { aspect-ratio: 980 / 650; }
-        .operation-status-bar { padding: 10px 14px; font-size: 11.5px; justify-content: center; }
-        .app-shell { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+        .map-wrap {
+          container-type: size;
+          flex: 1 1 0;
+          min-height: 0;
+          width: 100%;
+          padding: clamp(2px, 0.7dvh, 8px) 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+        #pv-map {
+          --map-ar: 0.657895;
+          width: auto;
+          width: min(100cqw, calc(100cqh * var(--map-ar)));
+          height: auto;
+          max-width: 100%;
+          max-height: 100%;
+          aspect-ratio: var(--map-ar);
+        }
+        #pv-map[data-view="all"] { --map-ar: 1.507692; }
+        .operation-status-bar {
+          flex-shrink: 0;
+          min-height: 28px;
+          padding: 4px 12px;
+          font-size: 0.6875rem;
+          justify-content: center;
+        }
         .mobile-dock {
-          gap: 4px;
-          padding: 8px max(12px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
-          background: rgba(249, 249, 251, 0.82);
+          position: static;
+          flex-shrink: 0;
+          gap: clamp(2px, 1vw, 6px);
+          padding: clamp(5px, 0.8dvh, 8px) max(10px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+          background: rgba(249, 249, 251, 0.88);
           border-top: 0.5px solid rgba(0, 0, 0, 0.16);
           box-shadow: none;
           -webkit-backdrop-filter: saturate(180%) blur(20px);
           backdrop-filter: saturate(180%) blur(20px);
         }
-        .mobile-dock button { min-height: 50px; padding: 6px 12px; border-radius: 14px; transition: background-color 200ms ease, transform 120ms ease; }
+        .mobile-dock button {
+          flex: 1 1 0;
+          min-width: 0;
+          min-height: clamp(40px, 5.6dvh, 48px);
+          padding: 4px clamp(4px, 1.5vw, 10px);
+          gap: 2px;
+          border-radius: 12px;
+          transition: background-color 200ms ease, transform 120ms ease;
+        }
         .mobile-dock button:active:not(:disabled) { transform: scale(0.96); background: var(--fill); }
-        .mobile-dock strong { font-size: 14px; font-weight: 600; }
-        .mobile-dock small { font-size: 10px; color: var(--muted); }
+        .mobile-dock strong { font-size: clamp(0.75rem, 3.2vw, 0.875rem); font-weight: 600; }
+        .mobile-dock small { font-size: 0.625rem; color: var(--muted); }
         #mobile-electrodes { background: var(--accent-soft); color: var(--accent); }
         #mobile-electrodes[data-empty="true"] { background: rgba(255, 159, 10, 0.14); color: #c25e00; }
-        .mobile-total strong { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
-        .mobile-total > span { font-size: 10px; color: var(--muted-2); }
-        .toast { bottom: calc(92px + env(safe-area-inset-bottom)); }
+        .mobile-total { flex: 0 0 auto; gap: 2px; padding-left: 2px; }
+        .mobile-total strong { font-size: clamp(1.0625rem, 4.4vw, 1.25rem); font-weight: 700; letter-spacing: -0.02em; }
+        .mobile-total > span { font-size: 0.625rem; color: var(--muted-2); }
+        .toast { bottom: calc(74px + env(safe-area-inset-bottom)); }
         .settings-dialog { border-radius: 20px; }
         .quick-dialog { border-radius: 20px 20px 0 0; }
         .quick-dialog::before {
@@ -3044,17 +3346,25 @@
         .quick-dialog .settings-card { max-height: calc(min(88dvh, 820px) - 13px); }
         .quick-dialog .inspector > section,
         .quick-dialog .inspector > details.inspector-section { padding: 0; box-shadow: none; border-radius: 0; background: transparent; margin: 0 0 20px; }
-        .quick-dialog .quality-metric strong { font-size: 22px; }
+        .quick-dialog .quality-metric strong { font-size: 1.375rem; }
         .settings-header, .settings-footer, .settings-body { padding-left: 20px; padding-right: 20px; }
         .action-list { padding: 8px 20px 20px; }
       }
-      @media (max-width: 720px) and (max-height: 500px) {
-        .topbar { min-height: 46px; padding-top: 4px; padding-bottom: 4px; }
+      @media (max-width: 720px) and (max-height: 759px) {
+        .operation-status-bar { display: none; }
+      }
+      @media (max-width: 720px) and (max-height: 700px) {
         .app-meta { display: none; }
-        .stage { padding-top: 12px; padding-bottom: 14px; }
-        #pv-map { width: auto; max-width: 100%; max-height: 70dvh; margin: 0 auto; }
-        .mobile-dock { padding-top: 4px; padding-bottom: calc(4px + env(safe-area-inset-bottom)); }
-        .mobile-dock button { min-height: 40px; padding: 4px 10px; }
+        .record-hint { display: none; }
+      }
+      @media (max-width: 720px) and (max-height: 540px) {
+        .topbar { min-height: 40px; padding-top: 3px; padding-bottom: 3px; }
+        .stage-header { padding-top: 4px; padding-bottom: 4px; }
+        .map-view-switch button { min-height: 30px; }
+        #map-mode-toggle { height: 30px; }
+        .mobile-dock { padding-top: 4px; padding-bottom: max(4px, env(safe-area-inset-bottom)); }
+        .mobile-dock button { min-height: 36px; padding: 3px 6px; }
+        .mobile-dock small { display: none; }
       }
       @media (max-height: 520px) {
         .settings-header { padding-top: 12px; padding-bottom: 6px; }
@@ -3065,55 +3375,75 @@
         .topbar { gap: 6px; padding-left: 10px; padding-right: 10px; }
         .brand { gap: 6px; }
         .brand-mark { width: 20px; height: 20px; }
-        .brand h1 { font-size: 13.5px; }
-        .plus-mark { margin-left: 3px; padding: 1px 4px; font-size: 7.5px; }
+        .brand h1 { font-size: 0.8438rem; }
+        .plus-mark { margin-left: 3px; padding: 1px 4px; font-size: 0.4688rem; }
         .top-actions { gap: 4px; }
         .top-actions .sync-status { padding: 4px 7px 4px 4px; gap: 4px; }
-        .mobile-dock button { padding: 6px 8px; }
-        .mobile-dock strong { font-size: 13px; }
-        .mobile-total strong { font-size: 19px; }
-      }
-      @media (max-width: 360px) {
-        .stage-title h2 { font-size: 24px; }
+        .mobile-dock button { padding: 4px 5px; }
+        .mobile-dock strong { font-size: 0.7813rem; }
+        .mobile-total strong { font-size: 1.0625rem; }
       }
 
       /* ==========================================================
          Planar & Extra-PV Structural Ablation Grid System
          ========================================================== */
-      .map-display-options { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
-      .map-display-options summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink); }
-      .map-display-options fieldset { border: 0; padding: 0; margin: 8px 0 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 8px; }
-      .map-display-options label { display: flex; gap: 6px; align-items: center; min-height: 26px; font-size: 13px; cursor: pointer; }
-      .map-display-options label:has(input:disabled) { color: #929298; cursor: default; }
-      .map-display-options input { accent-color: var(--accent); }
-      .map-guide {
-        display: grid; justify-items: center; gap: 6px; flex-shrink: 0;
-        padding: 8px 16px; border-top: 1px solid var(--line);
-        color: var(--muted); font-size: 11px; line-height: 1.4; text-align: center;
+      .map-display-options { margin-top: 12px; padding-top: 10px; border-top: 0.5px solid var(--line); }
+      .map-display-options summary { cursor: pointer; font-size: 0.8125rem; font-weight: 600; color: var(--ink); }
+      .map-display-options fieldset { border: 0; padding: 0; margin: 9px 0 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+      .map-display-options label {
+        display: flex; gap: 7px; align-items: center;
+        min-height: 30px; padding: 3px 9px;
+        border-radius: 9px;
+        border: 0.5px solid var(--line);
+        background: var(--canvas);
+        color: var(--ink);
+        font-size: 0.7813rem; font-weight: 500;
+        cursor: pointer;
+        transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
       }
-      .map-guide p { margin: 0; }
+      .map-display-options label:hover:not(:has(input:disabled)) { background: var(--hover-surface); border-color: var(--line-strong); }
+      .map-display-options label:has(input:checked) {
+        background: var(--accent-soft);
+        border-color: color-mix(in srgb, var(--accent) 42%, transparent);
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .map-display-options label:has(input:disabled) {
+        border-style: dashed;
+        background: transparent;
+        color: var(--muted);
+        opacity: 0.62;
+        cursor: default;
+      }
+      .map-display-options input { accent-color: var(--accent); margin: 0; flex: 0 0 auto; }
+      .map-guide {
+        display: grid; justify-items: center; gap: 4px; flex-shrink: 0;
+        padding: 7px 16px 8px; border-top: 0.5px solid var(--line);
+        color: var(--muted); font-size: 0.6875rem; line-height: 1.38; text-align: center;
+      }
+      .map-guide p { margin: 0; font-variant-numeric: tabular-nums; }
       .map-guide .legend, .map-guide .map-reading-key { justify-content: center; font-size: inherit; }
       .map-guide .map-reading-key { margin: 0; padding: 0; background: transparent; }
       @media (max-width: 720px) {
         body { overflow-x: clip; }
         .stage, .map-panel { overflow: clip; }
-        .map-toolbar { position: sticky; bottom: calc(68px + env(safe-area-inset-bottom)); z-index: 3; }
+        .map-guide { display: none; }
       }
       .map-wrap { position: relative; }
       .planar-layer { transition: opacity 180ms ease; }
       .planar-zone-frame {
-        fill: rgba(255, 255, 255, 0.88);
-        stroke: #d7dbe4;
-        stroke-width: 1.25px;
+        fill: rgba(255, 255, 255, 0.9);
+        stroke: rgba(90, 88, 114, 0.16);
+        stroke-width: 1.1px;
         transition: stroke 160ms ease, filter 160ms ease;
       }
       .planar-zone.is-configured .planar-zone-frame {
         stroke: var(--accent);
-        stroke-width: 1.6px;
+        stroke-width: 1.5px;
       }
       .planar-zone.is-complete .planar-zone-frame {
         stroke: #34c759;
-        stroke-width: 1.8px;
+        stroke-width: 1.7px;
       }
       #pv-map.has-planar-grid :is(.anatomy-field, .atrium-line, .atrium-label) {
         display: none;
@@ -3122,7 +3452,7 @@
       #pv-map[data-view="posterior"] [data-pv-side] { display: none; }
       .map-panel:has(#pv-map[data-view="posterior"]) :is(.layer-key, .map-reading-key) { display: none; }
       .planar-zone-header-bg {
-        fill: #f2f3f7;
+        fill: #f3f2f8;
       }
       .planar-zone.is-complete .planar-zone-header-bg {
         fill: #eaf8ee;
@@ -3143,7 +3473,7 @@
       }
       .planar-dim-btn:hover .planar-dim-pill,
       .planar-zone.is-configured .planar-dim-pill {
-        fill: #eef5ff;
+        fill: var(--accent-soft);
         stroke: var(--accent);
       }
       .planar-dim-text {
@@ -3163,7 +3493,7 @@
         stroke-width: 0.85px;
       }
       .planar-mini-step:hover .planar-mini-step-bg {
-        fill: #eef5ff;
+        fill: var(--accent-soft);
         stroke: var(--accent);
       }
       .planar-mini-step text {
@@ -3264,7 +3594,7 @@
       .planar-cell-count.visible { opacity: 1; }
       .planar-cell-count.on-dark { fill: #ffffff; }
 
-      .wall-records { font-size: 12px; margin-top: 8px; }
+      .wall-records { font-size: 0.75rem; margin-top: 8px; }
       .wall-records summary { cursor: pointer; }
       .wall-records ol { max-height: 150px; overflow: auto; padding-inline-start: 21px; }
       .wall-records li { margin-block: 6px; }
@@ -3308,25 +3638,58 @@
       .planar-zone.is-complete .planar-zone-status-dot { fill: #34c759; }
 
       /* Floating Apple Popover for Dynamic Partition & Gap Config */
+      .map-wrap {
+        anchor-name: --planar-map;
+      }
       .planar-config-popover {
-        position: absolute;
-        top: 10px;
-        right: 14px;
+        position: fixed;
+        inset: auto;
+        inset-block-start: 76px;
+        inset-inline-end: 24px;
+        margin: 0;
         z-index: 30;
         width: 274px;
-        max-width: calc(100% - 24px);
+        max-width: calc(100vw - 24px);
         padding: 14px 16px;
         border-radius: 18px;
-        background: rgba(255, 255, 255, 0.94);
-        border: 0.5px solid rgba(0, 0, 0, 0.12);
+        background: var(--popover-bg);
+        border: 0.5px solid var(--line-strong);
         box-shadow: 0 14px 40px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.06);
         -webkit-backdrop-filter: saturate(180%) blur(20px);
         backdrop-filter: saturate(180%) blur(20px);
-        font-size: 12px;
+        font-size: 0.75rem;
         color: var(--ink);
-        animation: apple-sheet 200ms cubic-bezier(0.32, 0.72, 0, 1);
+        opacity: 0;
+        transform: scale(0.96);
+        transition-property: opacity, transform, display, overlay;
+        transition-duration: 180ms, 200ms, 200ms, 200ms;
+        transition-timing-function: var(--ease-apple), cubic-bezier(0.32, 0.72, 0, 1), ease, ease;
+        transition-behavior: allow-discrete;
       }
-      .planar-config-popover[hidden] { display: none; }
+      .planar-config-popover.is-open-fallback {
+        opacity: 1;
+        transform: scale(1);
+      }
+      .planar-config-popover:popover-open {
+        opacity: 1;
+        transform: scale(1);
+      }
+      @starting-style {
+        .planar-config-popover:popover-open {
+          opacity: 0;
+          transform: scale(0.96);
+        }
+      }
+      @supports (position-anchor: --planar-map) {
+        .planar-config-popover {
+          position-anchor: --planar-map;
+          inset: auto;
+          margin: 0;
+          inset-block-start: calc(anchor(top) + 10px);
+          inset-inline-end: calc(anchor(right) + 14px);
+          position-try-fallbacks: flip-block, flip-inline;
+        }
+      }
       .planar-popover-head {
         display: flex;
         align-items: center;
@@ -3335,11 +3698,11 @@
         padding-bottom: 10px;
         border-bottom: 0.5px solid var(--line);
       }
-      .planar-popover-head strong { font-size: 14px; font-weight: 650; letter-spacing: -0.015em; }
-      .planar-popover-head small { display: block; font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+      .planar-popover-head strong { font-size: 0.875rem; font-weight: 650; letter-spacing: -0.015em; }
+      .planar-popover-head small { display: block; font-size: 0.6563rem; color: var(--muted); margin-top: 1px; }
       .planar-popover-close {
         width: 24px; height: 24px; border: 0; border-radius: 50%;
-        background: var(--fill); color: var(--muted); font-size: 15px; line-height: 1;
+        background: var(--fill); color: var(--muted); font-size: 0.9375rem; line-height: 1;
         cursor: pointer; flex: none;
       }
       .planar-popover-close:hover { background: var(--fill-hover); color: var(--ink); }
@@ -3350,7 +3713,7 @@
         justify-content: space-between;
         gap: 8px;
       }
-      .planar-popover-row > span { color: var(--muted); font-size: 12px; font-weight: 500; }
+      .planar-popover-row > span { color: var(--muted); font-size: 0.75rem; font-weight: 500; }
       .planar-stepper {
         display: inline-flex;
         align-items: center;
@@ -3362,12 +3725,12 @@
       }
       .planar-stepper button {
         width: 26px; height: 24px; border: 0; border-radius: 7px;
-        background: #fff; color: var(--ink); font: inherit; font-size: 14px; font-weight: 600;
+        background: var(--control-bg); color: var(--ink); font: inherit; font-size: 0.875rem; font-weight: 600;
         cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.06);
       }
       .planar-stepper button:disabled { opacity: 0.35; cursor: default; box-shadow: none; }
       .planar-stepper b {
-        min-width: 26px; text-align: center; font-size: 12.5px; font-weight: 700;
+        min-width: 26px; text-align: center; font-size: 0.7813rem; font-weight: 700;
         font-variant-numeric: tabular-nums;
       }
       .planar-gap-segment {
@@ -3380,11 +3743,11 @@
       }
       .planar-gap-segment button {
         height: 24px; padding: 0 6px; border: 0; border-radius: 7px;
-        background: transparent; color: var(--muted); font: inherit; font-size: 11px; font-weight: 600;
+        background: transparent; color: var(--muted); font: inherit; font-size: 0.6875rem; font-weight: 600;
         cursor: pointer;
       }
       .planar-gap-segment button[aria-pressed="true"] {
-        background: #fff; color: var(--accent);
+        background: var(--control-bg); color: var(--accent);
         box-shadow: 0 1px 3px rgba(0,0,0,0.12);
       }
       .planar-popover-note {
@@ -3393,17 +3756,17 @@
         border-radius: 10px;
         background: var(--canvas);
         color: var(--muted);
-        font-size: 10.5px;
+        font-size: 0.6563rem;
         line-height: 1.45;
       }
       .planar-summary-group-label {
         padding: 8px 0 2px;
-        font-size: 11px;
+        font-size: 0.6875rem;
         font-weight: 650;
         color: var(--accent);
         letter-spacing: 0.01em;
       }
-      .planar-summary-item .vein-summary-name { font-size: 12px; }
+      .planar-summary-item .vein-summary-name { font-size: 0.75rem; }
       .planar-summary-badge {
         display: inline-block;
         margin-left: 4px;
@@ -3411,7 +3774,7 @@
         border-radius: 5px;
         background: var(--canvas);
         color: var(--muted);
-        font-size: 10px;
+        font-size: 0.625rem;
         font-weight: 600;
       }
       .planar-unablated-hint {
@@ -3422,34 +3785,138 @@
         gap: 6px;
         padding: 4px 8px;
         border-radius: 8px;
-        background: #fff6cc;
-        color: #725500;
-        font-size: 11px;
+        background: var(--hint-warn-bg);
+        color: var(--hint-warn-ink);
+        font-size: 0.6875rem;
         font-weight: 600;
         line-height: 1.4;
       }
       .planar-unablated-hint.is-closed {
-        background: #eaf8ee;
-        color: #167a3e;
+        background: var(--hint-ok-bg);
+        color: var(--hint-ok-ink);
       }
       @media (max-width: 720px) {
         .planar-config-popover {
-          top: auto;
-          bottom: 10px;
-          left: 12px;
-          right: 12px;
+          inset-block-start: auto;
+          inset-block-end: 10px;
+          inset-inline: 12px;
           width: auto;
         }
       }
 
-      @media (prefers-reduced-motion: reduce) {
-        *,
-        *::before,
-        *::after {
-          scroll-behavior: auto !important;
-          animation-duration: 0.01ms !important;
-          transition-duration: 0.01ms !important;
+      /* Scrollability affordance hints on long panels */
+      @supports (container-type: scroll-state) {
+        .vein-list,
+        .settings-body {
+          container-type: scroll-state;
+          position: relative;
         }
+        @container scroll-state(scrollable: bottom) {
+          .vein-list,
+          .settings-body {
+            box-shadow: inset 0 -10px 10px -10px rgba(0, 0, 0, 0.16);
+          }
+        }
+        @container scroll-state(scrollable: top) {
+          .vein-list,
+          .settings-body {
+            box-shadow: inset 0 10px 10px -10px rgba(0, 0, 0, 0.16);
+          }
+        }
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .mobile-dock {
+          background: var(--surface-elevated);
+          border-top-color: var(--line);
+        }
+        .map-panel .map-view-switch {
+          background: var(--surface);
+          border-color: var(--line);
+        }
+      }
+
+      @media (forced-colors: active) {
+        .button,
+        .sync-status,
+        #map-mode-toggle button,
+        .action-item,
+        .direct-choice,
+        .settings-dialog,
+        .planar-config-popover,
+        .toast,
+        .field input,
+        .field select,
+        .field textarea,
+        .endpoint-control select,
+        .legend-swatch {
+          border: 1px solid ButtonText;
+          forced-color-adjust: auto;
+        }
+        .button.primary,
+        #map-mode-toggle button[aria-pressed="true"],
+        .map-view-switch button[aria-pressed="true"] {
+          background: Highlight;
+          color: HighlightText;
+          border-color: Highlight;
+        }
+        .progress-track {
+          border: 1px solid CanvasText;
+        }
+        .progress-segment.filled {
+          background: Highlight;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        .stage-header,
+        .map-panel,
+        .inspector > *,
+        .settings-dialog,
+        .settings-dialog::backdrop,
+        .planar-config-popover,
+        .toast,
+        .inspector-section > summary::after,
+        .button,
+        button,
+        .pv-segment,
+        .ridge-segment,
+        .planar-cell,
+        .planar-cell-edge,
+        .map-display-options label {
+          animation: none;
+          transition: none;
+        }
+      }
+      } /* end @layer theme */
+
+      @layer utilities {
+        [hidden],
+        .planar-config-popover[hidden],
+        .sync-dialog [hidden] {
+          display: none;
+        }
+        body.report-open > :not(#print-report) {
+          display: none;
+        }
+        body.report-open #print-report {
+          display: block;
+        }
+        html.remove-cursor-active,
+        html.remove-cursor-active :is(.map-wrap, svg, path, g, text, button) {
+          cursor: none;
+        }
+      }
+
+      @page { size: A4 portrait; margin: 0; }
+      @media print {
+        body.report-open { min-width: 0; min-height: 0; background: white; }
+        #print-report .print-actions { display: none; }
+        .report-sheet { width: 210mm; height: 297mm; margin: 0; break-inside: avoid; print-color-adjust: exact; -webkit-print-color-adjust: exact; content-visibility: visible; }
+        .report-sheet + .report-sheet { break-before: page; }
       }
     </style>
   </head>
@@ -3567,7 +4034,7 @@
                   <text x="720" y="475" class="vein-code">RIPV</text>
                 </g>
               </svg>
-              <div class="planar-config-popover" id="planar-popover" hidden role="dialog" aria-label="解剖分区与导管方向设置"></div>
+              <div class="planar-config-popover" id="planar-popover" popover="auto" aria-label="解剖分区与导管方向设置"></div>
             </div>
             <div class="map-toolbar">
               <div class="layer-key">
@@ -3628,9 +4095,9 @@
                 <strong id="coverage-count">0 / 64</strong>
                 <span>已覆盖位置</span>
               </div>
-              <div class="quality-metric">
+              <div class="quality-metric" title="满足消融次数扇区百分比">
                 <strong id="target-count">0%</strong>
-                <span>满足消融次数扇区百分比</span>
+                <span>扇区达标率</span>
               </div>
             </div>
             <details class="map-display-options" open>
@@ -3673,13 +4140,13 @@
           <p class="clinical-note">社区维护的第三方非官方工具。记录辅助，不替代设备数据、PVI 终点评估或临床判断。</p>
         </aside>
       </main>
-    </div>
 
-    <div class="mobile-dock" aria-label="记录快捷操作">
-      <div class="mobile-total"><strong id="mobile-total">0 <small>次消融</small></strong><span id="mobile-save-state">本机保存</span></div>
-      <button type="button" id="mobile-electrodes" aria-haspopup="dialog"><strong>电极 <span id="mobile-electrode-count">10/10</span></strong><small>调整电极</small></button>
-      <button type="button" id="mobile-undo" disabled><strong>↶ 撤回</strong><small>上一步</small></button>
-      <button type="button" id="mobile-overview" aria-haspopup="dialog"><strong>概览</strong><small>PVI 终点</small></button>
+      <div class="mobile-dock" aria-label="记录快捷操作">
+        <div class="mobile-total"><strong id="mobile-total">0 <small>次消融</small></strong><span id="mobile-save-state">本机保存</span></div>
+        <button type="button" id="mobile-electrodes" aria-haspopup="dialog"><strong>电极 <span id="mobile-electrode-count">10/10</span></strong><small>调整电极</small></button>
+        <button type="button" id="mobile-undo" disabled><strong>↶ 撤回</strong><small>上一步</small></button>
+        <button type="button" id="mobile-overview" aria-haspopup="dialog"><strong>概览</strong><small>PVI 终点</small></button>
+      </div>
     </div>
     <section id="print-report" aria-label="报告预览">
       <div class="print-actions">
@@ -3690,33 +4157,40 @@
       <div id="report-pages"></div>
     </section>
 
-    <dialog class="settings-dialog actions-dialog" id="actions-dialog" aria-labelledby="actions-title">
+    <dialog class="settings-dialog actions-dialog" id="actions-dialog" closedby="any" aria-labelledby="actions-title">
       <div class="settings-card">
-        <header class="settings-header"><div><h2 id="actions-title" tabindex="-1">更多操作</h2><p class="settings-header-help" id="actions-save-state">记录保存在本机</p></div><button class="dialog-close" id="actions-close" type="button" aria-label="关闭更多操作">×</button></header>
+        <header class="settings-header"><div><h2 id="actions-title" tabindex="-1">更多操作</h2><p class="settings-header-help" id="actions-save-state">记录保存在本机</p></div><button class="dialog-close" id="actions-close" type="button" commandfor="actions-dialog" command="close" aria-label="关闭更多操作">×</button></header>
         <div class="settings-body action-list">
           <button class="action-item mobile-action" id="more-settings" type="button"><span>术式设置<small>解剖、消融计划与显示阈值</small></span><b aria-hidden="true">›</b></button>
           <button class="action-item mobile-action" id="more-export" type="button"><span>导出 PDF 报告<small>报告信息选填，本机生成</small></span><b aria-hidden="true">›</b></button>
-          <button class="action-item" id="about-button" type="button"><span>关于与使用说明<small>版本信息、项目说明</small></span><b aria-hidden="true">›</b></button>
+          <button class="action-item" id="about-button" type="button" commandfor="about-dialog" command="show-modal"><span>关于与使用说明<small>版本信息、项目说明</small></span><b aria-hidden="true">›</b></button>
           <button class="action-item action-item-danger" id="reset-button" type="button" disabled><span>清空当前记录<small>清空后可通过撤回恢复</small></span><b aria-hidden="true">›</b></button>
         </div>
       </div>
     </dialog>
-    <dialog class="settings-dialog quick-dialog" id="quick-dialog" aria-labelledby="quick-title">
+    <dialog class="settings-dialog quick-dialog" id="quick-dialog" closedby="any" aria-labelledby="quick-title">
       <div class="settings-card">
-        <header class="settings-header"><div><h2 id="quick-title" tabindex="-1">本次放电电极</h2><p class="settings-header-help" id="quick-help"></p></div><button class="dialog-close" id="quick-close" type="button" aria-label="关闭快捷面板">×</button></header>
+        <header class="settings-header"><div><h2 id="quick-title" tabindex="-1">本次放电电极</h2><p class="settings-header-help" id="quick-help"></p></div><button class="dialog-close" id="quick-close" type="button" commandfor="quick-dialog" command="close" aria-label="关闭快捷面板">×</button></header>
         <div class="settings-body" id="quick-body"></div>
-        <footer class="settings-footer"><button class="button primary" id="quick-done" type="button">返回图谱</button></footer>
+        <footer class="settings-footer"><button class="button primary" id="quick-done" type="button" commandfor="quick-dialog" command="close">返回图谱</button></footer>
       </div>
     </dialog>
-    <dialog class="settings-dialog confirm-dialog" id="reset-dialog" aria-labelledby="reset-title">
+    <dialog class="settings-dialog confirm-dialog" id="reset-dialog" closedby="any" aria-labelledby="reset-title">
       <div class="settings-card">
-        <header class="settings-header"><h2 id="reset-title">清空当前记录？</h2><button class="dialog-close" id="reset-close" type="button" aria-label="取消清空">×</button></header>
+        <header class="settings-header"><h2 id="reset-title">清空当前记录？</h2><button class="dialog-close" id="reset-close" type="button" commandfor="reset-dialog" command="close" aria-label="取消清空">×</button></header>
         <div class="settings-body"><p id="reset-detail"></p><p class="settings-help">术式设置保留，清空后仍可撤回恢复。</p></div>
-        <footer class="settings-footer"><button class="button" id="reset-cancel" type="button" autofocus>保留记录</button><button class="button danger" id="reset-confirm" type="button">确认清空</button></footer>
+        <footer class="settings-footer"><button class="button" id="reset-cancel" type="button" commandfor="reset-dialog" command="close" autofocus>保留记录</button><button class="button danger" id="reset-confirm" type="button">确认清空</button></footer>
       </div>
+    </dialog>
+    <dialog class="settings-dialog confirm-dialog" id="settings-confirm-dialog" closedby="any" aria-labelledby="settings-confirm-title">
+      <form method="dialog" class="settings-card">
+        <header class="settings-header"><h2 id="settings-confirm-title">确认修改术式设置？</h2><button class="dialog-close" id="settings-confirm-close" type="submit" value="cancel" aria-label="取消修改">×</button></header>
+        <div class="settings-body"><p id="settings-confirm-message"></p></div>
+        <footer class="settings-footer"><button class="button" id="settings-confirm-cancel" type="submit" value="cancel" autofocus>取消</button><button class="button primary" id="settings-confirm-ok" type="submit" value="confirm">继续</button></footer>
+      </form>
     </dialog>
 
-    <dialog class="settings-dialog sync-dialog" id="sync-dialog" aria-labelledby="sync-title">
+    <dialog class="settings-dialog sync-dialog" id="sync-dialog" closedby="any" aria-labelledby="sync-title">
       <form class="settings-card" id="sync-form">
         <header class="settings-header">
           <div class="sync-dialog-title">
@@ -3778,7 +4252,7 @@
       </form>
     </dialog>
 
-    <dialog class="settings-dialog" id="settings-dialog" aria-labelledby="settings-title">
+    <dialog class="settings-dialog" id="settings-dialog" closedby="any" aria-labelledby="settings-title">
       <form class="settings-card" id="settings-form">
         <header class="settings-header">
           <div>
@@ -3829,7 +4303,7 @@
           <section class="settings-section">
             <h3>补充靶区</h3>
             <label class="toggle-field">
-              <input id="ridge-enabled" type="checkbox" />
+              <input id="ridge-enabled" type="checkbox" switch />
               <span>启用双侧前/后脊部的追加消融记录</span>
             </label>
             <div class="settings-grid" style="margin-top: 12px">
@@ -3852,7 +4326,7 @@
       </form>
     </dialog>
 
-    <dialog class="settings-dialog patient-info-dialog" id="patient-info-dialog" aria-labelledby="patient-info-title">
+    <dialog class="settings-dialog patient-info-dialog" id="patient-info-dialog" closedby="any" aria-labelledby="patient-info-title">
       <form class="settings-card" id="patient-info-form" autocomplete="off">
         <header class="settings-header">
           <div>
@@ -3922,20 +4396,20 @@
       </form>
     </dialog>
 
-    <dialog class="settings-dialog about-dialog" id="release-dialog" aria-labelledby="release-title">
+    <dialog class="settings-dialog about-dialog" id="release-dialog" closedby="any" aria-labelledby="release-title">
       <form method="dialog" class="settings-card">
         <header class="settings-header"><h2 id="release-title">本次更新</h2></header>
         <div class="settings-body"><ul class="release-notes" id="release-changes"></ul></div>
         <footer class="settings-footer"><button class="button primary" autofocus>知道了</button></footer>
       </form>
     </dialog>
-    <dialog class="settings-dialog about-dialog" id="about-dialog" aria-labelledby="about-title">
+    <dialog class="settings-dialog about-dialog" id="about-dialog" closedby="any" aria-labelledby="about-title">
       <article class="settings-card">
         <header class="settings-header">
           <div>
             <h2 id="about-title">关于 VictoryPVI</h2>
           </div>
-          <button class="dialog-close" id="about-close" type="button" aria-label="关闭关于窗口">×</button>
+          <button class="dialog-close" id="about-close" type="button" commandfor="about-dialog" command="close" aria-label="关闭关于窗口">×</button>
         </header>
 
         <div class="settings-body">
@@ -3965,7 +4439,7 @@
       </article>
     </dialog>
 
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="toast" id="toast" popover="manual" role="status" aria-live="polite"></div>
     <div class="remove-cursor" id="remove-cursor" aria-hidden="true"></div>
 
     <script src="./miniprogram/utils/sector-grid.js?v=1.23.0"></script>
@@ -4351,21 +4825,32 @@
           const qr = window.qrcode(0, "M");
           qr.addData(value);
           qr.make();
-          container.innerHTML = qr.createSvgTag({
-            cellSize: 4,
-            margin: 4,
-            alt: label,
-            title: label,
-          });
-          const svgNode = container.querySelector("svg");
-          if (svgNode) {
-            svgNode.removeAttribute("width");
-            svgNode.removeAttribute("height");
-            svgNode.setAttribute("role", "img");
-            svgNode.setAttribute("aria-label", label);
-            container.dataset.qrValue = value;
+          const count = qr.getModuleCount();
+          const margin = 4;
+          const size = count + margin * 2;
+          const svgNode = document.createElementNS(NS, "svg");
+          svgNode.setAttribute("viewBox", `0 0 ${size} ${size}`);
+          svgNode.setAttribute("role", "img");
+          svgNode.setAttribute("aria-label", label);
+          const bg = document.createElementNS(NS, "rect");
+          bg.setAttribute("width", String(size));
+          bg.setAttribute("height", String(size));
+          bg.setAttribute("fill", "#ffffff");
+          let pathData = "";
+          for (let r = 0; r < count; r += 1) {
+            for (let c = 0; c < count; c += 1) {
+              if (qr.isDark(r, c)) {
+                pathData += `M${c + margin},${r + margin}h1v1h-1z`;
+              }
+            }
           }
-          return Boolean(svgNode);
+          const pathNode = document.createElementNS(NS, "path");
+          pathNode.setAttribute("d", pathData);
+          pathNode.setAttribute("fill", "#000000");
+          svgNode.append(bg, pathNode);
+          container.replaceChildren(svgNode);
+          container.dataset.qrValue = value;
+          return true;
         } catch (error) {
           container.textContent = "二维码生成失败";
           return false;
@@ -4537,13 +5022,33 @@
         }
         updateSyncUi();
       }
+      function isAllowedHandoffOrigin(origin) {
+        if (!origin || origin === "null") return false;
+        try {
+          const parsed = new URL(origin);
+          if (parsed.protocol === "https:") return true;
+          if (parsed.protocol === "http:" && (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1")) return true;
+          return parsed.origin === location.origin;
+        } catch {
+          return false;
+        }
+      }
+      function handoffTargetOrigin() {
+        try {
+          if (document.referrer) {
+            const origin = new URL(document.referrer).origin;
+            if (isAllowedHandoffOrigin(origin)) return origin;
+          }
+        } catch {}
+        return "*";
+      }
       async function restoreSyncSession(imported = null) {
         if (!window.VICTORYPVI_DESKTOP || syncRestoreStarted) return;
         const query = new URLSearchParams(location.search);
         if (query.has("import") && !imported) {
           syncErrorMessage = "正在从原网页接收记录，请保持原网页打开。";
           updateSyncUi(); openSyncDialog();
-          window.opener?.postMessage({ type: "vpvi-desktop-ready", id: query.get("import") }, "*");
+          window.opener?.postMessage({ type: "vpvi-desktop-ready", id: query.get("import") }, handoffTargetOrigin());
           return;
         }
         syncRestoreStarted = true;
@@ -4561,6 +5066,7 @@
         openDesktopWithRecord.timer = window.setTimeout(() => { syncHandoffPending = false; updateSyncUi(); }, 15000);
       }
       window.addEventListener("message", event => {
+        if (!isAllowedHandoffOrigin(event.origin)) return;
         if (event.origin === "http://localhost:8787" && event.source === syncHandoffWindow && event.data?.id === syncHandoffId) {
           if (event.data.type === "vpvi-desktop-ready") event.source.postMessage({ type: "vpvi-desktop-record", id: syncHandoffId, payload: syncSnapshotPayload() }, event.origin);
           if (event.data.type === "vpvi-desktop-saved") {
@@ -4571,7 +5077,8 @@
         }
         const query = new URLSearchParams(location.search);
         if (window.VICTORYPVI_DESKTOP?.isLocalComputer && query.has("import") && event.source === window.opener && event.data?.type === "vpvi-desktop-record" && event.data.id === query.get("import") && !syncRestoreStarted) {
-          syncImportReply = () => event.source.postMessage({ type: "vpvi-desktop-saved", id: event.data.id, session: syncSession }, event.origin === "null" ? "*" : event.origin);
+          const verifiedOrigin = event.origin;
+          syncImportReply = () => event.source.postMessage({ type: "vpvi-desktop-saved", id: event.data.id, session: syncSession }, verifiedOrigin);
           history.replaceState(null, "", "/?host=1");
           void restoreSyncSession(event.data.payload);
         }
@@ -5000,7 +5507,15 @@
           activate();
         });
         element.addEventListener("keydown", (event) => {
-          if (event.key === "Enter" || event.key === " ") {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            activate();
+          } else if (event.key === " ") {
+            event.preventDefault();
+          }
+        });
+        element.addEventListener("keyup", (event) => {
+          if (event.key === " ") {
             event.preventDefault();
             activate();
           }
@@ -5496,7 +6011,13 @@
 
       function updateExperienceUi() {
         const blocked = syncRole === "mirror" || syncBootstrapping || syncHandoffPending;
-        document.getElementById("mobile-total").innerHTML = `${getAblationOverviewMetrics().total} <small>次消融</small>`;
+        const mobileTotalNode = document.getElementById("mobile-total");
+        const mobileTotalUnit = document.createElement("small");
+        mobileTotalUnit.textContent = "次消融";
+        mobileTotalNode.replaceChildren(
+          document.createTextNode(`${getAblationOverviewMetrics().total} `),
+          mobileTotalUnit,
+        );
         document.getElementById("mobile-electrode-count").textContent = `${selectedElectrodes.size}/10`;
         document.getElementById("mobile-electrodes").dataset.empty = String(selectedElectrodes.size === 0);
         document.getElementById("mobile-save-state").textContent = syncRole === "mirror" ? "只读跟随" : saveState.dataset.storage === "memory" ? "仅当前页面" : "本机保存";
@@ -5577,16 +6098,7 @@
             },
             siteGroup,
           );
-          segment.addEventListener("click", (event) => {
-            event.stopPropagation();
-            applyRidge(site.id);
-          });
-          segment.addEventListener("keydown", (event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              applyRidge(site.id);
-            }
-          });
+          bindSvgButton(segment, () => applyRidge(site.id));
 
           const ridgeLabel = createSvgElement(
             "text",
@@ -5664,16 +6176,7 @@
               },
               ringGroup,
             );
-            path.addEventListener("click", (event) => {
-              event.stopPropagation();
-              applyRingExcluding(key, sector);
-            });
-            path.addEventListener("keydown", (event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                applyRingExcluding(key, sector);
-              }
-            });
+            bindSvgButton(path, () => applyRingExcluding(key, sector));
 
             const countPoint = polar(
               vein.x,
@@ -6143,6 +6646,61 @@
         };
       }
 
+      function createEl(tag, options = {}, ...children) {
+        const node = document.createElement(tag);
+        if (options.className) node.className = options.className;
+        if (options.text != null) node.textContent = String(options.text);
+        if (options.attrs) {
+          for (const [key, value] of Object.entries(options.attrs)) {
+            if (value != null && value !== false) node.setAttribute(key, value === true ? "" : String(value));
+          }
+        }
+        if (options.dataset) {
+          for (const [key, value] of Object.entries(options.dataset)) {
+            if (value != null) node.dataset[key] = String(value);
+          }
+        }
+        if (children.length) node.append(...children);
+        return node;
+      }
+
+      function createProgressTrackNode(filledCount, totalSegments, attrs = {}) {
+        const track = createEl("span", {
+          className: "progress-track",
+          attrs: {
+            role: "progressbar",
+            "aria-valuemin": 0,
+            "aria-valuemax": attrs.valuemax ?? totalSegments,
+            "aria-valuenow": attrs.valuenow ?? Math.min(filledCount, totalSegments),
+            ...(attrs.ariaLabel ? { "aria-label": attrs.ariaLabel } : {}),
+          },
+        });
+        track.style.setProperty("--segments", String(totalSegments));
+        for (let index = 0; index < totalSegments; index += 1) {
+          track.appendChild(
+            createEl("span", {
+              className: `progress-segment${index < filledCount ? " filled" : ""}`,
+            }),
+          );
+        }
+        return track;
+      }
+
+      function createEndpointSelectNode(optionsList, selectedValue, ariaLabel, dataAttr) {
+        const select = createEl("select", {
+          attrs: {
+            "aria-label": ariaLabel,
+            ...dataAttr,
+          },
+        });
+        for (const [value, label] of optionsList) {
+          const option = createEl("option", { text: label, attrs: { value } });
+          if ((selectedValue || "not-assessed") === value) option.selected = true;
+          select.appendChild(option);
+        }
+        return select;
+      }
+
       function updateSummary() {
         const overviewMetrics = getAblationOverviewMetrics();
         const {
@@ -6188,35 +6746,30 @@
           }
           veinGroup?.classList.toggle("plan-complete", ablationComplete);
           veinGroup?.classList.toggle("plan-in-progress", ablationInProgress);
-          const endpointOptions = ENDPOINT_OPTIONS.map(
-            ([value, label]) =>
-              `<option value="${value}"${(endpoints[vein.id] || "not-assessed") === value ? " selected" : ""}>${label}</option>`,
-          ).join("");
-          const item = document.createElement("div");
-          item.className = `vein-summary${
-            ablationComplete
-              ? " plan-complete"
-              : ablationInProgress
-                ? " plan-in-progress"
-                : ""
-          }`;
-          item.innerHTML = `
-            <span class="vein-summary-name">${vein.id}</span>
-            <span class="progress-track" style="--segments: ${visualTarget}" role="progressbar" aria-valuemin="0" aria-valuemax="${visualTarget}" aria-valuenow="${Math.min(progress.planProgress, visualTarget)}" aria-label="${progress.ariaLabel}；${ablationStatus.completionSummary}">
-              ${progressSegments(progress.planProgress, visualTarget)}
-            </span>
-            <span class="vein-summary-count">${progress.countLabel}</span>
-            <div class="ablation-criteria">
-              <span>消融完成</span>
-              <strong class="${ablationComplete ? "is-met" : ablationStatus.hasAblation ? "is-pending" : "is-idle"}">${escapeHtml(ablationStatus.completionSummary)}</strong>
-            </div>
-            <label class="endpoint-control">
-              <span>PVI 终点</span>
-              <select data-endpoint-for="${vein.id}" aria-label="${vein.name} PVI 终点">${endpointOptions}</select>
-            </label>
-          `;
-          veinList.appendChild(item);
-          const endpointSelect = item.querySelector("select");
+          const item = createEl("div", {
+            className: `vein-summary${
+              ablationComplete
+                ? " plan-complete"
+                : ablationInProgress
+                  ? " plan-in-progress"
+                  : ""
+            }`,
+          });
+          const criteriaNode = createEl(
+            "div",
+            { className: "ablation-criteria" },
+            createEl("span", { text: "消融完成" }),
+            createEl("strong", {
+              className: ablationComplete ? "is-met" : ablationStatus.hasAblation ? "is-pending" : "is-idle",
+              text: ablationStatus.completionSummary,
+            }),
+          );
+          const endpointSelect = createEndpointSelectNode(
+            ENDPOINT_OPTIONS,
+            endpoints[vein.id],
+            `${vein.name} PVI 终点`,
+            { "data-endpoint-for": vein.id },
+          );
           endpointSelect.disabled = syncRole === "mirror" || syncBootstrapping || syncHandoffPending;
           endpointSelect.addEventListener("change", (event) => {
             if (syncWriteBlocked()) {
@@ -6228,15 +6781,53 @@
             saveCounts();
             showToast(`${vein.name}终点已更新`);
           });
+          const endpointControl = createEl(
+            "label",
+            { className: "endpoint-control" },
+            createEl("span", { text: "PVI 终点" }),
+            endpointSelect,
+          );
+          item.append(
+            createEl("span", { className: "vein-summary-name", text: vein.id }),
+            createProgressTrackNode(progress.planProgress, visualTarget, {
+              valuemax: visualTarget,
+              valuenow: Math.min(progress.planProgress, visualTarget),
+              ariaLabel: `${progress.ariaLabel}；${ablationStatus.completionSummary}`,
+            }),
+            createEl("span", { className: "vein-summary-count", text: progress.countLabel }),
+            criteriaNode,
+            endpointControl,
+          );
+          veinList.appendChild(item);
         });
 
       }
 
+      function hideToastPopover() {
+        if (typeof toast.hidePopover === "function") {
+          try {
+            if (toast.matches?.(":popover-open")) toast.hidePopover();
+          } catch {
+            toast.classList.remove("show");
+          }
+        } else {
+          toast.classList.remove("show");
+        }
+      }
+
       function showToast(message) {
         toast.textContent = message;
-        toast.classList.add("show");
+        if (typeof toast.showPopover === "function") {
+          try {
+            if (!toast.matches?.(":popover-open")) toast.showPopover();
+          } catch {
+            toast.classList.add("show");
+          }
+        } else {
+          toast.classList.add("show");
+        }
         window.clearTimeout(toastTimer);
-        toastTimer = window.setTimeout(() => toast.classList.remove("show"), 1800);
+        toastTimer = window.setTimeout(hideToastPopover, 1800);
       }
 
       function clearSelection() {
@@ -6427,9 +7018,31 @@
         });
       }
 
-      function applySettings(event) {
+      function confirmSettingsChange(message, title = "确认修改术式设置？") {
+        const confirmDialog = document.getElementById("settings-confirm-dialog");
+        const confirmTitle = document.getElementById("settings-confirm-title");
+        const confirmMessage = document.getElementById("settings-confirm-message");
+        if (!confirmDialog || !confirmMessage || typeof confirmDialog.showModal !== "function") {
+          return Promise.resolve(false);
+        }
+        if (confirmDialog.open) confirmDialog.close("cancel");
+        if (confirmTitle) confirmTitle.textContent = title;
+        confirmMessage.textContent = message;
+        confirmDialog.returnValue = "cancel";
+        return new Promise((resolve) => {
+          confirmDialog.addEventListener(
+            "close",
+            () => resolve(confirmDialog.returnValue === "confirm"),
+            { once: true },
+          );
+          confirmDialog.showModal();
+        });
+      }
+
+      async function applySettings(event) {
         event.preventDefault();
         if (syncWriteBlocked()) return;
+        if (document.getElementById("settings-confirm-dialog")?.open) return;
         if (!settingsForm.reportValidity()) return;
         const nextSettings = settingsFromForm();
         if (JSON.stringify(nextSettings) === JSON.stringify(settings)) {
@@ -6438,20 +7051,19 @@
         }
         const anatomyChanged = nextSettings.anatomyMode !== settings.anatomyMode;
         const clearForAnatomyChange = anatomyChanged && hasAnyClinicalRecords();
-        if (
-          clearForAnatomyChange &&
-          !window.confirm("切换肺静脉解剖会清空当前消融记录、覆盖和 PVI 终点记录，以避免同一病例混入互斥解剖数据。继续切换？清空后可使用“撤回”恢复。")
-        ) {
-          return;
+        if (clearForAnatomyChange) {
+          const confirmed = await confirmSettingsChange(
+            "切换肺静脉解剖会清空当前消融记录、覆盖和 PVI 终点记录，以避免同一病例混入互斥解剖数据。继续切换？清空后可使用“撤回”恢复。",
+            "切换肺静脉解剖？",
+          );
+          if (!confirmed) return;
         }
-        if (
-          !clearForAnatomyChange &&
-          settings.ridgeEnabled &&
-          !nextSettings.ridgeEnabled &&
-          hasRidgeRecords() &&
-          !window.confirm("关闭脊部追加记录会隐藏已有脊部记录；重新启用后仍可查看，导出也会保留。继续关闭？")
-        ) {
-          return;
+        if (!clearForAnatomyChange && settings.ridgeEnabled && !nextSettings.ridgeEnabled && hasRidgeRecords()) {
+          const confirmed = await confirmSettingsChange(
+            "关闭脊部追加记录会隐藏已有脊部记录；重新启用后仍可查看，导出也会保留。继续关闭？",
+            "关闭脊部追加记录？",
+          );
+          if (!confirmed) return;
         }
         pushHistory("更新本台术式设置");
         if (clearForAnatomyChange) clearClinicalRecordState();
@@ -7246,10 +7858,22 @@
         (exportButton.offsetWidth ? exportButton : document.getElementById("more-button")).focus({ preventScroll: true });
       }
 
+      function toTrustedReportMarkup(html) {
+        if (typeof window !== "undefined" && window.trustedTypes?.createPolicy) {
+          toTrustedReportMarkup.policy ||= window.trustedTypes.createPolicy("victorypvi-ui", {
+            createHTML: (value) => String(value),
+          });
+          return toTrustedReportMarkup.policy.createHTML(html);
+        }
+        return html;
+      }
+
       function exportClinicalReport(patientInfo) {
         const exportTime = new Date();
         try {
-          document.getElementById("report-pages").innerHTML = buildPrintReport(exportTime, patientInfo);
+          document.getElementById("report-pages").innerHTML = toTrustedReportMarkup(
+            buildPrintReport(exportTime, patientInfo),
+          );
           document.title = `PVI-ablation-report-${localDateInputValue(exportTime)}`;
           document.getElementById("report-print-help").textContent = "在系统打印面板选择“存储为 PDF”。";
           document.body.classList.add("report-open");
@@ -7266,20 +7890,60 @@
       document.getElementById("report-print").addEventListener("click", printCurrentReport);
       window.addEventListener("pagehide", closeReportPreview);
 
+      const supportsDialogClosedBy = "closedBy" in HTMLDialogElement.prototype;
+      const supportsInvokerCommands = "commandForElement" in HTMLButtonElement.prototype;
+
+      function isPointerOutsideDialog(dialog, event) {
+        if (!dialog.open || event.detail === 0) return false;
+        const rect = dialog.getBoundingClientRect();
+        return (
+          event.clientX < rect.left ||
+          event.clientX > rect.right ||
+          event.clientY < rect.top ||
+          event.clientY > rect.bottom
+        );
+      }
+
+      function bindDialogLightDismiss(dialog, onDismiss = () => dialog.close()) {
+        if (!dialog || supportsDialogClosedBy) return;
+        dialog.addEventListener("click", (event) => {
+          if (isPointerOutsideDialog(dialog, event)) onDismiss();
+        });
+      }
+
       document.getElementById("more-button").addEventListener("click", () => {
         updateExperienceUi(); actionsDialog.showModal(); document.getElementById("actions-title").focus({ preventScroll: true });
       });
-      document.getElementById("actions-close").onclick = () => actionsDialog.close();
       document.getElementById("more-settings").onclick = () => { actionsDialog.close(); settingsButton.click(); };
       document.getElementById("more-export").onclick = () => { actionsDialog.close(); exportButton.click(); };
       document.getElementById("mobile-electrodes").onclick = () => openQuickPanel("electrodes");
       document.getElementById("mobile-overview").onclick = () => openQuickPanel("overview");
       document.getElementById("mobile-undo").onclick = () => undoLastAction();
-      document.getElementById("quick-close").onclick = document.getElementById("quick-done").onclick = () => quickDialog.close();
       quickDialog.addEventListener("close", () => { if (!quickDialog.open) restoreQuickPanel(); });
-      document.getElementById("reset-close").onclick = document.getElementById("reset-cancel").onclick = () => resetDialog.close();
       document.getElementById("reset-confirm").onclick = () => confirmResetRecord();
-      for (const dialog of [actionsDialog, quickDialog, resetDialog]) dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); });
+      aboutDialog.addEventListener("command", (event) => {
+        if (event.command === "show-modal" && actionsDialog.open) actionsDialog.close();
+      });
+      if (!supportsInvokerCommands) {
+        document.querySelectorAll("[commandfor]").forEach((button) => {
+          button.addEventListener("click", () => {
+            const target = document.getElementById(button.getAttribute("commandfor"));
+            const command = button.getAttribute("command");
+            if (!target) return;
+            if (command === "close" && target.open) target.close();
+            if (command === "show-modal") {
+              if (target === aboutDialog && actionsDialog.open) actionsDialog.close();
+              if (!target.open && typeof target.showModal === "function") target.showModal();
+            }
+          });
+        });
+      }
+      for (const dialog of [actionsDialog, quickDialog, resetDialog, aboutDialog]) {
+        bindDialogLightDismiss(dialog);
+      }
+      bindDialogLightDismiss(document.getElementById("settings-confirm-dialog"), () => {
+        document.getElementById("settings-confirm-dialog").close("cancel");
+      });
       document.querySelectorAll("[data-map-view]").forEach(button => button.addEventListener("click", () => {
         mapViewChoice = button.dataset.mapView;
         safeStorageSet("vpvi-map-view", mapViewChoice);
@@ -7290,17 +7954,10 @@
         if (quickDialog.open) { quickDialog.close(); restoreQuickPanel(); }
         updateMapView();
       });
-      aboutButton.addEventListener("click", () => { actionsDialog.close(); aboutDialog.showModal(); });
-      aboutClose.addEventListener("click", () => aboutDialog.close());
-      aboutDialog.addEventListener("click", (event) => {
-        if (event.target === aboutDialog) aboutDialog.close();
-      });
       syncStatusButton.addEventListener("click", openSyncDialog);
       syncClose.addEventListener("click", closeSyncDialog);
       syncCancel.addEventListener("click", closeSyncDialog);
-      syncDialog.addEventListener("click", (event) => {
-        if (event.target === syncDialog) closeSyncDialog();
-      });
+      bindDialogLightDismiss(syncDialog, closeSyncDialog);
       document.getElementById("sync-form").addEventListener("submit", event => event.preventDefault());
       syncOpenDesktop.addEventListener("click", openDesktopWithRecord);
       syncTakeControl.addEventListener("click", () => { if (!syncBootstrapping) void connectLanSession({ takeover: true }); });
@@ -7325,19 +7982,12 @@
         ridgeTargetInput.disabled = !ridgeEnabledInput.checked;
       });
       settingsForm.addEventListener("submit", applySettings);
-      settingsDialog.addEventListener("click", (event) => {
-        if (event.target === settingsDialog) closeSettings();
-      });
+      bindDialogLightDismiss(settingsDialog, closeSettings);
       patientInfoClose.addEventListener("click", () => closePatientInfoDialog());
       patientInfoCancel.addEventListener("click", () => closePatientInfoDialog());
       patientInfoForm.addEventListener("submit", confirmPatientInfoAndExport);
-      patientInfoDialog.addEventListener("click", (event) => {
-        if (event.target === patientInfoDialog) closePatientInfoDialog();
-      });
-      patientInfoDialog.addEventListener("cancel", (event) => {
-        event.preventDefault();
-        closePatientInfoDialog();
-      });
+      patientInfoDialog.addEventListener("close", () => patientInfoForm.reset());
+      bindDialogLightDismiss(patientInfoDialog, () => closePatientInfoDialog());
       undoButton.addEventListener("click", () => undoLastAction());
       resetButton.addEventListener("click", () => resetRecord());
       exportButton.addEventListener("click", openPatientInfoDialog);
@@ -7445,7 +8095,12 @@
           undoLastAction();
         } else if (event.key === "Escape") {
           if (document.querySelector("dialog[open]")) return;
-          if (!document.getElementById("planar-popover")?.hidden) {
+          const popoverEl = document.getElementById("planar-popover");
+          if (
+            popoverEl?.matches?.(":popover-open") ||
+            popoverEl?.classList.contains("is-open-fallback") ||
+            (popoverEl && typeof popoverEl.showPopover !== "function" && !popoverEl.hidden)
+          ) {
             closePlanarPopover();
             return;
           }
@@ -8740,13 +9395,54 @@
         planarRenderLayer();
       }
 
+      if (planarPopover && typeof planarPopover.showPopover !== "function") {
+        planarPopover.hidden = true;
+      }
+
+      planarPopover?.addEventListener("toggle", (event) => {
+        if (event.newState === "closed" && activePlanarPopoverSiteId) {
+          activePlanarPopoverSiteId = null;
+          planarPopover.replaceChildren();
+          planarRenderLayer();
+        }
+      });
+
       function closePlanarPopover() {
         activePlanarPopoverSiteId = null;
         if (planarPopover) {
-          planarPopover.hidden = true;
+          if (typeof planarPopover.hidePopover === "function") {
+            try {
+              if (planarPopover.matches?.(":popover-open")) planarPopover.hidePopover();
+            } catch {
+              planarPopover.classList.remove("is-open-fallback");
+              planarPopover.hidden = true;
+            }
+          } else {
+            planarPopover.classList.remove("is-open-fallback");
+            planarPopover.hidden = true;
+          }
           planarPopover.replaceChildren();
         }
         planarRenderLayer();
+      }
+
+      function createPlanarStepperRow(labelText, valueText, minusAttrs, plusAttrs, onDelta) {
+        const minusBtn = createEl("button", { text: "−", attrs: { type: "button", ...minusAttrs } });
+        const plusBtn = createEl("button", { text: "+", attrs: { type: "button", ...plusAttrs } });
+        minusBtn.addEventListener("click", () => onDelta(-1));
+        plusBtn.addEventListener("click", () => onDelta(1));
+        return createEl(
+          "div",
+          { className: "planar-popover-row" },
+          createEl("span", { text: labelText }),
+          createEl(
+            "div",
+            { className: "planar-stepper" },
+            minusBtn,
+            createEl("b", { text: valueText }),
+            plusBtn,
+          ),
+        );
       }
 
       function renderPlanarPopover() {
@@ -8759,83 +9455,156 @@
         }
         const metrics = computePlanarSiteMetrics(site.id);
         const gapSuffix = metrics.unablatedGaps.length ? ` · ${metrics.unablatedGaps.length} 处缺口` : "";
-        planarPopover.hidden = false;
-        planarPopover.innerHTML = `
-          <div class="planar-popover-head">
-            <div>
-              <strong>${escapeHtml(site.name)}</strong>
-              <small>已记录 ${metrics.applicationCount} 次 · 已覆盖 ${metrics.coveredCells}/${metrics.totalCells} ${site === SVC_RING ? "区" : "格"}${gapSuffix}</small>
-            </div>
-            <button type="button" class="planar-popover-close" id="planar-pop-close" aria-label="关闭设置">×</button>
-          </div>
-          <div class="planar-popover-rows">
-            ${site === SVC_RING ? "" : `<div class="planar-popover-row">
-              <span>横向分区（行）</span>
-              <div class="planar-stepper">
-                <button type="button" data-pop-axis="rows" data-pop-delta="-1" ${cfg.rows <= minimumPlanarDimension(site, cfg, "rows") ? "disabled" : ""}>−</button>
-                <b>${cfg.rows}</b>
-                <button type="button" data-pop-axis="rows" data-pop-delta="1" ${cfg.rows >= site.maxRows ? "disabled" : ""}>+</button>
-              </div>
-            </div>
-            <div class="planar-popover-row">
-              <span>纵向分区（列）</span>
-              <div class="planar-stepper">
-                <button type="button" data-pop-axis="cols" data-pop-delta="-1" ${cfg.cols <= minimumPlanarDimension(site, cfg, "cols") ? "disabled" : ""}>−</button>
-                <b>${cfg.cols}</b>
-                <button type="button" data-pop-axis="cols" data-pop-delta="1" ${cfg.cols >= site.maxCols ? "disabled" : ""}>+</button>
-              </div>
-            </div>`}
-            <div class="planar-popover-row">
-              <span>${site === SVC_RING ? "单区" : "单格"}达标次数</span>
-              <div class="planar-stepper">
-                <button type="button" data-pop-target="-1" ${cfg.target <= 1 ? "disabled" : ""}>−</button>
-                <b>${cfg.target} 次</b>
-                <button type="button" data-pop-target="1" ${cfg.target >= 4 ? "disabled" : ""}>+</button>
-              </div>
-            </div>
-            ${site === SVC_RING ? "" : `<div class="planar-popover-row">
-              <span>缺口朝向</span>
-              <div class="planar-gap-segment" role="group" aria-label="缺口朝向">
-                ${PLANAR_GAP_DIRS.map((d) => `<button type="button" data-pop-gap="${d.deg}" aria-pressed="${planarState.gapOrientation === d.deg}">${d.symbol}${d.label}</button>`).join("")}
-              </div>
-            </div>`}
-          </div>
-          ${site.id === "lapw" && metrics.applicationCount ? `<p class="planar-popover-note">${wallCountSummary(metrics)}。新增行在下方，新增列在右侧。</p>` : ""}
-          ${metrics.retained?.length ? `<details class="wall-records"><summary>收起行列的记录（${metrics.retained.length} 次）</summary>
-            <p>恢复相应行列后，记录会重新显示在原格。</p><ol>${metrics.retained.map(({ev, source}, index) => {
-              const angle = ev.mode === "segment" ? ev.targetEdge : ev.gapOrientation;
-              const dir = angle == null ? "" : PLANAR_EDGE_META[planarDisplayEdge(angle)].label;
-              const action = ev.mode === "segment" ? "节段补记" + (dir ? " · " + dir + "边" : "") :
-                "缺口朝" + dir + " · 电极 " + ev.activeElectrodes.join("、");
-              return `<li>${wallRegionName(source)} · ${escapeHtml(formatOperationTime(ev.recordedAt))} · ${escapeHtml(action)}
-                <button type="button" data-remove-wall-record="${index}" ${syncRole === "mirror" ? "disabled" : ""}>去除</button></li>`;
-            }).join("")}</ol></details>` : ""}
-          <p class="planar-popover-note">${site === SVC_RING ? "记录 1 次 SVC 消融后圆心变绿。单区达标次数用于扇区着色。" : site.id === "lapw" ?
-            "点击矩形的一条边记录该格缺口方向。上下缘缺口标红，其余缺口标淡黄。同侧肺静脉前庭后壁全部达标后，隐藏该侧外缘缺口提示。紫色点线标记待核对的交界。" :
-            "点击格子边缘可指定缺口方向，只有点中的格子计数。上下外缘的潜在缺口标红，其余标黄。"}</p>
-        `;
-        planarPopover.querySelectorAll("[data-remove-wall-record]").forEach(btn => {
-          btn.addEventListener("click", () => {
-            if (syncWriteBlocked()) return;
-            const { ev, source } = metrics.retained[Number(btn.dataset.removeWallRecord)];
-            const index = planarState.events.indexOf(ev);
-            if (index < 0) return;
-            pushHistory(`去除后壁收起行列的记录 · ${wallRegionName(source)}`);
-            planarState.events.splice(index, 1);
-            saveCounts();
-            updateAll();
+        const closeBtn = createEl("button", {
+          text: "×",
+          className: "planar-popover-close",
+          attrs: { type: "button", id: "planar-pop-close", "aria-label": "关闭设置" },
+        });
+        closeBtn.addEventListener("click", closePlanarPopover);
+        const head = createEl(
+          "div",
+          { className: "planar-popover-head" },
+          createEl(
+            "div",
+            {},
+            createEl("strong", { text: site.name }),
+            createEl("small", {
+              text: `已记录 ${metrics.applicationCount} 次 · 已覆盖 ${metrics.coveredCells}/${metrics.totalCells} ${site === SVC_RING ? "区" : "格"}${gapSuffix}`,
+            }),
+          ),
+          closeBtn,
+        );
+
+        const rows = createEl("div", { className: "planar-popover-rows" });
+        if (site !== SVC_RING) {
+          rows.append(
+            createPlanarStepperRow(
+              "横向分区（行）",
+              cfg.rows,
+              { "data-pop-axis": "rows", "data-pop-delta": "-1", disabled: cfg.rows <= minimumPlanarDimension(site, cfg, "rows") },
+              { "data-pop-axis": "rows", "data-pop-delta": "1", disabled: cfg.rows >= site.maxRows },
+              (delta) => adjustPlanarDimension(site.id, "rows", delta),
+            ),
+            createPlanarStepperRow(
+              "纵向分区（列）",
+              cfg.cols,
+              { "data-pop-axis": "cols", "data-pop-delta": "-1", disabled: cfg.cols <= minimumPlanarDimension(site, cfg, "cols") },
+              { "data-pop-axis": "cols", "data-pop-delta": "1", disabled: cfg.cols >= site.maxCols },
+              (delta) => adjustPlanarDimension(site.id, "cols", delta),
+            ),
+          );
+        }
+        rows.append(
+          createPlanarStepperRow(
+            `${site === SVC_RING ? "单区" : "单格"}达标次数`,
+            `${cfg.target} 次`,
+            { "data-pop-target": "-1", disabled: cfg.target <= 1 },
+            { "data-pop-target": "1", disabled: cfg.target >= 4 },
+            (delta) => adjustPlanarTarget(site.id, delta),
+          ),
+        );
+        if (site !== SVC_RING) {
+          const gapSegment = createEl("div", {
+            className: "planar-gap-segment",
+            attrs: { role: "group", "aria-label": "缺口朝向" },
           });
-        });
-        planarPopover.querySelector("#planar-pop-close")?.addEventListener("click", closePlanarPopover);
-        planarPopover.querySelectorAll("[data-pop-axis]").forEach((btn) => {
-          btn.addEventListener("click", () => adjustPlanarDimension(site.id, btn.dataset.popAxis, Number(btn.dataset.popDelta)));
-        });
-        planarPopover.querySelectorAll("[data-pop-target]").forEach((btn) => {
-          btn.addEventListener("click", () => adjustPlanarTarget(site.id, Number(btn.dataset.popTarget)));
-        });
-        planarPopover.querySelectorAll("[data-pop-gap]").forEach((btn) => {
-          btn.addEventListener("click", () => setPlanarGapOrientation(Number(btn.dataset.popGap)));
-        });
+          for (const d of PLANAR_GAP_DIRS) {
+            const btn = createEl("button", {
+              text: `${d.symbol}${d.label}`,
+              attrs: {
+                type: "button",
+                "data-pop-gap": d.deg,
+                "aria-pressed": planarState.gapOrientation === d.deg ? "true" : "false",
+              },
+            });
+            btn.addEventListener("click", () => setPlanarGapOrientation(d.deg));
+            gapSegment.appendChild(btn);
+          }
+          rows.append(
+            createEl(
+              "div",
+              { className: "planar-popover-row" },
+              createEl("span", { text: "缺口朝向" }),
+              gapSegment,
+            ),
+          );
+        }
+
+        const nodes = [head, rows];
+        if (site.id === "lapw" && metrics.applicationCount) {
+          nodes.push(
+            createEl("p", {
+              className: "planar-popover-note",
+              text: `${wallCountSummary(metrics)}。新增行在下方，新增列在右侧。`,
+            }),
+          );
+        }
+        if (metrics.retained?.length) {
+          const list = createEl("ol");
+          metrics.retained.forEach(({ ev, source }, index) => {
+            const angle = ev.mode === "segment" ? ev.targetEdge : ev.gapOrientation;
+            const dir = angle == null ? "" : PLANAR_EDGE_META[planarDisplayEdge(angle)].label;
+            const action = ev.mode === "segment"
+              ? "节段补记" + (dir ? " · " + dir + "边" : "")
+              : "缺口朝" + dir + " · 电极 " + ev.activeElectrodes.join("、");
+            const removeBtn = createEl("button", {
+              text: "去除",
+              attrs: {
+                type: "button",
+                "data-remove-wall-record": index,
+                disabled: syncRole === "mirror",
+              },
+            });
+            removeBtn.addEventListener("click", () => {
+              if (syncWriteBlocked()) return;
+              const eventIndex = planarState.events.indexOf(ev);
+              if (eventIndex < 0) return;
+              pushHistory(`去除后壁收起行列的记录 · ${wallRegionName(source)}`);
+              planarState.events.splice(eventIndex, 1);
+              saveCounts();
+              updateAll();
+            });
+            list.appendChild(
+              createEl(
+                "li",
+                { text: `${wallRegionName(source)} · ${formatOperationTime(ev.recordedAt)} · ${action} ` },
+                removeBtn,
+              ),
+            );
+          });
+          nodes.push(
+            createEl(
+              "details",
+              { className: "wall-records" },
+              createEl("summary", { text: `收起行列的记录（${metrics.retained.length} 次）` }),
+              createEl("p", { text: "恢复相应行列后，记录会重新显示在原格。" }),
+              list,
+            ),
+          );
+        }
+        nodes.push(
+          createEl("p", {
+            className: "planar-popover-note",
+            text: site === SVC_RING
+              ? "记录 1 次 SVC 消融后圆心变绿。单区达标次数用于扇区着色。"
+              : site.id === "lapw"
+                ? "点击矩形的一条边记录该格缺口方向。上下缘缺口标红，其余缺口标淡黄。同侧肺静脉前庭后壁全部达标后，隐藏该侧外缘缺口提示。紫色点线标记待核对的交界。"
+                : "点击格子边缘可指定缺口方向，只有点中的格子计数。上下外缘的潜在缺口标红，其余标黄。",
+          }),
+        );
+
+        planarPopover.replaceChildren(...nodes);
+        if (typeof planarPopover.showPopover === "function") {
+          planarPopover.hidden = false;
+          try {
+            if (!planarPopover.matches?.(":popover-open")) planarPopover.showPopover();
+          } catch {
+            planarPopover.classList.add("is-open-fallback");
+          }
+        } else {
+          planarPopover.hidden = false;
+          planarPopover.classList.add("is-open-fallback");
+        }
       }
 
       // Hook into core lifecycle functions cleanly
@@ -8892,19 +9661,31 @@
           if (activePlanarPopoverSiteId && !siteVisibleInView(PLANAR_SITE_MAP[activePlanarPopoverSiteId], view)) closePlanarPopover();
           else if (!visibleStructures.has("lapw") && (previous === "posterior" || view === "posterior")) planarRenderLayer();
         }
-        if (view === "left") svg.setAttribute("viewBox", "0 36 470 594");
-        else if (view === "right") svg.setAttribute("viewBox", "510 36 470 594");
-        if (view === "posterior") {
+        const hasLeftPlanar = RECORD_SITES.some((site) => site.side === "left" && structureVisible(site));
+        const hasRightPlanar = RECORD_SITES.some((site) => site.side === "right" && structureVisible(site));
+        if (view === "left") {
+          const vb = hasLeftPlanar ? [0, 16, 406, 608] : [60, 16, 400, 608];
+          svg.setAttribute("viewBox", vb.join(" "));
+          svg.style.aspectRatio = `${vb[2]} / ${vb[3]}`;
+          svg.style.setProperty("--map-ar", String(vb[2] / vb[3]));
+        } else if (view === "right") {
+          const vb = hasRightPlanar ? [574, 16, 410, 608] : [520, 16, 400, 608];
+          svg.setAttribute("viewBox", vb.join(" "));
+          svg.style.aspectRatio = `${vb[2]} / ${vb[3]}`;
+          svg.style.setProperty("--map-ar", String(vb[2] / vb[3]));
+        } else if (view === "posterior") {
           const {x, y, w, h} = PLANAR_SITE_MAP.lapw;
           // Include the original-region link that can appear below the frame.
           svg.setAttribute("viewBox", `${x - 8} ${y - 8} ${w + 16} ${h + 30}`);
           svg.style.aspectRatio = `${w + 16} / ${h + 30}`;
+          svg.style.setProperty("--map-ar", String((w + 16) / (h + 30)));
           recordHint.textContent = mapEditMode === "remove" ? "点格子边缘，去除本格最近一次记录" :
             mapEditMode === "segment" ? "点格子边缘，记录该方向的一次节段补消" : "点格子边缘，记录一次消融并标记缺口方向";
         } else {
           svg.style.removeProperty("aspect-ratio");
-          if (previous === "posterior") updateMapEditMode();
+          svg.style.removeProperty("--map-ar");
         }
+        if (view !== "posterior" && previous === "posterior") updateMapEditMode();
         const placements = fullMapPlacements(view);
         for (const part of svg.querySelectorAll("[data-pv-side], [data-map-part]")) {
           positionPosteriorMapPart(part, part.dataset.pvSide ?? part.dataset.mapPart, placements);
@@ -8980,37 +9761,56 @@
         veinList.appendChild(groupLabel);
         recordedSites.forEach((site) => {
           const m = computePlanarSiteMetrics(site.id);
-          const epOptions = PLANAR_ENDPOINT_OPTIONS.map(
-            ([val, label]) => `<option value="${val}"${(planarState.endpoints[site.id] || "not-assessed") === val ? " selected" : ""}>${label}</option>`,
-          ).join("");
           const gapText = m.unablatedGaps.map(gapLocation).join("、");
-          const gapHintHtml = site.id !== "lapw" && site !== SVC_RING && m.applicationCount
-            ? `<div class="planar-unablated-hint${m.unablatedGaps.length ? "" : " is-closed"}">${
-                m.unablatedGaps.length ? `⚠ 未消融缺口：${escapeHtml(gapText)}` : "✓ 无未消融缺口"
-              }</div>`
-            : "";
-          const card = document.createElement("div");
-          card.className = `vein-summary planar-summary-item${m.complete ? " plan-complete" : m.inProgress ? " plan-in-progress" : ""}`;
-          card.innerHTML = `
-            <span class="vein-summary-name">${escapeHtml(site.short)}<span class="planar-summary-badge">${HISTORICAL_GRID_SITES.includes(site) ? "历史网格 " : ""}${m.layoutLabel}</span></span>
-            <span class="progress-track" style="--segments: ${Math.max(1, m.totalCells)}" role="progressbar" aria-valuemin="0" aria-valuemax="${m.totalCells}" aria-valuenow="${m.targetMetCells}">
-              ${progressSegments(m.targetMetCells, Math.max(1, m.totalCells))}
-            </span>
-            <span class="vein-summary-count">${m.targetMetCells}/${m.totalCells} 达标 · ${m.applicationCount}次</span>
-            ${gapHintHtml}
-            <label class="endpoint-control">
-              <span>${site.id === "lapw" ? "后壁电隔离评估" : escapeHtml(site.endpointLabel)}</span>
-              <select data-planar-endpoint="${site.id}" aria-label="${escapeHtml(site.name)} 终点评估">${epOptions}</select>
-            </label>
-          `;
-          veinList.appendChild(card);
-          const sel = card.querySelector("select");
+          const card = createEl("div", {
+            className: `vein-summary planar-summary-item${m.complete ? " plan-complete" : m.inProgress ? " plan-in-progress" : ""}`,
+          });
+          const summaryName = createEl(
+            "span",
+            { className: "vein-summary-name", text: site.short },
+            createEl("span", {
+              className: "planar-summary-badge",
+              text: `${HISTORICAL_GRID_SITES.includes(site) ? "历史网格 " : ""}${m.layoutLabel}`,
+            }),
+          );
+          const track = createProgressTrackNode(m.targetMetCells, Math.max(1, m.totalCells), {
+            valuemax: m.totalCells,
+            valuenow: m.targetMetCells,
+          });
+          const summaryCount = createEl("span", {
+            className: "vein-summary-count",
+            text: `${m.targetMetCells}/${m.totalCells} 达标 · ${m.applicationCount}次`,
+          });
+          const sel = createEndpointSelectNode(
+            PLANAR_ENDPOINT_OPTIONS,
+            planarState.endpoints[site.id],
+            `${site.name} 终点评估`,
+            { "data-planar-endpoint": site.id },
+          );
           sel.disabled = HISTORICAL_GRID_SITES.includes(site) || syncRole === "mirror" || syncBootstrapping || syncHandoffPending;
           sel.addEventListener("change", (event) => {
             if (!recordPlanarEndpoint(site.id, event.target.value)) {
               event.target.value = planarState.endpoints[site.id] || "not-assessed";
             }
           });
+          const endpointControl = createEl(
+            "label",
+            { className: "endpoint-control" },
+            createEl("span", { text: site.id === "lapw" ? "后壁电隔离评估" : site.endpointLabel }),
+            sel,
+          );
+          const children = [summaryName, track, summaryCount];
+          if (site.id !== "lapw" && site !== SVC_RING && m.applicationCount) {
+            children.push(
+              createEl("div", {
+                className: `planar-unablated-hint${m.unablatedGaps.length ? "" : " is-closed"}`,
+                text: m.unablatedGaps.length ? `⚠ 未消融缺口：${gapText}` : "✓ 无未消融缺口",
+              }),
+            );
+          }
+          children.push(endpointControl);
+          card.append(...children);
+          veinList.appendChild(card);
         });
       };
 
