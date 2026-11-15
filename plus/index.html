@@ -7,17 +7,17 @@
     <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#111216" media="(prefers-color-scheme: dark)" />
     <meta name="text-scale" content="scale" />
-    <meta name="application-version" content="1.23.0" />
-    <meta name="application-iteration" content="2026-11-14T09:11:40+08:00" />
+    <meta name="application-version" content="1.23.1" />
+    <meta name="application-iteration" content="2026-11-15T21:21:38+08:00" />
     <script id="app-release" type="application/json">
       {
-        "version": "1.23.0",
+        "version": "1.23.1",
         "edition": "量化版",
-        "iteration": "2026-11-14T09:11:40+08:00",
-        "summary": "节段模式支持在同一环上连续拖选扇区，一次拖动记录一次消融。",
+        "iteration": "2026-11-15T21:21:38+08:00",
+        "summary": "精简多端同步为清晰的双端扫码流程。",
         "changes": [
-          "在肺静脉前庭、口部或 SVC 按住并滑过扇面，松开后所选扇区各加 1，总次数加 1。",
-          "同次拖动经过同一扇面只计一次。撤回可移除整次拖选记录。"
+          "精简多端同步界面，仅保留“本机作为操作端”与“本机作为跟随端”两步互扫流程，移除手动连接码与电脑客户端折叠项。",
+          "完善双端扫码步骤进度、回码识别等待态及摄像头权限/二维码类型校验提示。"
         ]
       }
     </script>
@@ -1452,12 +1452,15 @@
       .direct-steps b { font-weight: 500; }
       .direct-steps [aria-current="step"] { color: var(--purple-3); }
       .direct-steps [aria-current="step"] span { background: var(--purple-3); color: #fff; }
+      .direct-steps [data-done="true"] { color: #167a3e; }
+      .direct-steps [data-done="true"] span { background: #eaf8ee; color: #167a3e; font-weight: 700; }
       .direct-pairing, .direct-camera, .direct-connection { text-align: center; }
       #direct-dialog h3 { margin: 0; font-size: 1.0625rem; line-height: 1.45; }
       .direct-pairing .settings-help { margin: 6px 0 14px; font-size: 0.75rem; }
       #direct-dialog .sync-qr-frame { width: 100%; gap: 8px; }
       #direct-dialog .sync-qr { width: min(100%, 304px); height: auto; aspect-ratio: 1; box-shadow: none; border: 1px solid #e9e3f0; border-radius: 12px; padding: 9px; }
       #direct-scan-answer { width: 100%; margin-top: 18px; }
+      #direct-cancel-step { width: 100%; margin-top: 10px; }
       .direct-viewfinder { position: relative; margin-top: 16px; aspect-ratio: 1; overflow: hidden; border-radius: 12px; background: #202030; }
       .direct-viewfinder video { display: block; width: 100%; height: 100%; object-fit: cover; }
       .direct-viewfinder span { position: absolute; inset: 13%; border: 2px solid rgba(255,255,255,.9); border-radius: 14px; box-shadow: 0 0 0 120px rgba(15,10,25,.2); pointer-events: none; }
@@ -1475,7 +1478,7 @@
       #direct-manual-code .button { margin: 5px 5px 10px 0; }
       #direct-input { margin: 7px 0 10px; }
       .direct-text-button { min-height: 44px; border: 0; background: none; color: var(--muted); font: inherit; font-size: 0.8125rem; cursor: pointer; padding: 6px 0; }
-      .direct-loading { min-height: 160px; display: grid; place-items: center; color: var(--muted); font-size: 0.875rem; }
+      .direct-loading { min-height: 160px; display: grid; place-items: center; text-align: center; color: var(--muted); font-size: 0.875rem; }
       #direct-dialog[open] { animation: direct-enter 180ms ease-out; }
       .direct-stage:not([hidden]) { animation: direct-enter 160ms ease-out; }
       @keyframes direct-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
@@ -3049,7 +3052,10 @@
       .direct-steps span { background: var(--fill); }
       .direct-steps [aria-current="step"] { color: var(--accent); }
       .direct-steps [aria-current="step"] span { background: var(--accent); }
+      .direct-steps [data-done="true"] { color: var(--hint-ok-ink); }
+      .direct-steps [data-done="true"] span { background: var(--hint-ok-bg); color: var(--hint-ok-ink); }
       .direct-connection-icon { background: var(--accent-soft); color: var(--accent); }
+      .direct-connection[data-connected="true"] .direct-connection-icon { background: var(--hint-ok-bg); color: var(--hint-ok-ink); }
       #direct-dialog .sync-qr { border: 0.5px solid var(--line-strong); border-radius: 16px; }
       .direct-viewfinder { border-radius: 18px; }
       .direct-text-button { color: var(--accent); }
@@ -3927,12 +3933,12 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>肺静脉消融记录 <span class="plus-mark">PLUS</span></h1>
-            <p class="app-meta" id="app-meta" aria-label="软件版本 1.23.0，独立社区维护的非官方工具，迭代时间 2026年11月14日 9点11分">
-              <span class="app-version" id="app-version">v1.23.0 · 量化版</span>
+            <p class="app-meta" id="app-meta" aria-label="软件版本 1.23.1，独立社区维护的非官方工具，迭代时间 2026年11月15日 21点21分">
+              <span class="app-version" id="app-version">v1.23.1 · 量化版</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
               <span>社区维护 · 非官方</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
-              <time id="app-iteration" datetime="2026-11-14T09:11:40+08:00">迭代于 2026-11-14 09:11</time>
+              <time id="app-iteration" datetime="2026-11-15T21:21:38+08:00">迭代于 2026-11-15 21:21</time>
             </p>
           </div>
         </div>
@@ -4416,11 +4422,11 @@
           <section class="about-section">
             <h3>当前版本</h3>
             <p>
-              <strong id="about-release-version">v1.23.0 · 量化版</strong>
+              <strong id="about-release-version">v1.23.1 · 量化版</strong>
               <span aria-hidden="true"> · </span>
-              <time id="about-release-iteration" datetime="2026-11-14T09:11:40+08:00">迭代于 2026-11-14 09:11</time>
+              <time id="about-release-iteration" datetime="2026-11-15T21:21:38+08:00">迭代于 2026-11-15 21:21</time>
             </p>
-            <p id="about-release-summary">更新内容：节段模式支持在同一环上连续拖选扇区，一次拖动记录一次消融。</p>
+            <p id="about-release-summary">更新内容：精简多端同步为清晰的双端扫码流程。</p>
           </section>
           <section class="about-section">
             <h3>本次更新</h3>
@@ -4442,10 +4448,10 @@
     <div class="toast" id="toast" popover="manual" role="status" aria-live="polite"></div>
     <div class="remove-cursor" id="remove-cursor" aria-hidden="true"></div>
 
-    <script src="./miniprogram/utils/sector-grid.js?v=1.23.0"></script>
+    <script src="./miniprogram/utils/sector-grid.js?v=1.23.1"></script>
     <script src="./vendor/qrcode-generator.js"></script>
-    <script src="./sync-client.js?v=1.23.0"></script>
-    <script src="./direct-sync-ui.js?v=1.23.0"></script>
+    <script src="./sync-client.js?v=1.23.1"></script>
+    <script src="./direct-sync-ui.js?v=1.23.1"></script>
     <script>
       const NS = "http://www.w3.org/2000/svg";
       // Historical storage identifiers are retained so existing records, undo history,
@@ -4462,9 +4468,9 @@
       const MIN_SINGLE_VEIN_TOTAL_APPLICATIONS = 4;
       const APP_RELEASE = Object.freeze((() => {
         const fallback = {
-          version: "1.23.0",
-          iteration: "2026-11-14T09:11:40+08:00",
-          summary: "节段模式支持在同一环上连续拖选扇区，一次拖动记录一次消融。",
+          version: "1.23.1",
+          iteration: "2026-11-15T21:21:38+08:00",
+          summary: "精简多端同步为清晰的双端扫码流程。",
           changes: [],
         };
         try {
@@ -4985,7 +4991,6 @@
         if (location.hash.startsWith("#resume=")) history.replaceState(null, "", location.pathname + location.search);
         if (!window.VICTORYPVI_DESKTOP) directSync = new window.VictoryPVIDirectUI({
           deviceId: syncSettings.deviceId,
-          desktopContent: syncLocalPanel,
           errorContent: syncError,
           isHandoffPending: () => syncHandoffPending,
           renderQr: renderSyncQr,
@@ -6379,8 +6384,7 @@
         const label = sectors.map(n => sectorLabel(n)).join("、");
         pushHistory(`${parsed.vein.name}${parsed.layer.name} ${label}区节段消融 +1 次`);
         for (const n of sectors) {
-          const countKey = sectorKey(key, n);
-          counts[countKey] = Number(counts[countKey] || 0) + 1;
+          addSectorCountWithLink(key, n, 1);
         }
         applications[key] = Number(applications[key] || 0) + 1;
         sequenceEvents.push({ type: "segment", key, sector, ...(sectors.length > 1 ? { sectors } : {}), recordedAt: new Date().toISOString() });
@@ -6390,6 +6394,32 @@
         saveCounts();
         updateAll();
         showToast(`${label} 区 · 已记录 1 次节段消融`);
+      }
+
+      const LINKED_CARINA_SECTOR_PAIRS = Object.freeze({
+        "LSPV:6": { veinId: "LIPV", sector: 10 }, // 上肺 F -> 下肺 J
+        "LIPV:10": { veinId: "LSPV", sector: 6 }, // 下肺 J -> 上肺 F
+        "LSPV:5": { veinId: "LIPV", sector: 1 },  // 上肺 E -> 下肺 A
+        "LIPV:1": { veinId: "LSPV", sector: 5 },  // 下肺 A -> 上肺 E
+        "RSPV:6": { veinId: "RIPV", sector: 10 }, // 上肺 F -> 下肺 J
+        "RIPV:10": { veinId: "RSPV", sector: 6 }, // 下肺 J -> 上肺 F
+        "RSPV:5": { veinId: "RIPV", sector: 1 },  // 上肺 E -> 下肺 A
+        "RIPV:1": { veinId: "RSPV", sector: 5 },  // 下肺 A -> 上肺 E
+      });
+
+      function addSectorCountWithLink(key, sector, delta) {
+        if (!Number.isFinite(delta) || delta <= 0) return;
+        const roundQuarter = (value) => Math.round(value * 100) / 100;
+        const countKey = sectorKey(key, sector);
+        counts[countKey] = roundQuarter(Number(counts[countKey] || 0) + delta);
+        const parsed = parseKey(key);
+        const veinId = parsed.vein?.id || key.split("-")[0];
+        const layerId = parsed.layerId || key.split("-")[1];
+        const linked = LINKED_CARINA_SECTOR_PAIRS[`${veinId}:${sector}`];
+        if (!linked || !layerId) return;
+        if (typeof veins !== "undefined" && !veins.some((vein) => vein.id === linked.veinId)) return;
+        const partnerKey = sectorKey(`${linked.veinId}-${layerId}`, linked.sector);
+        counts[partnerKey] = roundQuarter(Number(counts[partnerKey] || 0) + delta * 0.5);
       }
 
       function applyRingExcluding(key, excludedSector) {
@@ -6428,8 +6458,7 @@
         applications[key] = (applications[key] || 0) + 1;
         for (let sector = 1; sector <= RingSectors.count; sector += 1) {
           if (sector === excludedSector) continue;
-          const keyForSector = sectorKey(key, sector);
-          counts[keyForSector] = Number(counts[keyForSector] || 0) + RingSectors.coverageIncrement(sector, excludedSector);
+          addSectorCountWithLink(key, sector, RingSectors.coverageIncrement(sector, excludedSector));
         }
         selectedKey = key;
         selectedSector = excludedSector;

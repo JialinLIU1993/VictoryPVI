@@ -45,7 +45,7 @@
     if (raw.includes('#')) raw = raw.slice(raw.indexOf('#') + 1);
     try { raw = decodeURIComponent(raw).replace(/^local=/, ''); } catch { throw new Error('连接码无法识别'); }
     const match = raw.match(/^VPVI2\.([jz])\.([A-Za-z0-9_-]+)$/);
-    if (!match) throw new Error('请扫描新版本地连接二维码，或粘贴完整连接码');
+    if (!match) throw new Error('未识别到有效的同步二维码，请扫描对方屏幕上当前显示的二维码');
     if (raw.length > 140000) throw new Error('连接码过长');
     let bytes = unbase64(match[2]);
     if (match[1] === 'z') {
@@ -54,7 +54,18 @@
     }
     let data;
     try { data = JSON.parse(decoder.decode(bytes)); } catch { throw new Error('连接码已损坏，请重新扫描'); }
-    if (!data || !['offer', 'answer'].includes(data.type) || (type && data.type !== type) || typeof data.sdp !== 'string' || !data.sdp.startsWith('v=0') || !data.roomId || !data.pairId || !data.deviceId) throw new Error('连接码类型不匹配，请扫描对方当前显示的二维码');
+    if (!data || !['offer', 'answer'].includes(data.type) || typeof data.sdp !== 'string' || !data.sdp.startsWith('v=0') || !data.roomId || !data.pairId || !data.deviceId) {
+      throw new Error('二维码类型不匹配，请扫描对方当前步骤显示的二维码');
+    }
+    if (type && data.type !== type) {
+      if (type === 'offer' && data.type === 'answer') {
+        throw new Error('当前扫描的是“回码”，请先扫描操作端显示的“第 1 步 · 操作端邀请码”');
+      }
+      if (type === 'answer' && data.type === 'offer') {
+        throw new Error('当前扫描的是“邀请码”，请先让跟随端扫码，再扫描跟随端生成的“第 2 步 · 跟随端回码”');
+      }
+      throw new Error('二维码类型不匹配，请扫描对方当前步骤显示的二维码');
+    }
     return data;
   }
   function gatherIce(pc) {
