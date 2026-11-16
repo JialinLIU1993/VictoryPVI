@@ -2655,9 +2655,9 @@
       .stage-header:has(.case-clock) { flex-flow: row wrap; text-align: start; }
       .case-clock {
         display: inline-flex;
-        align-items: baseline;
-        gap: 8px;
-        padding: 4px 10px;
+        align-items: center;
+        gap: 7px;
+        padding: 3px 5px 3px 10px;
         border-radius: 980px;
         background: var(--canvas);
         border: 0.5px solid var(--line);
@@ -2665,7 +2665,39 @@
         color: var(--muted);
         font-size: 0.7188rem;
       }
+      .case-clock-range {
+        font-size: 0.7188rem;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+      .case-clock-range:empty { display: none; }
       .case-clock [role="timer"] { color: var(--ink); font-size: 0.9375rem; font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
+      .case-clock-btn {
+        position: relative;
+        border: 0.5px solid color-mix(in srgb, var(--accent) 32%, transparent);
+        border-radius: 980px;
+        padding: 2px 9px;
+        min-height: 24px;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        background: var(--surface);
+        color: var(--accent);
+        cursor: pointer;
+        transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+      }
+      .case-clock-btn::after { content: ""; position: absolute; inset: -6px -4px; }
+      .case-clock-btn[data-state="running"] {
+        background: color-mix(in srgb, var(--danger) 10%, var(--surface));
+        color: var(--danger);
+        border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+      }
+      .case-clock-btn[data-state="ended"] {
+        background: var(--hint-ok-bg);
+        color: var(--hint-ok-ink);
+        border-color: color-mix(in srgb, var(--hint-ok-ink) 28%, transparent);
+      }
+      .case-clock-btn:disabled { opacity: 0.45; cursor: default; }
+      .case-clock-btn:focus-visible { outline: 0; box-shadow: 0 0 0 3px var(--accent-ring); }
       .stage-title h2 { font-size: 1.25rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.022em; }
       .stage-title p { margin-top: 2px; color: var(--muted); font-size: 0.8125rem; line-height: 1.4; letter-spacing: -0.008em; }
       .legend { flex: 0 0 auto; gap: 6px 14px; color: var(--muted); font-size: 0.7188rem; justify-content: flex-end; }
@@ -2875,6 +2907,18 @@
       }
       .vein-list { margin-top: 8px; overflow-y: auto; min-height: 0; }
       .vein-summary { padding: 10px 0; border-bottom: 0.5px solid var(--line); row-gap: 6px; }
+      .vein-timing-meta {
+        grid-column: 1 / -1;
+        font-size: 0.7188rem;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .vein-timing-meta strong { font-weight: 550; color: var(--ink); }
+      .vein-timing-meta.is-empty strong { color: var(--muted-2); font-weight: 400; }
       .vein-summary-name { color: var(--ink); font-weight: 600; font-size: 0.8125rem; }
       .vein-summary-count { font-variant-numeric: tabular-nums; }
       .progress-track { height: 6px; gap: 3px; }
@@ -3237,8 +3281,10 @@
         }
         .stage-title h2 { font-size: clamp(0.95rem, 3.8vw, 1.125rem); letter-spacing: -0.02em; }
         .stage-title p { font-size: 0.7188rem; line-height: 1.35; margin-top: 2px; }
-        .case-clock { padding: 3px 8px; gap: 6px; font-size: 0.6875rem; }
+        .case-clock { padding: 2px 4px 2px 8px; gap: 5px; font-size: 0.6875rem; }
+        .case-clock-range { font-size: 0.6563rem; }
         .case-clock [role="timer"] { font-size: 0.8125rem; }
+        .case-clock-btn { padding: 2px 8px; min-height: 22px; font-size: 0.6563rem; }
         .legend { font-size: 0.6875rem; gap: 5px 10px; justify-content: center; }
         .map-panel {
           flex: 1 1 0;
@@ -3376,6 +3422,10 @@
         .settings-header { padding-top: 12px; padding-bottom: 6px; }
         .settings-footer { padding-top: 8px; padding-bottom: 12px; }
         .quick-dialog #electrode-selector { max-height: 32dvh; }
+      }
+      @media (max-width: 480px) {
+        .case-clock-label { display: none; }
+        .case-clock-range { font-size: 0.625rem; }
       }
       @media (max-width: 380px) {
         .topbar { gap: 6px; padding-left: 10px; padding-right: 10px; }
@@ -3966,9 +4016,11 @@
             <div class="stage-title">
               <h2 id="map-title">肺静脉消融分布</h2>
             </div>
-            <div class="case-clock" title="从本例最早的消融记录开始计时">
-              <span id="case-clock-label">记录时长</span>
+            <div class="case-clock" id="case-clock-bar" title="自动记录首次与末次消融真实时间，也可手动开始或结束计时">
+              <span class="case-clock-label" id="case-clock-label">记录时长</span>
+              <time class="case-clock-range" id="case-clock-range"></time>
               <span id="case-clock" role="timer" aria-labelledby="case-clock-label">00:00:00</span>
+              <button type="button" class="case-clock-btn" id="case-clock-toggle" aria-label="开始计时">开始</button>
             </div>
           </div>
 
@@ -4569,6 +4621,15 @@
       let selectedElectrodes = new Set(persistedState.electrodeSelection);
       let migrationInfo = persistedState.migrationInfo;
       let lastOperation = persistedState.lastOperation;
+      let caseTiming = persistedState.caseTiming;
+      function ensureCaseTimingStarted(recordedIso = new Date().toISOString()) {
+        if (!caseTiming.startedAt) {
+          caseTiming = sanitizeCaseTiming({
+            startedAt: recordedIso,
+            endedAt: caseTiming.endedAt,
+          });
+        }
+      }
       let veins = getActiveVeins(settings.anatomyMode);
       let actionHistory = loadHistory();
       if (!lastOperation && actionHistory.length) {
@@ -4794,6 +4855,8 @@
         settingsButton.disabled = blocked;
         resetButton.disabled = blocked;
         mapModeToggle.querySelectorAll("button").forEach(button => { button.disabled = blocked; });
+        const caseClockToggleBtn = document.getElementById("case-clock-toggle");
+        if (caseClockToggleBtn) caseClockToggleBtn.disabled = blocked;
         exportButton.hidden = mirror;
         document.querySelectorAll(".endpoint-control select").forEach(select => { select.disabled = blocked; });
         updateUndoButton();
@@ -4879,6 +4942,7 @@
           settings: cloneSettings(),
           electrodeSelection: [...selectedElectrodes],
           lastOperation: lastOperation ? { ...lastOperation } : null,
+          caseTiming: { ...caseTiming },
         };
       }
 
@@ -4909,6 +4973,7 @@
           settings = sanitizeSettings(payload.settings);
           selectedElectrodes = new Set(sanitizeCurrentElectrodeSelection(payload.electrodeSelection));
           lastOperation = sanitizeLastOperation(payload.lastOperation);
+          caseTiming = sanitizeCaseTiming(payload.caseTiming);
           migrationInfo = null;
           veins = getActiveVeins(settings.anatomyMode);
           selectedKey = null;
@@ -5052,13 +5117,12 @@
         const query = new URLSearchParams(location.search);
         if (query.has("import") && !imported) {
           syncErrorMessage = "正在从原网页接收记录，请保持原网页打开。";
-          updateSyncUi(); openSyncDialog();
+          updateSyncUi();
           window.opener?.postMessage({ type: "vpvi-desktop-ready", id: query.get("import") }, handoffTargetOrigin());
           return;
         }
         syncRestoreStarted = true;
         await connectLanSession({ takeover: Boolean(imported), imported });
-        if (window.VICTORYPVI_DESKTOP.isLocalComputer) openSyncDialog();
       }
       function openDesktopWithRecord() {
         syncHandoffId = createSyncDeviceId();
@@ -5199,6 +5263,20 @@
           recordedAt: parsedTime && !Number.isNaN(parsedTime.getTime())
             ? parsedTime.toISOString()
             : null,
+        };
+      }
+
+      function sanitizeCaseTiming(raw) {
+        if (!raw || typeof raw !== "object") return { startedAt: null, endedAt: null };
+        const validIso = (value) =>
+          typeof value === "string" && Number.isFinite(Date.parse(value))
+            ? new Date(Date.parse(value)).toISOString()
+            : null;
+        const startedAt = validIso(raw.startedAt);
+        const endedAt = validIso(raw.endedAt);
+        return {
+          startedAt,
+          endedAt: startedAt && endedAt && Date.parse(endedAt) < Date.parse(startedAt) ? startedAt : endedAt,
         };
       }
 
@@ -5730,6 +5808,7 @@
               ),
               migrationInfo: stored.metadata?.migrationInfo || null,
               lastOperation: sanitizeLastOperation(stored.lastOperation),
+              caseTiming: sanitizeCaseTiming(stored.caseTiming),
             };
           }
 
@@ -5756,6 +5835,7 @@
                 countInterpretation: "legacy-click-as-complete-sequence",
               },
               lastOperation: null,
+              caseTiming: { startedAt: null, endedAt: null },
             };
           }
 
@@ -5784,6 +5864,7 @@
                 countInterpretation: "legacy-click-as-complete-sequence",
               },
               lastOperation: null,
+              caseTiming: { startedAt: null, endedAt: null },
             };
           }
         } catch {
@@ -5799,6 +5880,7 @@
           electrodeSelection: [...ELECTRODE_NUMBERS],
           migrationInfo: null,
           lastOperation: null,
+          caseTiming: { startedAt: null, endedAt: null },
         };
       }
 
@@ -5933,6 +6015,7 @@
             electrodeSelection: [...selectedElectrodes],
             planarState: clonePlanarState(),
             lastOperation,
+            caseTiming,
             metadata: migrationInfo ? { migrationInfo } : {},
           }),
         );
@@ -5978,6 +6061,7 @@
           selectedSector: restoreSector,
           selectedRidgeId: restoreRidgeId,
           actionLabel: normalizedActionLabel,
+          caseTiming: typeof caseTiming !== "undefined" && caseTiming ? { ...caseTiming } : { startedAt: null, endedAt: null },
         });
         if (actionHistory.length > HISTORY_LIMIT) actionHistory.shift();
         setLastOperation(normalizedActionLabel);
@@ -6386,8 +6470,10 @@
         for (const n of sectors) {
           addSectorCountWithLink(key, n, 1);
         }
+        const nowIso = new Date().toISOString();
+        if (typeof ensureCaseTimingStarted === "function") ensureCaseTimingStarted(nowIso);
         applications[key] = Number(applications[key] || 0) + 1;
-        sequenceEvents.push({ type: "segment", key, sector, ...(sectors.length > 1 ? { sectors } : {}), recordedAt: new Date().toISOString() });
+        sequenceEvents.push({ type: "segment", key, sector, ...(sectors.length > 1 ? { sectors } : {}), recordedAt: nowIso });
         selectedKey = key;
         selectedSector = null;
         selectedRidgeId = null;
@@ -6416,7 +6502,7 @@
         const veinId = parsed.vein?.id || key.split("-")[0];
         const layerId = parsed.layerId || key.split("-")[1];
         const linked = LINKED_CARINA_SECTOR_PAIRS[`${veinId}:${sector}`];
-        if (!linked || !layerId) return;
+        if (!linked || layerId !== "outer") return;
         if (typeof veins !== "undefined" && !veins.some((vein) => vein.id === linked.veinId)) return;
         const partnerKey = sectorKey(`${linked.veinId}-${layerId}`, linked.sector);
         counts[partnerKey] = roundQuarter(Number(counts[partnerKey] || 0) + delta * 0.5);
@@ -6448,12 +6534,14 @@
           `${ringName}消融，${sectorLabel(excludedSector)} 区为缺口，${activeElectrodes.length} 个电极`,
         );
 
+        const nowIso = new Date().toISOString();
+        if (typeof ensureCaseTimingStarted === "function") ensureCaseTimingStarted(nowIso);
         sequenceEvents.push({
           type: "ring",
           key,
           excludedSector,
           activeElectrodes,
-          recordedAt: new Date().toISOString(),
+          recordedAt: nowIso,
         });
         applications[key] = (applications[key] || 0) + 1;
         for (let sector = 1; sector <= RingSectors.count; sector += 1) {
@@ -6491,11 +6579,13 @@
           return;
         }
         pushHistory(`${site.ridgeName}消融，${activeElectrodes.length} 个电极`);
+        const nowIso = new Date().toISOString();
+        if (typeof ensureCaseTimingStarted === "function") ensureCaseTimingStarted(nowIso);
         sequenceEvents.push({
           type: "ridge",
           ridgeId: site.id,
           activeElectrodes,
-          recordedAt: new Date().toISOString(),
+          recordedAt: nowIso,
         });
         ridgeApplications[site.id] = (ridgeApplications[site.id] || 0) + 1;
         const countKey = ridgeCountKey(site.id);
@@ -6793,6 +6883,17 @@
               text: ablationStatus.completionSummary,
             }),
           );
+          const veinTiming = getVeinTiming(vein.id);
+          const timingNode = createEl(
+            "div",
+            { className: `vein-timing-meta${veinTiming.hasTiming ? "" : " is-empty"}` },
+            createEl("span", { text: "消融时间" }),
+            createEl("strong", {
+              text: veinTiming.hasTiming
+                ? `${veinTiming.rangeText}（用时 ${veinTiming.durationText}）`
+                : "尚无记录",
+            }),
+          );
           const endpointSelect = createEndpointSelectNode(
             ENDPOINT_OPTIONS,
             endpoints[vein.id],
@@ -6825,6 +6926,7 @@
             }),
             createEl("span", { className: "vein-summary-count", text: progress.countLabel }),
             criteriaNode,
+            timingNode,
             endpointControl,
           );
           veinList.appendChild(item);
@@ -6888,6 +6990,7 @@
         sequenceEvents = normalizeSequenceEvents(previous.sequenceEvents);
         endpoints = sanitizeEndpoints(previous.endpoints);
         settings = sanitizeSettings(previous.settings || settings);
+        caseTiming = sanitizeCaseTiming(previous.caseTiming);
         selectedElectrodes = new Set(
           sanitizeCurrentElectrodeSelection(previous.electrodeSelection),
         );
@@ -6927,7 +7030,8 @@
           Object.values(applications).some((value) => Number(value) > 0) ||
           Object.values(counts).some((value) => Number(value) > 0) ||
           sequenceEvents.length > 0 ||
-          hasEndpointRecords()
+          hasEndpointRecords() ||
+          Boolean(caseTiming.startedAt || caseTiming.endedAt)
         );
       }
 
@@ -6937,6 +7041,7 @@
         ridgeApplications = {};
         sequenceEvents = [];
         endpoints = {};
+        caseTiming = { startedAt: null, endedAt: null };
         selectedElectrodes = new Set(ELECTRODE_NUMBERS);
         migrationInfo = null;
         selectedKey = null;
@@ -6997,18 +7102,23 @@
         ].join("-");
       }
 
-      function closePatientInfoDialog({ reset = true } = {}) {
+      function closePatientInfoDialog({ reset = true, restoreTitle = true } = {}) {
         if (patientInfoDialog.open) {
           patientInfoDialog.close();
         } else {
           patientInfoDialog.removeAttribute("open");
         }
         if (reset) patientInfoForm.reset();
+        if (restoreTitle && !document.body.classList.contains("report-open")) {
+          document.title = appTitle;
+        }
       }
 
       function openPatientInfoDialog() {
         patientInfoForm.reset();
-        patientSurgeryDateInput.value = localDateInputValue();
+        const today = localDateInputValue();
+        patientSurgeryDateInput.value = today;
+        document.title = getDailyReportExportTitle(today, { increment: false });
         if (typeof patientInfoDialog.showModal === "function") {
           patientInfoDialog.showModal();
         } else {
@@ -7032,7 +7142,7 @@
       function confirmPatientInfoAndExport(event) {
         event.preventDefault();
         const patientInfo = patientInfoFromForm();
-        closePatientInfoDialog();
+        closePatientInfoDialog({ restoreTitle: false });
         exportClinicalReport(patientInfo);
       }
 
@@ -7179,6 +7289,7 @@
           vein,
           progress,
           ablationStatus,
+          timing: typeof getVeinTiming === "function" ? getVeinTiming(vein.id) : null,
           endpointStatus,
           endpointLabel: endpointClinicalLabel(endpointStatus),
           treatmentSummary,
@@ -7212,14 +7323,176 @@
         PDF_COLORS.purple4,
       ]);
 
+      function parseValidTimestamp(value) {
+        if (typeof value === "number") return Number.isFinite(value) ? value : null;
+        if (value instanceof Date) return Number.isFinite(value.getTime()) ? value.getTime() : null;
+        if (typeof value === "string" && value.trim()) {
+          const parsed = Date.parse(value);
+          return Number.isFinite(parsed) ? parsed : null;
+        }
+        return null;
+      }
+
+      function formatClockTime(isoOrMs, { includeDate = false } = {}) {
+        const ms = parseValidTimestamp(isoOrMs);
+        if (ms === null) return "";
+        const date = new Date(ms);
+        const pad = (value) => String(value).padStart(2, "0");
+        const clock = `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+        if (!includeDate) return clock;
+        return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(date.getDate())} ${clock}`;
+      }
+
+      function formatDurationClock(ms) {
+        const totalSeconds = Math.max(0, Math.floor(Number(ms || 0) / 1000));
+        return [
+          Math.floor(totalSeconds / 3600),
+          Math.floor(totalSeconds / 60) % 60,
+          totalSeconds % 60,
+        ].map((value) => String(value).padStart(2, "0")).join(":");
+      }
+
+      function formatDurationHuman(ms) {
+        const totalSeconds = Math.max(0, Math.floor(Number(ms || 0) / 1000));
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor(totalSeconds / 60) % 60;
+        const seconds = totalSeconds % 60;
+        if (typeof Intl !== "undefined" && typeof Intl.DurationFormat === "function") {
+          try {
+            const parts = {};
+            if (hours > 0) parts.hours = hours;
+            if (minutes > 0 || hours > 0) parts.minutes = minutes;
+            if (seconds > 0 || (hours === 0 && minutes === 0)) parts.seconds = seconds;
+            return new Intl.DurationFormat("zh-CN", { style: "narrow" }).format(parts);
+          } catch {
+            // Fall through to deterministic formatting.
+          }
+        }
+        const out = [];
+        if (hours > 0) out.push(`${hours}时`);
+        if (minutes > 0 || hours > 0) out.push(`${minutes}分`);
+        if (seconds > 0 || !out.length) out.push(`${seconds}秒`);
+        return out.join("");
+      }
+
+      function getVeinTiming(veinId) {
+        const events = typeof sequenceEvents !== "undefined" && Array.isArray(sequenceEvents)
+          ? sequenceEvents
+          : [];
+        let firstMs = Infinity;
+        let lastMs = -Infinity;
+        let eventCount = 0;
+        for (const event of events) {
+          if (!event || (event.type !== "ring" && event.type !== "segment") || typeof event.key !== "string") continue;
+          if (event.key.split("-")[0] !== veinId) continue;
+          eventCount += 1;
+          const time = parseValidTimestamp(event.recordedAt);
+          if (time === null) continue;
+          if (time < firstMs) firstMs = time;
+          if (time > lastMs) lastMs = time;
+        }
+        if (!Number.isFinite(firstMs) || !Number.isFinite(lastMs)) {
+          return {
+            hasTiming: false,
+            eventCount,
+            startedAt: null,
+            endedAt: null,
+            durationMs: 0,
+            startClock: "",
+            endClock: "",
+            rangeText: eventCount > 0 ? "时间未记录" : "尚无记录",
+            durationText: "—",
+          };
+        }
+        const durationMs = Math.max(0, lastMs - firstMs);
+        const startClock = formatClockTime(firstMs);
+        const endClock = formatClockTime(lastMs);
+        return {
+          hasTiming: true,
+          eventCount,
+          startedAt: new Date(firstMs).toISOString(),
+          endedAt: new Date(lastMs).toISOString(),
+          durationMs,
+          startClock,
+          endClock,
+          rangeText: firstMs === lastMs ? startClock : `${startClock}–${endClock}`,
+          durationText: formatDurationHuman(durationMs),
+        };
+      }
+
+      function getCaseTimingSummary(nowMs = Date.now()) {
+        const seq = typeof sequenceEvents !== "undefined" && Array.isArray(sequenceEvents) ? sequenceEvents : [];
+        const planar = typeof planarState !== "undefined" && planarState && typeof planarState === "object" ? planarState : null;
+        const timingState = typeof caseTiming !== "undefined" && caseTiming && typeof caseTiming === "object" ? caseTiming : null;
+        let firstEventMs = Infinity;
+        let lastEventMs = -Infinity;
+        function includeEventTimestamp(timestamp) {
+          const time = parseValidTimestamp(timestamp);
+          if (time === null) return;
+          if (time < firstEventMs) firstEventMs = time;
+          if (time > lastEventMs) lastEventMs = time;
+        }
+        for (const event of seq) includeEventTimestamp(event.recordedAt);
+        if (planar?.events) {
+          for (const event of planar.events) includeEventTimestamp(event.recordedAt);
+        }
+        if (planar?.svcRing?.applications) {
+          includeEventTimestamp(planar.svcRing.firstRecordedAt);
+          includeEventTimestamp(planar.svcRing.lastRecordedAt);
+        }
+        const hasEventTimes = Number.isFinite(firstEventMs) && Number.isFinite(lastEventMs);
+        const manualStartMs = parseValidTimestamp(timingState?.startedAt);
+        const manualEndMs = parseValidTimestamp(timingState?.endedAt);
+        const startMs = manualStartMs !== null && hasEventTimes
+          ? Math.min(manualStartMs, firstEventMs)
+          : (manualStartMs ?? (hasEventTimes ? firstEventMs : null));
+        const isEnded = manualEndMs !== null;
+        const endMs = startMs !== null && isEnded
+          ? Math.max(startMs, manualEndMs, hasEventTimes ? lastEventMs : 0)
+          : null;
+        const lastRecordedMs = hasEventTimes ? lastEventMs : null;
+        const activeEndMs = startMs === null
+          ? null
+          : isEnded
+            ? endMs
+            : Math.max(startMs, hasEventTimes ? lastEventMs : startMs, Number.isFinite(nowMs) ? nowMs : Date.now());
+        const elapsedMs = startMs !== null && activeEndMs !== null ? Math.max(0, activeEndMs - startMs) : 0;
+        const recordedSpanMs = startMs !== null && endMs !== null ? Math.max(0, endMs - startMs) : elapsedMs;
+        return {
+          hasStarted: startMs !== null,
+          isEnded,
+          startMs,
+          endMs,
+          elapsedMs,
+          recordedSpanMs,
+          startedAt: startMs !== null ? new Date(startMs).toISOString() : null,
+          endedAt: endMs !== null ? new Date(endMs).toISOString() : null,
+          startClock: startMs !== null ? formatClockTime(startMs) : "",
+          endClock: endMs !== null ? formatClockTime(endMs) : "",
+          lastRecordedClock: lastRecordedMs !== null ? formatClockTime(lastRecordedMs) : "",
+          startFull: startMs !== null ? formatClockTime(startMs, { includeDate: true }) : "未记录",
+          endFull: endMs !== null ? formatClockTime(endMs, { includeDate: true }) : "进行中",
+          clockText: formatDurationClock(elapsedMs),
+          durationDisplay: startMs !== null
+            ? formatDurationHuman(isEnded ? recordedSpanMs : elapsedMs)
+            : "未记录",
+        };
+      }
+
       function getVectorReportModel(exportTime, patientInfo) {
-        const assessments = veins.map(getVeinClinicalAssessment);
+        const assessments = veins.map((vein) => {
+          const item = getVeinClinicalAssessment(vein);
+          if (item && !item.timing) item.timing = getVeinTiming(vein.id);
+          return item;
+        });
         const recordedRidges = ridgeSites.filter(
           (site) =>
             Number(ridgeApplications[site.id] || 0) > 0 ||
             Number(counts[ridgeCountKey(site.id)] || 0) > 0,
         );
         const overviewMetrics = getAblationOverviewMetrics();
+        const exportMs = exportTime instanceof Date && Number.isFinite(exportTime.getTime()) ? exportTime.getTime() : Date.now();
+        const caseTimingSummary = getCaseTimingSummary(exportMs);
         const anatomyLabels = {
           standard: "标准四支肺静脉",
           "left-common": "左共同肺静脉",
@@ -7241,6 +7514,7 @@
         return {
           assessments,
           overviewMetrics,
+          caseTimingSummary,
           recordedRidges,
           anatomyLabel: anatomyLabels[settings.anatomyMode],
           currentProtocol: protocolSummary.textContent || anatomyLabels[settings.anatomyMode],
@@ -7362,9 +7636,11 @@
         pdf.circle(14, 14.5, 2, "F");
         pdfDrawText(pdf, title, 22, 15, { fontSize: 18 });
         pdfDrawText(pdf, subtitle, 22, 21, { fontSize: 8, color: PDF_COLORS.muted });
+        const startY = metadata.length > 2 ? 10 : 11.5;
+        const stepY = metadata.length > 2 ? 4.2 : 4.6;
         metadata.forEach((line, index) => {
-          pdfDrawText(pdf, line, 200, 11.5 + index * 4.6, {
-            fontSize: 7, color: PDF_COLORS.muted, align: "right",
+          pdfDrawText(pdf, line, 200, startY + index * stepY, {
+            fontSize: metadata.length > 2 ? 6.8 : 7, color: PDF_COLORS.muted, align: "right",
           });
         });
         pdf.stroke = PDF_COLORS.purple3;
@@ -7741,18 +8017,26 @@
       }
 
       function pdfDrawMetrics(pdf, model, y) {
+        const timing = model.caseTimingSummary || getCaseTimingSummary();
+        const timeRangeLabel = timing.hasStarted
+          ? `起止 ${timing.startClock}${timing.endClock ? `–${timing.endClock}` : ""}`
+          : "手术起止与用时";
         const metrics = [
           [String(model.overviewMetrics.total), "累计消融次数"],
           [`${model.overviewMetrics.covered}/${model.overviewMetrics.totalPositions}`, "已覆盖位置 / 总位置"],
           [`${model.overviewMetrics.targetMetPercentage}%`, "肺静脉达标扇区"],
+          [timing.hasStarted ? timing.durationDisplay : "未记录", timeRangeLabel],
         ];
-        const width = 190 / 3;
+        const width = 190 / metrics.length;
         metrics.forEach(([value, label], index) => {
           const x = 10 + index * width;
           pdf.fill = PDF_COLORS.canvas;
           pdf.rect(x, y, width, 16, "F");
-          pdfDrawText(pdf, value, x + 4, y + 7, { fontSize: 14, color: PDF_COLORS.purple4 });
-          pdfDrawText(pdf, label, x + 4, y + 12.7, { fontSize: 7, color: PDF_COLORS.muted });
+          pdfDrawText(pdf, value, x + 3.5, y + 7, {
+            fontSize: value.length > 6 ? 10.5 : 13.5,
+            color: PDF_COLORS.purple4,
+          });
+          pdfDrawText(pdf, label, x + 3.5, y + 12.7, { fontSize: 6.6, color: PDF_COLORS.muted });
         });
       }
 
@@ -7762,29 +8046,38 @@
         y = pdfEnsureRoom(pdf, model, y, headerHeight + model.assessments.length * rowHeight, "消融概览与 PVI 终点（续）");
         pdf.fill = PDF_COLORS.canvas;
         pdf.rect(10, y, 190, headerHeight, "F");
-        [["肺静脉", 13], ["口部（次）", 51], ["前庭（次）", 77], ["消融完成情况", 104], ["PVI 终点", 167]].forEach(([label, x]) => {
-          pdfDrawText(pdf, label, x, y + 5.2, { fontSize: 7.3, color: PDF_COLORS.muted });
+        [["肺静脉", 12], ["口部", 45], ["前庭", 60], ["消融时间（起止 / 用时）", 75], ["消融完成情况", 120], ["PVI 终点", 167]].forEach(([label, x]) => {
+          pdfDrawText(pdf, label, x, y + 5.2, { fontSize: 7.2, color: PDF_COLORS.muted });
         });
         y += headerHeight;
         const endpointLabels = Object.fromEntries(ENDPOINT_OPTIONS);
         model.assessments.forEach(assessment => {
           const status = assessment.ablationStatus;
-          pdfDrawText(pdf, assessment.vein.name, 13, y + 4.5, { fontSize: 8 });
-          pdfDrawText(pdf, assessment.vein.id, 13, y + 9.2, { fontSize: 6.8, color: PDF_COLORS.muted });
+          const veinTiming = assessment.timing || getVeinTiming(assessment.vein.id);
+          pdfDrawText(pdf, assessment.vein.name, 12, y + 4.5, { fontSize: 8 });
+          pdfDrawText(pdf, assessment.vein.id, 12, y + 9.2, { fontSize: 6.8, color: PDF_COLORS.muted });
           const innerValue = assessment.vein.common ? `${status.innerApplications}` : `${status.innerApplications} / ${settings.innerSequenceTarget}`;
           const outerValue = assessment.vein.common ? `${status.outerApplications}` : `${status.outerApplications} / ${settings.outerSequenceTarget}`;
-          pdfDrawText(pdf, innerValue, 60, y + 6.6, { fontSize: 8.5, align: "center" });
-          pdfDrawText(pdf, outerValue, 86, y + 6.6, { fontSize: 8.5, align: "center" });
+          pdfDrawText(pdf, innerValue, 49, y + 6.6, { fontSize: 8.2, align: "center" });
+          pdfDrawText(pdf, outerValue, 64, y + 6.6, { fontSize: 8.2, align: "center" });
+          pdfDrawText(pdf, veinTiming.hasTiming ? veinTiming.rangeText : veinTiming.rangeText || "尚无记录", 75, y + 4.5, {
+            fontSize: 7.5,
+            color: veinTiming.hasTiming ? PDF_COLORS.ink : PDF_COLORS.muted,
+          });
+          pdfDrawText(pdf, veinTiming.hasTiming ? `用时 ${veinTiming.durationText} · ${veinTiming.eventCount}次记录` : "待消融自动记录", 75, y + 9.2, {
+            fontSize: 6.5,
+            color: PDF_COLORS.muted,
+          });
           const color = status.ablationComplete ? PDF_COLORS.green : status.hasAblation ? "#945300" : PDF_COLORS.muted;
-          pdfDrawText(pdf, status.ablationComplete ? "已完成" : status.hasAblation ? "未完成" : "尚无记录", 104, y + 4.5, { fontSize: 8, color });
+          pdfDrawText(pdf, status.ablationComplete ? "已完成" : status.hasAblation ? "未完成" : "尚无记录", 120, y + 4.5, { fontSize: 7.8, color });
           const detail = assessment.vein.common
             ? `全扇区${status.coverageComplete ? "达阈值" : "未达阈值"} · 总数 ${status.totalApplications}/${settings.commonSequenceTarget}`
             : `前庭 ${status.outerSectorsAtTarget}/${RingSectors.count} 区 · 总数 ${status.totalApplications}/≥${MIN_SINGLE_VEIN_TOTAL_APPLICATIONS}`;
-          pdfDrawText(pdf, detail, 104, y + 9.2, { fontSize: 6.7, color: PDF_COLORS.muted });
+          pdfDrawText(pdf, detail, 120, y + 9.2, { fontSize: 6.4, color: PDF_COLORS.muted });
           const endpoint = endpointLabels[assessment.endpointStatus] || "未评估";
           const endpointParts = endpoint.split("（");
-          pdfDrawText(pdf, endpointParts[0], 167, y + 4.5, { fontSize: 8, color: PDF_COLORS.ink });
-          if (endpointParts[1]) pdfDrawText(pdf, endpointParts[1].replace("）", ""), 167, y + 9.2, { fontSize: 6.7, color: PDF_COLORS.muted });
+          pdfDrawText(pdf, endpointParts[0], 167, y + 4.5, { fontSize: 7.8, color: PDF_COLORS.ink });
+          if (endpointParts[1]) pdfDrawText(pdf, endpointParts[1].replace("）", ""), 167, y + 9.2, { fontSize: 6.4, color: PDF_COLORS.muted });
           pdf.stroke = PDF_COLORS.line;
           pdf.lineWidth = 0.2;
           pdf.line(10, y + rowHeight, 200, y + rowHeight);
@@ -7814,9 +8107,15 @@
       }
 
       function pdfDrawPageOne(pdf, model) {
-        pdfDrawHeader(pdf, "肺静脉消融记录报告", "肺静脉消融分布、消融概览与患者信息", [
-          `生成：${model.formattedTime}`, `版本：v${APP_RELEASE.version}`,
-        ]);
+        const timing = model.caseTimingSummary || getCaseTimingSummary();
+        const headerMeta = timing.hasStarted
+          ? [
+              `开始：${timing.startFull}`,
+              `结束：${timing.endFull} · 用时 ${timing.durationDisplay}`,
+              `生成：${model.formattedTime} · 版本：v${APP_RELEASE.version}`,
+            ]
+          : [`生成：${model.formattedTime}`, `版本：v${APP_RELEASE.version}`];
+        pdfDrawHeader(pdf, "肺静脉消融记录报告", "肺静脉消融分布、消融概览与患者信息", headerMeta);
         let y = pdfDrawPatientGrid(pdf, model.patientInfo, 29);
         pdfDrawSectionHeading(pdf, model.anatomyLabel, "肺静脉消融分布", y + 7);
         const protocol = pdfDrawText(pdf, model.currentProtocol, 10, y + 12.5, { fontSize: 7, color: PDF_COLORS.muted, width: 190, lineHeight: 3.6 });
@@ -7897,14 +8196,52 @@
         return html;
       }
 
+      function getDailyReportExportTitle(reportDate, { increment = false } = {}) {
+        const storageKey = "victorypvi-report-export-counter-v1";
+        getDailyReportExportTitle.memoryCounts ||= {};
+        let savedDate = "";
+        let savedCount = 0;
+        try {
+          const raw = typeof window !== "undefined" && window.localStorage
+            ? window.localStorage.getItem(storageKey)
+            : null;
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed.date === "string") {
+              savedDate = parsed.date;
+              savedCount = Math.max(0, Math.trunc(Number(parsed.count) || 0));
+            }
+          } else if (getDailyReportExportTitle.memoryCounts[reportDate]) {
+            savedDate = reportDate;
+            savedCount = getDailyReportExportTitle.memoryCounts[reportDate];
+          }
+        } catch {
+          if (getDailyReportExportTitle.memoryCounts[reportDate]) {
+            savedDate = reportDate;
+            savedCount = getDailyReportExportTitle.memoryCounts[reportDate];
+          }
+        }
+        const nextCount = (savedDate === reportDate ? savedCount : 0) + 1;
+        if (increment) {
+          getDailyReportExportTitle.memoryCounts[reportDate] = nextCount;
+          try {
+            if (typeof window !== "undefined" && window.localStorage) {
+              window.localStorage.setItem(storageKey, JSON.stringify({ date: reportDate, count: nextCount }));
+            }
+          } catch {}
+        }
+        return `${reportDate}-PFA报告-${nextCount}`;
+      }
+
       function exportClinicalReport(patientInfo) {
         const exportTime = new Date();
         try {
           document.getElementById("report-pages").innerHTML = toTrustedReportMarkup(
             buildPrintReport(exportTime, patientInfo),
           );
-          document.title = `PVI-ablation-report-${localDateInputValue(exportTime)}`;
-          document.getElementById("report-print-help").textContent = "在系统打印面板选择“存储为 PDF”。";
+          const reportTitle = getDailyReportExportTitle(localDateInputValue(exportTime), { increment: true });
+          document.title = reportTitle;
+          document.getElementById("report-print-help").textContent = `默认文件名：${reportTitle} · 在系统打印面板选择“存储为 PDF”。`;
           document.body.classList.add("report-open");
           document.getElementById("report-back").focus();
           printCurrentReport();
@@ -8015,7 +8352,10 @@
       patientInfoClose.addEventListener("click", () => closePatientInfoDialog());
       patientInfoCancel.addEventListener("click", () => closePatientInfoDialog());
       patientInfoForm.addEventListener("submit", confirmPatientInfoAndExport);
-      patientInfoDialog.addEventListener("close", () => patientInfoForm.reset());
+      patientInfoDialog.addEventListener("close", () => {
+        patientInfoForm.reset();
+        if (!document.body.classList.contains("report-open")) document.title = appTitle;
+      });
       bindDialogLightDismiss(patientInfoDialog, () => closePatientInfoDialog());
       undoButton.addEventListener("click", () => undoLastAction());
       resetButton.addEventListener("click", () => resetRecord());
@@ -8283,6 +8623,7 @@
           counts: Array.from({ length: RingSectors.count }, (_, i) => Math.max(0, Number(ring?.counts?.[i]) || 0)),
           applications: Math.max(0, Math.trunc(Number(ring?.applications) || 0)),
           firstRecordedAt: typeof ring?.firstRecordedAt === "string" && Number.isFinite(Date.parse(ring.firstRecordedAt)) ? ring.firstRecordedAt : null,
+          lastRecordedAt: typeof ring?.lastRecordedAt === "string" && Number.isFinite(Date.parse(ring.lastRecordedAt)) ? ring.lastRecordedAt : null,
           lastGap: Number.isInteger(ring?.lastGap) && ring.lastGap >= 1 && ring.lastGap <= RingSectors.count ? ring.lastGap : null,
         };
         const wallReviews = {};
@@ -8947,7 +9288,12 @@
           ring.applications += 1;
           ring.lastGap = sector;
         }
-        if (mapEditMode !== "remove" && ring.applications === 1) ring.firstRecordedAt = new Date().toISOString();
+        if (mapEditMode !== "remove") {
+          const nowIso = new Date().toISOString();
+          if (ring.applications === 1 || !ring.firstRecordedAt) ring.firstRecordedAt = nowIso;
+          ring.lastRecordedAt = nowIso;
+          ensureCaseTimingStarted(nowIso);
+        }
         saveCounts();
         updateAll();
         showToast(mapEditMode === "segment" ? `SVC 已记录 1 次节段消融 · 覆盖 ${sectors.length} 区` :
@@ -9292,6 +9638,8 @@
             return;
           }
           pushHistory(`${site.short} (${row + 1},${col + 1})消融 · 缺口朝${dirObj.label}`);
+          const nowIso = new Date().toISOString();
+          ensureCaseTimingStarted(nowIso);
           planarState.gapOrientation = effectiveEdge;
           planarState.events.push({
             id: `pe-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -9303,7 +9651,7 @@
             mode: "ablate",
             activeElectrodes,
             gapOrientation: effectiveEdge,
-            recordedAt: new Date().toISOString(),
+            recordedAt: nowIso,
           });
           saveCounts();
           updateAll();
@@ -9324,6 +9672,8 @@
         // segment mode: touch-up on cell or specific unablated edge
         const hasSpecificEdge = clickedEdgeDeg != null && PLANAR_GAP_DIRS.some((d) => d.deg === Number(clickedEdgeDeg));
         pushHistory(`${site.short} (${row + 1},${col + 1})${hasSpecificEdge ? dirObj.label + "边" : ""}节段补消 +1`);
+        const segIso = new Date().toISOString();
+        ensureCaseTimingStarted(segIso);
         planarState.events.push({
           id: `pe-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
           siteId,
@@ -9336,7 +9686,7 @@
           electrodesRecorded: true,
           gapOrientation: effectiveEdge,
           targetEdge: hasSpecificEdge ? effectiveEdge : null,
-          recordedAt: new Date().toISOString(),
+          recordedAt: segIso,
         });
         saveCounts();
         updateAll();
@@ -9740,36 +10090,79 @@
       };
 
       const caseClock = document.getElementById("case-clock");
+      const caseClockRange = document.getElementById("case-clock-range");
+      const caseClockToggle = document.getElementById("case-clock-toggle");
       let caseClockStart = null;
+      let caseClockEnded = false;
       let clockTick;
 
       function renderCaseClock() {
         window.clearTimeout(clockTick);
-        if (caseClockStart === null || document.hidden) return;
+        if (caseClockStart === null || caseClockEnded || document.hidden) return;
         const elapsed = Math.max(0, Date.now() - caseClockStart);
-        const seconds = Math.floor(elapsed / 1000);
-        caseClock.textContent = [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60]
-          .map(value => String(value).padStart(2, "0")).join(":");
+        caseClock.textContent = formatDurationClock(elapsed);
         clockTick = window.setTimeout(renderCaseClock, 1000 - elapsed % 1000);
       }
 
       function refreshCaseClock() {
-        let first = Infinity;
-        function include(timestamp) {
-          const time = Date.parse(timestamp);
-          if (Number.isFinite(time)) first = Math.min(first, time);
-        }
-        for (const event of sequenceEvents) include(event.recordedAt);
-        for (const event of planarState.events) include(event.recordedAt);
-        if (planarState.svcRing.applications) include(planarState.svcRing.firstRecordedAt);
-        caseClockStart = Number.isFinite(first) ? first : null;
-        if (caseClockStart === null) {
+        const summary = getCaseTimingSummary();
+        caseClockStart = summary.startMs;
+        caseClockEnded = summary.isEnded;
+        if (!summary.hasStarted) {
           const hasRecords = sequenceEvents.length || planarState.events.length || planarState.svcRing.applications ||
             Object.values(applications).some(n => n > 0) || Object.values(ridgeApplications).some(n => n > 0);
           caseClock.textContent = hasRecords ? "起点未知" : "00:00:00";
+          caseClockRange.textContent = "";
+          caseClockRange.removeAttribute("datetime");
+        } else {
+          caseClockRange.textContent = summary.isEnded && summary.endClock
+            ? `${summary.startClock}–${summary.endClock}`
+            : `${summary.startClock} 起`;
+          if (summary.startedAt) caseClockRange.dateTime = summary.startedAt;
+          caseClock.textContent = summary.isEnded
+            ? formatDurationClock(summary.recordedSpanMs)
+            : summary.clockText;
+        }
+        if (caseClockToggle) {
+          const blocked = syncRole === "mirror" || syncBootstrapping || syncHandoffPending;
+          caseClockToggle.disabled = blocked;
+          if (!summary.hasStarted) {
+            caseClockToggle.textContent = "开始";
+            caseClockToggle.dataset.state = "idle";
+            caseClockToggle.setAttribute("aria-label", "开始手术计时");
+          } else if (!summary.isEnded) {
+            caseClockToggle.textContent = "结束";
+            caseClockToggle.dataset.state = "running";
+            caseClockToggle.setAttribute("aria-label", "结束手术计时");
+          } else {
+            caseClockToggle.textContent = "继续";
+            caseClockToggle.dataset.state = "ended";
+            caseClockToggle.setAttribute("aria-label", "继续手术计时");
+          }
         }
         renderCaseClock();
       }
+
+      caseClockToggle?.addEventListener("click", () => {
+        if (syncWriteBlocked()) return;
+        const summary = getCaseTimingSummary();
+        const nowIso = new Date().toISOString();
+        if (!summary.hasStarted) {
+          pushHistory("手动开始手术计时");
+          caseTiming = sanitizeCaseTiming({ startedAt: nowIso, endedAt: null });
+          showToast(`已记录开始时间 ${formatClockTime(nowIso)}`);
+        } else if (!summary.isEnded) {
+          pushHistory("记录手术结束时间");
+          caseTiming = sanitizeCaseTiming({ startedAt: summary.startedAt || nowIso, endedAt: nowIso });
+          showToast(`已记录结束时间 ${formatClockTime(nowIso)}`);
+        } else {
+          pushHistory("继续手术计时");
+          caseTiming = sanitizeCaseTiming({ startedAt: summary.startedAt, endedAt: null });
+          showToast("已恢复连续计时");
+        }
+        saveCounts();
+        updateAll();
+      });
       document.addEventListener("visibilitychange", renderCaseClock);
 
       function recordedStructureSites() {
