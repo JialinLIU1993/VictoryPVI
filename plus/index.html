@@ -7,17 +7,17 @@
     <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#111216" media="(prefers-color-scheme: dark)" />
     <meta name="text-scale" content="scale" />
-    <meta name="application-version" content="1.23.1" />
-    <meta name="application-iteration" content="2026-11-15T21:21:38+08:00" />
+    <meta name="application-version" content="1.23.2" />
+    <meta name="application-iteration" content="2026-11-18T15:04:34+08:00" />
     <script id="app-release" type="application/json">
       {
-        "version": "1.23.1",
+        "version": "1.23.2",
         "edition": "量化版",
-        "iteration": "2026-11-15T21:21:38+08:00",
-        "summary": "精简多端同步为清晰的双端扫码流程。",
+        "iteration": "2026-11-18T15:04:34+08:00",
+        "summary": "多端同步支持远程端屏幕常亮（防熄屏）与唤醒快速恢复。",
         "changes": [
-          "精简多端同步界面，仅保留“本机作为操作端”与“本机作为跟随端”两步互扫流程，移除手动连接码与电脑客户端折叠项。",
-          "完善双端扫码步骤进度、回码识别等待态及摄像头权限/二维码类型校验提示。"
+          "在双端扫码配对及多端同步期间自动申请系统屏幕常亮锁（Screen Wake Lock），防止 iPad、手机等远程跟随端或操作端自动熄屏。",
+          "切回前台或轻触屏幕时自动恢复常亮锁并立即刷新对端在线状态；在低电量模式等受限环境下提示手动关闭系统自动锁定。"
         ]
       }
     </script>
@@ -44,6 +44,8 @@
         --line-strong: #c8ceda;
         --surface: #ffffff;
         --canvas: #f3f4f7;
+        --purple-quarter: #fbf4fc;
+        --purple-half: #f8edf9;
         --purple-1: #f4e5f5;
         --purple-2: #8754bd;
         --purple-3: #5a278f;
@@ -719,6 +721,20 @@
       .pv-segment.level-1,
       .ridge-segment.level-1 {
         fill: var(--purple-1);
+      }
+
+      .pv-segment.level-1.sub-half,
+      .planar-cell.level-1.sub-half {
+        fill: var(--purple-half);
+      }
+
+      .pv-segment.level-1.sub-quarter,
+      .planar-cell.level-1.sub-quarter {
+        fill: var(--purple-quarter);
+      }
+
+      .segment-count.sub-unit {
+        fill: #6b6178;
       }
 
       .pv-segment.level-2,
@@ -1593,7 +1609,7 @@
       }
 
       body[data-sync-role="mirror"] .map-panel::after {
-        content: "实时镜像 · 只读";
+        content: "实时镜像 · 只读 · 屏幕常亮";
         position: absolute;
         top: 12px;
         right: 14px;
@@ -3983,12 +3999,12 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>肺静脉消融记录 <span class="plus-mark">PLUS</span></h1>
-            <p class="app-meta" id="app-meta" aria-label="软件版本 1.23.1，独立社区维护的非官方工具，迭代时间 2026年11月15日 21点21分">
-              <span class="app-version" id="app-version">v1.23.1 · 量化版</span>
+            <p class="app-meta" id="app-meta" aria-label="软件版本 1.23.2，独立社区维护的非官方工具，迭代时间 2026年11月18日 15点4分">
+              <span class="app-version" id="app-version">v1.23.2 · 量化版</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
               <span>社区维护 · 非官方</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
-              <time id="app-iteration" datetime="2026-11-15T21:21:38+08:00">迭代于 2026-11-15 21:21</time>
+              <time id="app-iteration" datetime="2026-11-18T15:04:34+08:00">迭代于 2026-11-18 15:04</time>
             </p>
           </div>
         </div>
@@ -4474,11 +4490,11 @@
           <section class="about-section">
             <h3>当前版本</h3>
             <p>
-              <strong id="about-release-version">v1.23.1 · 量化版</strong>
+              <strong id="about-release-version">v1.23.2 · 量化版</strong>
               <span aria-hidden="true"> · </span>
-              <time id="about-release-iteration" datetime="2026-11-15T21:21:38+08:00">迭代于 2026-11-15 21:21</time>
+              <time id="about-release-iteration" datetime="2026-11-18T15:04:34+08:00">迭代于 2026-11-18 15:04</time>
             </p>
-            <p id="about-release-summary">更新内容：精简多端同步为清晰的双端扫码流程。</p>
+            <p id="about-release-summary">更新内容：多端同步支持远程端屏幕常亮（防熄屏）与唤醒快速恢复。</p>
           </section>
           <section class="about-section">
             <h3>本次更新</h3>
@@ -4500,10 +4516,10 @@
     <div class="toast" id="toast" popover="manual" role="status" aria-live="polite"></div>
     <div class="remove-cursor" id="remove-cursor" aria-hidden="true"></div>
 
-    <script src="./miniprogram/utils/sector-grid.js?v=1.23.1"></script>
+    <script src="./miniprogram/utils/sector-grid.js?v=1.23.2"></script>
     <script src="./vendor/qrcode-generator.js"></script>
-    <script src="./sync-client.js?v=1.23.1"></script>
-    <script src="./direct-sync-ui.js?v=1.23.1"></script>
+    <script src="./sync-client.js?v=1.23.2"></script>
+    <script src="./direct-sync-ui.js?v=1.23.2"></script>
     <script>
       const NS = "http://www.w3.org/2000/svg";
       // Historical storage identifiers are retained so existing records, undo history,
@@ -4520,9 +4536,9 @@
       const MIN_SINGLE_VEIN_TOTAL_APPLICATIONS = 4;
       const APP_RELEASE = Object.freeze((() => {
         const fallback = {
-          version: "1.23.1",
-          iteration: "2026-11-15T21:21:38+08:00",
-          summary: "精简多端同步为清晰的双端扫码流程。",
+          version: "1.23.2",
+          iteration: "2026-11-18T15:04:34+08:00",
+          summary: "多端同步支持远程端屏幕常亮（防熄屏）与唤醒快速恢复。",
           changes: [],
         };
         try {
@@ -4824,8 +4840,38 @@
         syncPending = true;
         safeStorageSet(`vpvi-lan-draft-${draft.writerId}`, JSON.stringify(draft));
       }
+      let syncWakeLock = null;
+      let syncWakeLockPending = false;
+      async function syncKeepScreenAwake() {
+        if (directSync) return;
+        const need = syncRole !== "local" && document.visibilityState !== "hidden";
+        if (!need) {
+          if (syncWakeLock) {
+            const sentinel = syncWakeLock;
+            syncWakeLock = null;
+            try { await sentinel.release(); } catch {}
+          }
+          return;
+        }
+        if (!navigator.wakeLock?.request || (syncWakeLock && !syncWakeLock.released) || syncWakeLockPending) return;
+        syncWakeLockPending = true;
+        try {
+          const sentinel = await navigator.wakeLock.request("screen");
+          if (syncRole === "local" || document.visibilityState === "hidden") {
+            try { await sentinel.release(); } catch {}
+            return;
+          }
+          syncWakeLock = sentinel;
+          sentinel.addEventListener("release", () => {
+            if (syncWakeLock === sentinel) syncWakeLock = null;
+            if (syncRole !== "local" && document.visibilityState !== "hidden") void syncKeepScreenAwake();
+          }, { once: true });
+        } catch {}
+        finally { syncWakeLockPending = false; }
+      }
       function updateSyncUi() {
         const host = syncRole === "host", mirror = syncRole === "mirror", direct = syncTransport === "direct";
+        if (!directSync) void syncKeepScreenAwake();
         const label = syncRole === "local" ? "仅本机" : syncBootstrapping ? "正在连接" : syncConnectionState === "offline" ? (direct ? "连接中断" : "正在重连") : mirror ? "只读跟随" : "本机操作";
         syncStatusButton.dataset.state = syncConnectionState;
         syncStatusButton.setAttribute("aria-label", `设备同步：${label}`);
@@ -5066,6 +5112,14 @@
           onStatus: details => { syncConnectionState = details.state; syncPeerCount = details.peerCount || 0; updateSyncUi(); },
         });
         if (phone && directSync) void directSync.prepare().catch(() => {});
+        if (!directSync) {
+          document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible" && syncRole !== "local") void syncKeepScreenAwake();
+          });
+          document.addEventListener("pointerdown", () => {
+            if (syncRole !== "local" && (!syncWakeLock || syncWakeLock.released)) void syncKeepScreenAwake();
+          }, { passive: true });
+        }
         updateSyncUi();
       }
       async function connectLanSession({ takeover = false, imported = null } = {}) {
@@ -6635,9 +6689,14 @@
             "level-2",
             "level-3",
             "level-4",
+            "sub-half",
+            "sub-quarter",
             "last-excluded",
           );
           if (level) segment.classList.add(`level-${level}`);
+          if (level === 1 && count > 0 && count < 1) {
+            segment.classList.add(count <= 0.25 ? "sub-quarter" : "sub-half");
+          }
           const increasedByLastAblation =
             lastIncrease?.key === key &&
             (!lastIncrease.legacyEightSectors || RingSectors.legacySectors.includes(sector)) &&
@@ -6668,6 +6727,7 @@
           text.textContent = count || "";
           text.classList.toggle("visible", count > 0);
           text.classList.toggle("on-dark", level >= 2);
+          text.classList.toggle("sub-unit", count > 0 && count < 1);
         });
 
         document.querySelectorAll(".ridge-segment").forEach((segment) => {
@@ -7304,6 +7364,8 @@
         line: "#dfe3eb",
         surface: "#ffffff",
         canvas: "#f5f6f9",
+        purpleQuarter: "#fbf4fc",
+        purpleHalf: "#f8edf9",
         purple1: "#f4e5f5",
         purple2: "#8754bd",
         purple3: "#5a278f",
@@ -7892,6 +7954,9 @@
             const level = Math.min(4, Math.max(0, levelForCount(count, key, sector)));
             const startAngle = (sector - 1) * RingSectors.degrees + 1.4;
             const endAngle = sector * RingSectors.degrees - 1.4;
+            const fillColor = level === 1 && count > 0 && count < 1
+              ? (count <= 0.25 ? PDF_COLORS.purpleQuarter : PDF_COLORS.purpleHalf)
+              : PDF_SEGMENT_COLORS[level];
             pdfDrawMapAnnularSector(
               pdf,
               mapGeometry,
@@ -7901,7 +7966,7 @@
               layerGeometry.outer,
               startAngle,
               endAngle,
-              PDF_SEGMENT_COLORS[level],
+              fillColor,
             );
             if (count > 0) {
               const point = pdfPolarPoint(

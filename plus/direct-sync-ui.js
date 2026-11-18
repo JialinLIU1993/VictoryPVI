@@ -43,6 +43,9 @@
       this.busy = false;
       this.loadingText = '';
       this.scanTarget = null;
+      this.wakeLock = null;
+      this.wakeLockPending = false;
+      this.wakeLockFailed = false;
       this.dialog = document.createElement('dialog');
       this.dialog.className = 'settings-dialog sync-dialog';
       this.dialog.id = 'direct-dialog';
@@ -113,14 +116,29 @@
       };
       this.get('leave').onclick = () => this.leave();
       this.get('close').onclick = this.get('done').onclick = () => this.close();
-      this.dialog.addEventListener('close', () => this.stopCamera());
+      this.dialog.addEventListener('close', () => {
+        this.stopCamera();
+        void this.updateWakeLock();
+      });
       this.dialog.addEventListener('cancel', () => this.stopCamera());
       if (!('closedBy' in HTMLDialogElement.prototype)) {
         this.dialog.addEventListener('click', event => {
           if (isOutsideDialogContentBox(this.dialog, event)) this.close();
         });
       }
+      const refreshWakeLock = () => {
+        if (this.shouldKeepAwake()) void this.updateWakeLock();
+      };
+      global.document?.addEventListener('visibilitychange', () => {
+        if (global.document.visibilityState === 'visible') refreshWakeLock();
+      });
+      global.addEventListener?.('pageshow', refreshWakeLock);
+      global.addEventListener?.('focus', refreshWakeLock);
+      global.document?.addEventListener('pointerdown', () => {
+        if (this.shouldKeepAwake() && (!this.wakeLock || this.wakeLock.released)) void this.updateWakeLock();
+      }, { passive: true });
       this.restore();
+      void this.updateWakeLock();
     }
 
     persist() {
@@ -146,11 +164,72 @@
       return ['failed', 'disconnected', 'closed'].includes(pc.connectionState) ? 'failed' : 'handshaking';
     }
 
+    shouldKeepAwake() {
+      return (this.role !== 'local' || Boolean(this.dialog?.open)) && global.document?.visibilityState !== 'hidden';
+    }
+
+    noteText() {
+      if (this.role === 'local') {
+        return '先在主控设备选“本机作为操作端”，再在另一台设备选“本机作为跟随端”。';
+      }
+      if (this.wakeLockFailed) {
+        return '当前无法自动保持屏幕常亮（可能开启了低电量模式或非 HTTPS 访问），请在系统“设置 → 显示与亮度 → 自动锁定”中设为“永不”以防熄屏。';
+      }
+      return '同步期间已自动开启屏幕常亮（防熄屏）；请保持网页处于前台，勿手动锁屏或刷新。';
+    }
+
+    renderNote() {
+      const note = this.get('note');
+      if (note) note.textContent = this.noteText();
+      const status = this.get('status');
+      if (status && this.role !== 'local') status.textContent = this.detail();
+    }
+
+    async updateWakeLock() {
+      if (!this.shouldKeepAwake()) {
+        if (this.wakeLock) {
+          const sentinel = this.wakeLock;
+          this.wakeLock = null;
+          try { await sentinel.release(); } catch {}
+        }
+        return;
+      }
+      if (!global.navigator?.wakeLock?.request) {
+        this.wakeLockFailed = this.role !== 'local';
+        this.renderNote();
+        return;
+      }
+      if ((this.wakeLock && !this.wakeLock.released) || this.wakeLockPending) return;
+      this.wakeLockPending = true;
+      try {
+        const sentinel = await global.navigator.wakeLock.request('screen');
+        if (!this.shouldKeepAwake()) {
+          try { await sentinel.release(); } catch {}
+          return;
+        }
+        this.wakeLock = sentinel;
+        this.wakeLockFailed = false;
+        sentinel.addEventListener?.('release', () => {
+          if (this.wakeLock === sentinel) this.wakeLock = null;
+          if (this.shouldKeepAwake()) void this.updateWakeLock();
+        }, { once: true });
+        this.renderNote();
+      } catch (error) {
+        if (error?.name !== 'AbortError') {
+          this.wakeLockFailed = this.role !== 'local';
+          this.renderNote();
+        }
+      } finally {
+        this.wakeLockPending = false;
+      }
+    }
+
     detail() {
       if (this.peers > 0 && this.state !== 'offline') {
+        const awakeNote = this.wakeLockFailed ? '' : this.role === 'host' ? '（已开启屏幕常亮）' : '（已开启屏幕常亮防熄屏）';
         return this.role === 'host'
-          ? `已连接 ${this.peers} 台跟随端，本机消融记录会实时同步至对方。`
-          : '本机当前为只读跟随模式，操作端的消融记录将自动实时更新。';
+          ? `已连接 ${this.peers} 台跟随端${awakeNote}，本机消融记录会实时同步至对方。`
+          : `本机当前为只读跟随模式${awakeNote}，操作端的消融记录将自动实时更新。`;
       }
       const pending = this.pendingHostState();
       if (pending === 'failed') {
@@ -295,9 +374,7 @@
 
       this.get('leave').hidden = !active || scanning || this.busy;
       this.get('note').hidden = scanning || this.busy;
-      this.get('note').textContent = active
-        ? '请保持双端网页处于打开状态；如刷新网页需重新扫码连接。'
-        : '先在主控设备选“本机作为操作端”，再在另一台设备选“本机作为跟随端”。';
+      this.renderNote();
 
       this.get('done').classList.toggle('primary', connected && !occupied);
       this.get('done').textContent = connected && !occupied
@@ -330,6 +407,7 @@
         this.dialog.showModal();
         this.get('title').focus({ preventScroll: true });
       }
+      void this.updateWakeLock();
       try {
         await this.prepare();
       } catch (error) {
@@ -340,6 +418,7 @@
     close() {
       this.stopCamera();
       this.dialog.close();
+      void this.updateWakeLock();
     }
 
     async create() {
@@ -360,6 +439,7 @@
         this.code = details.offerCode;
         this.renderedCode = '';
         this.options.sendCurrent();
+        void this.updateWakeLock();
       } catch (error) {
         if (wasLocal) {
           this.client?.disconnect({ silent: true });
@@ -401,6 +481,7 @@
           this.code = details.answerCode;
           this.renderedCode = '';
         }
+        void this.updateWakeLock();
       } catch (error) {
         if (target === 'offer' && this.role === 'local') {
           this.client?.disconnect({ silent: true });
@@ -514,10 +595,12 @@
       this.renderedCode = '';
       this.peers = 0;
       this.loadingText = '';
+      this.wakeLockFailed = false;
       this.persist();
       this.get('error').hidden = true;
       this.options.onRole('local');
       this.options.onStatus({ state: 'local', peerCount: 0 });
+      void this.updateWakeLock();
       this.render();
     }
 

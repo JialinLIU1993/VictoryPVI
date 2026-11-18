@@ -287,6 +287,7 @@
         this.send(peer, { type: 'pong' });
         this.status();
       } else if (message.type === 'ping') this.send(peer, { type: 'pong' });
+      else if (message.type === 'pong') this.status();
       else if (message.type === 'ack' && this.connection.role === 'host') {
         peer.ackedRevision = Math.max(peer.ackedRevision, Number(message.revision) || 0);
         this.status();
