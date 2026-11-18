@@ -7,17 +7,16 @@
     <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#111216" media="(prefers-color-scheme: dark)" />
     <meta name="text-scale" content="scale" />
-    <meta name="application-version" content="1.23.2" />
-    <meta name="application-iteration" content="2026-11-18T15:04:34+08:00" />
+    <meta name="application-version" content="1.23.3" />
+    <meta name="application-iteration" content="2026-11-18T18:03:29+08:00" />
     <script id="app-release" type="application/json">
       {
-        "version": "1.23.2",
+        "version": "1.23.3",
         "edition": "量化版",
-        "iteration": "2026-11-18T15:04:34+08:00",
-        "summary": "多端同步支持远程端屏幕常亮（防熄屏）与唤醒快速恢复。",
+        "iteration": "2026-11-18T18:03:29+08:00",
+        "summary": "修复 iPad 端主画布肺静脉扇面与电极选择器的自适应尺寸渲染。",
         "changes": [
-          "在双端扫码配对及多端同步期间自动申请系统屏幕常亮锁（Screen Wake Lock），防止 iPad、手机等远程跟随端或操作端自动熄屏。",
-          "切回前台或轻触屏幕时自动恢复常亮锁并立即刷新对端在线状态；在低电量模式等受限环境下提示手动关闭系统自动锁定。"
+          "为肺静脉主画布与电极选择器 SVG 补充固有宽高属性，并统一 iPad 横竖屏与桌面端的容器尺寸查询与回退宽度，解决 iPad Safari 下扇面不显示的问题。"
         ]
       }
     </script>
@@ -2777,7 +2776,9 @@
       .count-key-sample { color: var(--accent); font-weight: 600; }
       .map-wrap {
         flex: 1;
-        min-height: 0;
+        min-height: 240px;
+        width: 100%;
+        container-type: size;
         padding: 8px 20px;
         background-image: radial-gradient(circle, var(--map-grid-dot) 1px, transparent 1px);
         background-size: 22px 22px;
@@ -2787,11 +2788,14 @@
         justify-content: center;
       }
       #pv-map {
-        width: auto;
+        --map-ar: 1.507692;
+        width: 100%;
+        width: min(100cqw, calc(100cqh * var(--map-ar)));
         height: auto;
         max-width: 100%;
         max-height: 100%;
         aspect-ratio: 980 / 650;
+        aspect-ratio: var(--map-ar);
         margin: 0 auto;
       }
 
@@ -2963,7 +2967,9 @@
       }
       .electrode-selector-wrap {
         flex: 1;
-        min-height: 0;
+        min-height: 120px;
+        width: 100%;
+        container-type: size;
         margin-top: 8px;
         padding: 4px 0;
         border-top: 0;
@@ -2972,12 +2978,22 @@
         justify-content: center;
       }
       #electrode-selector {
-        width: auto;
+        width: 100%;
+        width: min(100cqw, 100cqh, 206px);
         height: auto;
         max-width: min(100%, 206px);
         max-height: 100%;
         aspect-ratio: 1;
         margin: 0 auto;
+      }
+      .quick-dialog .electrode-selector-wrap {
+        container-type: normal;
+        min-height: 0;
+      }
+      .quick-dialog #electrode-selector {
+        width: min(100%, 300px);
+        max-width: min(100%, 300px);
+        max-height: 40dvh;
       }
       .electrode-selection-count {
         display: inline-flex;
@@ -3180,6 +3196,23 @@
         #electrode-selector { max-width: min(100%, 176px); }
       }
 
+      @media (min-width: 721px) and (max-height: 639px) {
+        .map-wrap {
+          container-type: normal;
+          min-height: 0;
+        }
+        #pv-map {
+          width: 100%;
+        }
+        .electrode-selector-wrap {
+          container-type: normal;
+          min-height: 0;
+        }
+        #electrode-selector {
+          width: min(100%, 206px);
+        }
+      }
+
       /* iPad Portrait & Tablet (721px–950px): Symmetrical 50/50 bottom bento + 1-screen fit */
       @media (max-width: 950px) {
         .workspace { grid-template-columns: minmax(0, 1fr); }
@@ -3228,8 +3261,15 @@
           border-radius: var(--radius-card);
         }
         .workspace > .inspector > .electrode-selector-section #electrode-selector {
+          width: min(100%, 128px);
+          width: min(100cqw, 100cqh, 128px);
           max-width: 128px;
           max-height: 128px;
+        }
+        @media (max-height: 639px) {
+          .workspace > .inspector > .electrode-selector-section #electrode-selector {
+            width: min(100%, 128px);
+          }
         }
         .workspace > .inspector > .clinical-note {
           grid-column: 1 / -1;
@@ -3361,7 +3401,7 @@
         }
         #pv-map {
           --map-ar: 0.657895;
-          width: auto;
+          width: 100%;
           width: min(100cqw, calc(100cqh * var(--map-ar)));
           height: auto;
           max-width: 100%;
@@ -3999,12 +4039,12 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="brand-copy">
             <h1>肺静脉消融记录 <span class="plus-mark">PLUS</span></h1>
-            <p class="app-meta" id="app-meta" aria-label="软件版本 1.23.2，独立社区维护的非官方工具，迭代时间 2026年11月18日 15点4分">
-              <span class="app-version" id="app-version">v1.23.2 · 量化版</span>
+            <p class="app-meta" id="app-meta" aria-label="软件版本 1.23.3，独立社区维护的非官方工具，迭代时间 2026年11月18日 18点3分">
+              <span class="app-version" id="app-version">v1.23.3 · 量化版</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
               <span>社区维护 · 非官方</span>
               <span class="app-meta-separator" aria-hidden="true">·</span>
-              <time id="app-iteration" datetime="2026-11-18T15:04:34+08:00">迭代于 2026-11-18 15:04</time>
+              <time id="app-iteration" datetime="2026-11-18T18:03:29+08:00">迭代于 2026-11-18 18:03</time>
             </p>
           </div>
         </div>
@@ -4050,6 +4090,8 @@
             <div class="map-wrap">
               <svg
                 id="pv-map"
+                width="980"
+                height="650"
                 viewBox="0 0 980 650"
                 role="group"
                 aria-label="双侧四支肺静脉口部与前庭分区消融记录图"
@@ -4204,6 +4246,8 @@
             <div class="electrode-selector-wrap">
               <svg
                 id="electrode-selector"
+                width="220"
+                height="220"
                 viewBox="0 0 220 220"
                 role="group"
                 aria-label="本次放电电极选择，1 与 10 号电极之间为开口"
@@ -4490,11 +4534,11 @@
           <section class="about-section">
             <h3>当前版本</h3>
             <p>
-              <strong id="about-release-version">v1.23.2 · 量化版</strong>
+              <strong id="about-release-version">v1.23.3 · 量化版</strong>
               <span aria-hidden="true"> · </span>
-              <time id="about-release-iteration" datetime="2026-11-18T15:04:34+08:00">迭代于 2026-11-18 15:04</time>
+              <time id="about-release-iteration" datetime="2026-11-18T18:03:29+08:00">迭代于 2026-11-18 18:03</time>
             </p>
-            <p id="about-release-summary">更新内容：多端同步支持远程端屏幕常亮（防熄屏）与唤醒快速恢复。</p>
+            <p id="about-release-summary">更新内容：修复 iPad 端主画布肺静脉扇面与电极选择器的自适应尺寸渲染。</p>
           </section>
           <section class="about-section">
             <h3>本次更新</h3>
@@ -4516,10 +4560,10 @@
     <div class="toast" id="toast" popover="manual" role="status" aria-live="polite"></div>
     <div class="remove-cursor" id="remove-cursor" aria-hidden="true"></div>
 
-    <script src="./miniprogram/utils/sector-grid.js?v=1.23.2"></script>
+    <script src="./miniprogram/utils/sector-grid.js?v=1.23.3"></script>
     <script src="./vendor/qrcode-generator.js"></script>
-    <script src="./sync-client.js?v=1.23.2"></script>
-    <script src="./direct-sync-ui.js?v=1.23.2"></script>
+    <script src="./sync-client.js?v=1.23.3"></script>
+    <script src="./direct-sync-ui.js?v=1.23.3"></script>
     <script>
       const NS = "http://www.w3.org/2000/svg";
       // Historical storage identifiers are retained so existing records, undo history,
@@ -4536,9 +4580,9 @@
       const MIN_SINGLE_VEIN_TOTAL_APPLICATIONS = 4;
       const APP_RELEASE = Object.freeze((() => {
         const fallback = {
-          version: "1.23.2",
-          iteration: "2026-11-18T15:04:34+08:00",
-          summary: "多端同步支持远程端屏幕常亮（防熄屏）与唤醒快速恢复。",
+          version: "1.23.3",
+          iteration: "2026-11-18T18:03:29+08:00",
+          summary: "修复 iPad 端主画布肺静脉扇面与电极选择器的自适应尺寸渲染。",
           changes: [],
         };
         try {
