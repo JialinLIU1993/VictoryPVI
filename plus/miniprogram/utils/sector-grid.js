@@ -43,7 +43,7 @@ const RingSectors = (() => {
     const offset = Math.abs(sector - gap);
     const distance = Math.min(offset, count - offset);
     if (distance === 0) return 0;
-    return distance <= 2 ? 0.5 : 1;
+    return distance === 1 ? 0.5 : 1;
   }
 
   function isPosterior(left, sector) {

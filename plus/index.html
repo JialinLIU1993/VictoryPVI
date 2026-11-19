@@ -393,27 +393,8 @@
         font-size: 0.8125rem;
       }
 
-      .legend {
-        display: flex;
-        align-items: center;
-        gap: 13px;
-        color: var(--muted);
-        font-size: 0.75rem;
-        white-space: nowrap;
-      }
 
-      .legend-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
 
-      .legend-swatch {
-        width: 12px;
-        height: 12px;
-        border-radius: 3px;
-        border: 1px solid rgba(50, 32, 76, 0.09);
-      }
 
       .map-panel {
         width: min(100%, 1080px);
@@ -911,7 +892,7 @@
       .quality-row {
         margin-top: 20px;
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 12px;
       }
 
@@ -1001,39 +982,6 @@
         color: var(--muted);
         font-size: 0.6875rem;
         text-align: right;
-      }
-
-      .ablation-criteria {
-        grid-column: 1 / -1;
-        display: grid;
-        grid-template-columns: 46px 1fr;
-        align-items: center;
-        gap: 10px;
-        margin-top: -2px;
-      }
-
-      .ablation-criteria span {
-        color: var(--muted);
-        font-size: 0.625rem;
-      }
-
-      .ablation-criteria strong {
-        font-size: 0.6563rem;
-        font-weight: 720;
-        line-height: 1.4;
-      }
-
-      .ablation-criteria .is-met {
-        color: var(--complete-dark);
-      }
-
-      .ablation-criteria .is-pending {
-        color: var(--in-progress-dark);
-      }
-
-      .ablation-criteria .is-idle {
-        color: var(--muted);
-        font-weight: 650;
       }
 
       .endpoint-control {
@@ -1428,22 +1376,24 @@
         line-height: 1.2;
       }
 
-      #direct-dialog { width: min(480px, calc(100vw - 24px)); max-width: calc(100vw - 24px); inset: 50dvh auto auto 50vw; margin: 0; translate: -50% -50%; }
-      #direct-dialog .settings-header { align-items: flex-start; }
-      #direct-dialog .dialog-kicker { color: var(--purple-3); }
-      #direct-dialog .settings-header-help { font-size: 0.75rem; }
+      #direct-dialog { width: min(440px, calc(100vw - 24px)); max-width: calc(100vw - 24px); max-height: calc(100dvh - 20px); inset: 50dvh auto auto 50vw; margin: 0; translate: -50% -50%; }
+      #direct-dialog .settings-header { padding: 12px 16px; align-items: center; }
+      #direct-dialog .settings-header h2 { font-size: 1.0625rem; line-height: 1.3; }
+      #direct-dialog .settings-header-help { margin: 4px 0 0; font-size: 0.75rem; line-height: 1.4; }
       #direct-title:focus { outline: none; }
-      #direct-dialog .dialog-close { flex: 0 0 auto; width: 40px; height: 40px; }
-      #direct-dialog .settings-footer { justify-content: space-between; }
+      #direct-dialog .dialog-close { flex: 0 0 auto; width: 34px; height: 34px; }
+      #direct-dialog .settings-body { padding: 14px 16px 16px; }
+      #direct-dialog .settings-footer { padding: 12px 16px; justify-content: space-between; }
+      #direct-dialog .settings-footer[hidden] { display: none; }
       #direct-done { margin-left: auto; }
       #direct-dialog .button { min-height: 44px; }
-      .direct-choices { display: grid; gap: 12px; }
+      .direct-choices { display: grid; gap: 10px; }
       .direct-choice {
         display: flex;
         align-items: center;
         gap: 14px;
         width: 100%;
-        padding: 18px 16px;
+        padding: 15px 14px;
         border: 1px solid #dcd3e6;
         border-radius: 12px;
         background: #fff;
@@ -1462,43 +1412,35 @@
       .direct-choice:focus-visible, .direct-text-button:focus-visible { outline: 3px solid #b794e2; outline-offset: 3px; }
       .direct-choice:disabled { opacity: .55; cursor: wait; }
       .direct-choice svg { width: 27px; height: 27px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-      .direct-choice strong { display: block; font-size: 1.0625rem; line-height: 1.4; font-weight: 650; }
-      .direct-choice small { display: block; margin-top: 5px; font-size: 0.75rem; line-height: 1.5; color: var(--muted); }
+      .direct-choice strong { display: block; font-size: 1rem; line-height: 1.35; font-weight: 650; }
+      .direct-choice small { display: block; margin-top: 4px; font-size: 0.75rem; line-height: 1.45; color: var(--muted); }
       .direct-choice-primary small { color: #eee3fc; }
-      .direct-choice-arrow { margin-left: auto; font-size: 1.625rem; font-weight: 400; }
-      .direct-steps { display: flex; justify-content: center; gap: 28px; list-style: none; padding: 0; margin: 0 0 20px; }
-      .direct-steps li { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 0.75rem; }
-      .direct-steps span { display: grid; place-items: center; width: 23px; height: 23px; border-radius: 50%; background: #f0edf4; }
+      .direct-choice-arrow { margin-left: auto; font-size: 1.5rem; font-weight: 400; }
+      .direct-steps { display: flex; justify-content: center; gap: 20px; list-style: none; padding: 0; margin: 0 0 10px; }
+      .direct-steps li { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 0.75rem; }
+      .direct-steps span { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: #f0edf4; font-size: 0.6875rem; }
       .direct-steps b { font-weight: 500; }
       .direct-steps [aria-current="step"] { color: var(--purple-3); }
       .direct-steps [aria-current="step"] span { background: var(--purple-3); color: #fff; }
       .direct-steps [data-done="true"] { color: #167a3e; }
       .direct-steps [data-done="true"] span { background: #eaf8ee; color: #167a3e; font-weight: 700; }
       .direct-pairing, .direct-camera, .direct-connection { text-align: center; }
-      #direct-dialog h3 { margin: 0; font-size: 1.0625rem; line-height: 1.45; }
-      .direct-pairing .settings-help { margin: 6px 0 14px; font-size: 0.75rem; }
-      #direct-dialog .sync-qr-frame { width: 100%; gap: 8px; }
-      #direct-dialog .sync-qr { width: min(100%, 304px); height: auto; aspect-ratio: 1; box-shadow: none; border: 1px solid #e9e3f0; border-radius: 12px; padding: 9px; }
-      #direct-scan-answer { width: 100%; margin-top: 18px; }
-      #direct-cancel-step { width: 100%; margin-top: 10px; }
-      .direct-viewfinder { position: relative; margin-top: 16px; aspect-ratio: 1; overflow: hidden; border-radius: 12px; background: #202030; }
+      #direct-dialog h3 { margin: 0; font-size: 0.9375rem; line-height: 1.35; }
+      .direct-pairing .settings-help { margin: 6px 0 0; font-size: 0.75rem; }
+      #direct-dialog .sync-qr-frame { width: 100%; margin-top: 10px; gap: 0; }
+      #direct-dialog .sync-qr { width: min(100%, 268px, 44dvh); height: auto; aspect-ratio: 1; box-shadow: none; border: 1px solid #e9e3f0; border-radius: 12px; padding: 8px; }
+      #direct-scan-answer { width: 100%; margin-top: 12px; }
+      #direct-cancel-step { width: 100%; margin-top: 8px; min-height: 40px; }
+      .direct-viewfinder { position: relative; width: min(100%, 280px, 42dvh); margin: 10px auto 0; aspect-ratio: 1; overflow: hidden; border-radius: 12px; background: #202030; }
       .direct-viewfinder video { display: block; width: 100%; height: 100%; object-fit: cover; }
       .direct-viewfinder span { position: absolute; inset: 13%; border: 2px solid rgba(255,255,255,.9); border-radius: 14px; box-shadow: 0 0 0 120px rgba(15,10,25,.2); pointer-events: none; }
       .direct-camera .button { width: 100%; }
-      #direct-camera-status { font-size: 0.75rem; margin: 12px 0; }
-      .direct-connection-icon { display: grid; place-items: center; width: 48px; height: 48px; margin: 0 auto 12px; border-radius: 50%; background: #f1edf7; color: var(--purple-3); font-size: 1.5625rem; }
-      #direct-status { margin: 8px 0 20px; text-align: center; font-size: 0.75rem; }
-      .direct-note { color: var(--muted); margin: 16px 0 0; font-size: 0.6875rem; line-height: 1.6; text-align: center; }
-      #direct-dialog .direct-secondary { margin-top: 18px; }
-      #direct-dialog .direct-secondary summary { min-height: 44px; padding: 12px 0; line-height: 1.4; }
-      #direct-dialog .direct-desktop { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 20px; }
-      .direct-desktop summary span { float: right; font-size: 0.6875rem; color: #9095a1; }
-      #direct-desktop-content h3 { margin: 16px 0 10px; font-size: 0.875rem; }
-      #direct-desktop-content .settings-help { font-size: 0.75rem; }
-      #direct-manual-code .button { margin: 5px 5px 10px 0; }
-      #direct-input { margin: 7px 0 10px; }
-      .direct-text-button { min-height: 44px; border: 0; background: none; color: var(--muted); font: inherit; font-size: 0.8125rem; cursor: pointer; padding: 6px 0; }
-      .direct-loading { min-height: 160px; display: grid; place-items: center; text-align: center; color: var(--muted); font-size: 0.875rem; }
+      #direct-camera-status { font-size: 0.75rem; margin: 10px 0; }
+      .direct-connection-icon { display: grid; place-items: center; width: 44px; height: 44px; margin: 0 auto 10px; border-radius: 50%; background: #f1edf7; color: var(--purple-3); font-size: 1.375rem; }
+      #direct-status { margin: 6px 0 14px; text-align: center; font-size: 0.75rem; }
+      .direct-note { color: var(--muted); margin: 12px 0 0; font-size: 0.6875rem; line-height: 1.5; text-align: center; }
+      .direct-text-button { min-height: 40px; border: 0; background: none; color: var(--muted); font: inherit; font-size: 0.8125rem; cursor: pointer; padding: 6px 0; }
+      .direct-loading { min-height: 140px; display: grid; place-items: center; text-align: center; color: var(--muted); font-size: 0.875rem; }
       #direct-dialog[open] { animation: direct-enter 180ms ease-out; }
       .direct-stage:not([hidden]) { animation: direct-enter 160ms ease-out; }
       @keyframes direct-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
@@ -1981,10 +1923,6 @@
           gap: 12px;
         }
 
-        .legend {
-          flex-wrap: wrap;
-          gap: 9px 13px;
-        }
 
         .map-panel {
           border-radius: 13px;
@@ -2304,9 +2242,6 @@
         .stage-header { gap: 8px; margin-bottom: 12px; }
         .stage-title h2 { font-size: 1.0625rem; }
         .stage-title p { font-size: 0.6875rem; line-height: 1.5; margin-top: 4px; }
-        .legend { gap: 8px; font-size: 0.625rem; }
-        .legend-item { gap: 4px; }
-        .legend-swatch { width: 10px; height: 10px; }
         .map-panel { box-shadow: 0 5px 22px #35234408; }
         .map-toolbar { display: grid; grid-template-columns: 1fr auto; padding: 10px 12px 8px; gap: 6px 12px; }
         .map-action-row { display: contents; }
@@ -2355,14 +2290,9 @@
       .stage-header { align-items: center; flex-wrap: wrap; gap: 12px 24px; }
       .stage-title h2 { font-size: 1.3125rem; font-weight: 750; }
       .stage-title p { line-height: 1.6; }
-      .legend { flex-wrap: wrap; gap: 8px 14px; font-size: 0.6875rem; }
       .map-panel { border-radius: 14px; }
       .map-toolbar { min-height: 56px; padding: 10px 18px; background: #fff; flex-wrap: wrap; gap: 10px 20px; }
       .layer-key { flex-wrap: wrap; gap: 14px; flex-shrink: 0; }
-      .map-reading-key { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; padding: 11px 18px; background: #f8f9fc; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 0.6875rem; line-height: 1.5; }
-      .map-reading-key > span { display: inline-flex; align-items: center; gap: 8px; }
-      .sector-key-sample { color: #445269; font-size: 0.75rem; letter-spacing: .08em; }
-      .count-key-sample { color: var(--purple-3); font-weight: 650; }
       .sector-label { fill: #445269; font-size: 12px; font-weight: 750; stroke: #fff; stroke-width: 2px; }
       .segment-count, .ridge-count, .quality-metric strong, .vein-summary-count { font-variant-numeric: tabular-nums; }
       .anatomy-field { fill: #fafafd; stroke: #e9ebf1; }
@@ -2376,8 +2306,7 @@
       .vein-list { gap: 0; }
       .vein-summary { padding: 14px 0; border-bottom: 1px solid var(--line); row-gap: 9px; }
       .vein-summary:last-child { border-bottom: 0; }
-      .ablation-criteria span, .endpoint-control span { font-size: 0.6875rem; }
-      .ablation-criteria strong { font-size: 0.6875rem; line-height: 1.6; }
+      .endpoint-control span { font-size: 0.6875rem; }
       .endpoint-control select { min-height: 36px; font-size: 0.75rem; border-radius: 8px; }
       .button { min-height: 38px; border-radius: 9px; transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease; }
       .settings-dialog { border: 1px solid var(--line); box-shadow: 0 20px 70px #17203326; }
@@ -2390,8 +2319,6 @@
         .stage-title h2 { font-size: 1.125rem; }
         .map-toolbar { padding: 10px 12px; display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; }
         .record-hint { width: auto; white-space: normal; line-height: 1.6; }
-        .map-reading-key { padding: 9px 12px; gap: 5px 16px; font-size: 0.625rem; }
-        .map-reading-key > span { gap: 6px; }
         .map-panel { border-radius: 12px; box-shadow: none; }
         .map-view-switch button { min-height: 46px; transition: color 160ms ease, background-color 160ms ease; }
         .map-view-switch button[aria-pressed="true"] { background: #f7f3fc; }
@@ -2522,7 +2449,6 @@
         body {
           background-image: radial-gradient(ellipse 85% 50% at 50% -10%, rgba(179, 140, 240, 0.08), transparent);
         }
-        .map-panel .map-reading-key,
         .map-panel .operation-status-bar { background: rgba(255, 255, 255, 0.035); }
         .map-panel .pv-segment,
         .map-panel .ridge-segment { stroke: var(--map-stroke); }
@@ -2657,7 +2583,39 @@
         justify-content: space-between;
         gap: 12px 16px;
       }
-      .stage-title { min-width: 0; flex: 1 1 auto; }
+      .stage-title {
+        min-width: 0; flex: 1 1 auto;
+        display: flex; flex-wrap: wrap; align-items: center; gap: 5px 14px;
+      }
+      .coverage-key {
+        display: grid;
+        width: 112px;
+        grid-template-columns: minmax(0, 4fr) minmax(0, 3fr);
+        max-width: 100%;
+        row-gap: 2px;
+        align-items: center;
+        font-size: 0.6875rem;
+        line-height: 1.2;
+        color: var(--muted);
+      }
+      .coverage-colorbar {
+        grid-column: 1 / -1;
+        height: 8px;
+        border-radius: 4px;
+        box-shadow: inset 0 0 0 1px var(--line);
+        background: linear-gradient(to right,
+          var(--map-empty-fill) 0 14.29%, var(--purple-quarter) 14.29% 28.57%,
+          var(--purple-half) 28.57% 42.86%, var(--purple-1) 42.86% 57.14%,
+          var(--purple-2) 57.14% 71.43%, var(--purple-3) 71.43% 85.71%,
+          var(--purple-4) 85.71% 100%);
+        forced-color-adjust: none;
+      }
+      .coverage-below { text-align: center; }
+      .coverage-met {
+        text-align: center;
+        border-left: 2px solid currentColor;
+        color: var(--ink); font-weight: 600;
+      }
       .stage-header:has(.case-clock) { flex-flow: row wrap; text-align: start; }
       .case-clock {
         display: inline-flex;
@@ -2706,8 +2664,6 @@
       .case-clock-btn:focus-visible { outline: 0; box-shadow: 0 0 0 3px var(--accent-ring); }
       .stage-title h2 { font-size: 1.25rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.022em; }
       .stage-title p { margin-top: 2px; color: var(--muted); font-size: 0.8125rem; line-height: 1.4; letter-spacing: -0.008em; }
-      .legend { flex: 0 0 auto; gap: 6px 14px; color: var(--muted); font-size: 0.7188rem; justify-content: flex-end; }
-      .legend-swatch { width: 10px; height: 10px; border-radius: 50%; border: 0; box-shadow: inset 0 0 0 0.5px rgba(0,0,0,.14); }
 
       /* Map panel inside unified stage card */
       .map-panel {
@@ -2751,20 +2707,6 @@
       }
       .layer-key { order: 3; justify-self: end; color: var(--muted); font-size: 0.75rem; gap: 14px; }
       .ring-icon { border-color: var(--muted-2); }
-      .map-reading-key {
-        margin: 0 22px;
-        padding: 5px 12px;
-        border: 0;
-        border-radius: 8px;
-        background: var(--canvas);
-        color: var(--muted);
-        font-size: 0.6875rem;
-        justify-content: center;
-        text-align: center;
-        gap: 4px 18px;
-      }
-      .sector-key-sample { color: var(--ink); font-weight: 600; letter-spacing: 0.04em; }
-      .count-key-sample { color: var(--accent); font-weight: 600; }
       .map-wrap {
         flex: 1;
         min-height: 240px;
@@ -2918,18 +2860,6 @@
       }
       .vein-list { margin-top: 8px; overflow-y: auto; min-height: 0; }
       .vein-summary { padding: 10px 0; border-bottom: 0.5px solid var(--line); row-gap: 6px; }
-      .vein-timing-meta {
-        grid-column: 1 / -1;
-        font-size: 0.7188rem;
-        color: var(--muted);
-        font-variant-numeric: tabular-nums;
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 8px;
-      }
-      .vein-timing-meta strong { font-weight: 550; color: var(--ink); }
-      .vein-timing-meta.is-empty strong { color: var(--muted-2); font-weight: 400; }
       .vein-summary-name { color: var(--ink); font-weight: 600; font-size: 0.8125rem; }
       .vein-summary-count { font-variant-numeric: tabular-nums; }
       .progress-track { height: 6px; gap: 3px; }
@@ -3169,14 +3099,12 @@
 
       @media (min-width: 951px) and (max-width: 1180px) {
         .topbar { height: 54px; min-height: 54px; padding: 0 20px; flex-wrap: nowrap; }
-        .workspace { padding: 14px 20px; gap: 14px; grid-template-columns: minmax(0, 1fr) 300px; }
+        .workspace { padding: 14px 20px; gap: 14px; grid-template-columns: minmax(0, 1fr) clamp(300px, 28vw, 326px); }
         .stage-header { padding: 12px 18px; }
         .stage-title h2 { font-size: 1.1875rem; }
         .stage-title p { font-size: 0.7188rem; }
-        .legend { font-size: 0.6875rem; gap: 5px 9px; }
         .map-toolbar { min-height: 44px; padding: 8px 18px 6px; gap: 8px 10px; }
         .record-hint { font-size: 0.7188rem; }
-        .map-reading-key { margin: 0 18px; padding: 6px 12px; font-size: 0.6875rem; gap: 4px 16px; }
         .operation-status-bar { min-height: 38px; padding: 7px 18px; font-size: 0.75rem; }
         .workspace > .inspector { gap: 12px; }
         .inspector > section, .inspector > details.inspector-section { padding: 14px 16px; }
@@ -3218,11 +3146,9 @@
         .stage-header { padding: 12px 18px 10px; }
         .stage-title h2 { font-size: 1.1875rem; }
         .stage-title p { font-size: 0.7188rem; margin-top: 2px; }
-        .legend { font-size: 0.6875rem; gap: 4px 9px; }
         .map-toolbar { min-height: 42px; padding: 7px 18px 5px; gap: 6px 10px; }
         .record-hint { font-size: 0.6875rem; }
         .layer-key { font-size: 0.6875rem; gap: 10px; }
-        .map-reading-key { margin: 0 18px; padding: 5px 12px; font-size: 0.6875rem; gap: 4px 14px; }
         .map-wrap { padding: 4px 14px; }
         .operation-status-bar { min-height: 36px; padding: 6px 18px; font-size: 0.7188rem; }
         .workspace > .inspector {
@@ -3325,13 +3251,18 @@
           text-align: start;
           flex-shrink: 0;
         }
+        .stage-title { flex-direction: column; align-items: flex-start; gap: 4px; }
+        .stage-header:has(.coverage-key) { display: grid; grid-template-columns: 1fr auto; gap: 5px 8px; }
+        .stage-title:has(.coverage-key) { display: contents; }
+        .stage-header:has(.coverage-key) .case-clock { grid-column: 2; grid-row: 1; }
+        .coverage-key { grid-column: 1 / -1; grid-row: 2; justify-self: start; }
+        .coverage-colorbar { height: 6px; }
         .stage-title h2 { font-size: clamp(0.95rem, 3.8vw, 1.125rem); letter-spacing: -0.02em; }
         .stage-title p { font-size: 0.7188rem; line-height: 1.35; margin-top: 2px; }
         .case-clock { padding: 2px 4px 2px 8px; gap: 5px; font-size: 0.6875rem; }
         .case-clock-range { font-size: 0.6563rem; }
         .case-clock [role="timer"] { font-size: 0.8125rem; }
         .case-clock-btn { padding: 2px 8px; min-height: 22px; font-size: 0.6563rem; }
-        .legend { font-size: 0.6875rem; gap: 5px 10px; justify-content: center; }
         .map-panel {
           flex: 1 1 0;
           min-height: 0;
@@ -3352,7 +3283,6 @@
         #map-mode-toggle { order: 1; height: clamp(32px, 4.4dvh, 36px); }
         .layer-key { order: 2; justify-self: end; gap: 10px; }
         .record-hint { order: 3; grid-column: 1 / -1; justify-self: center; text-align: center; font-size: 0.6875rem; line-height: 1.3; }
-        .map-reading-key { margin: 0 12px; padding: 6px 10px; font-size: 0.6875rem; justify-content: center; text-align: center; gap: 4px 12px; }
         .map-view-switch {
           flex-shrink: 0;
           margin: clamp(4px, 0.7dvh, 8px) clamp(10px, 3vw, 14px) 0;
@@ -3517,18 +3447,176 @@
         cursor: default;
       }
       .map-display-options input { accent-color: var(--accent); margin: 0; flex: 0 0 auto; }
-      .map-guide {
-        display: grid; justify-items: center; gap: 4px; flex-shrink: 0;
-        padding: 7px 16px 8px; border-top: 0.5px solid var(--line);
-        color: var(--muted); font-size: 0.6875rem; line-height: 1.38; text-align: center;
+      #sidebar-electrodes { display: none; }
+      .metric-applications #ablation-count { font-size: 1.75rem; line-height: 1; }
+      .pvi-completed {
+        margin-inline: auto 8px; color: var(--muted);
+        font-size: 0.6875rem; font-weight: 450; white-space: nowrap;
       }
-      .map-guide p { margin: 0; font-variant-numeric: tabular-nums; }
-      .map-guide .legend, .map-guide .map-reading-key { justify-content: center; font-size: inherit; }
-      .map-guide .map-reading-key { margin: 0; padding: 0; background: transparent; }
+      .pvi-completed b { margin-left: 3px; color: var(--ink); font-variant-numeric: tabular-nums; }
+      .vein-side-heading {
+        display: flex; align-items: baseline; justify-content: space-between;
+        padding: 4px 8px; background: var(--canvas); color: var(--muted); font-size: 0.6875rem;
+      }
+      .vein-side-heading h3 { margin: 0; color: var(--ink); font: inherit; font-weight: 650; }
+      .vein-side-heading span { padding-right: 2px; }
+      .pv-summary { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+      .vein-identity { display: flex; align-items: center; gap: 7px; }
+      .pv-summary .vein-summary-name { color: var(--ink); font-weight: 700; font-size: 0.875rem; }
+      .vein-state {
+        padding: 2px 6px; border-radius: 4px; background: var(--canvas);
+        color: var(--muted); font-size: 0.6875rem; font-weight: 550; line-height: 1.3;
+      }
+      .plan-complete .vein-state { background: var(--hint-ok-bg); color: var(--hint-ok-ink); }
+      .plan-in-progress .vein-state { background: color-mix(in srgb, var(--in-progress) 12%, var(--surface)); color: var(--in-progress-dark); }
+      .pv-summary .endpoint-control { grid-column: 2; grid-row: 1; display: block; margin: 0; }
+      .pv-summary .endpoint-control span { display: none; }
+      .pv-summary .progress-track, .vein-measures { grid-column: 1 / -1; }
+      .vein-measures, .pv-summary .vein-timing-meta {
+        display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap;
+        gap: 2px 6px; font-variant-numeric: tabular-nums; font-size: 0.6875rem; line-height: 1.4;
+      }
+      .vein-measures { color: var(--ink); }
+      .pv-summary .vein-measures .vein-summary-count { color: var(--ink); font-weight: 550; }
+      .pv-summary .vein-timing-meta { grid-column: 1 / -1; color: var(--muted); }
+      @media (prefers-color-scheme: dark) {
+        .plan-in-progress .vein-state { color: #ffbc72; }
+      }
+      .quick-dialog .vein-side-heading span { display: none; }
+      .quick-dialog .pv-summary .endpoint-control {
+        grid-column: 1 / -1; grid-row: 5; display: grid; grid-template-columns: auto minmax(0, 1fr);
+      }
+      .quick-dialog .pv-summary .endpoint-control span { display: block; }
+      @media (min-width: 951px) {
+        .workspace > .inspector {
+          --rail-inset: 16px;
+          gap: 0; border-radius: var(--radius-card);
+          background: var(--surface); box-shadow: var(--shadow);
+        }
+        .workspace > .inspector > section,
+        .workspace > .inspector > details.inspector-section {
+          padding: 13px var(--rail-inset); border-radius: 0; box-shadow: none;
+        }
+        .workspace > .inspector .overview-heading {
+          display: flex; align-items: center; justify-content: space-between;
+        }
+        .workspace > .inspector .summary-kicker { font-size: 1rem; letter-spacing: -.02em; }
+        .workspace > .inspector:has(> details[open]) #sidebar-electrodes {
+          display: inline-flex; align-items: center; gap: 5px; min-height: 26px;
+          padding: 2px 9px; border: 1px solid var(--line); border-radius: 7px;
+          background: var(--surface); color: var(--muted); font: inherit;
+          font-size: 0.6875rem; font-variant-numeric: tabular-nums; cursor: pointer;
+        }
+        #sidebar-electrode-count { color: var(--accent); font-weight: 650; }
+        .workspace > .inspector #sidebar-electrodes:hover { background: var(--accent-soft); }
+        .workspace > .inspector .quality-row {
+          grid-template-areas: "total rate";
+          align-items: stretch; gap: 0; margin-top: 8px; padding: 7px 8px;
+          border-radius: 12px; background: color-mix(in srgb, var(--accent) 5%, var(--surface));
+        }
+        .workspace > .inspector .quality-metric {
+          border: 0; border-radius: 0; padding: 0; background: transparent;
+        }
+        .workspace > .inspector .metric-applications { grid-area: total; border-right: 1px solid var(--line); }
+        .workspace > .inspector #ablation-count { font-size: 2.25rem; font-weight: 700; }
+        .workspace > .inspector .metric-applications span { font-size: 0.8125rem; }
+        .workspace > .inspector .metric-target {
+          grid-area: rate; position: relative; align-self: center;
+          display: grid; place-items: center; grid-template: 1fr / 1fr;
+        }
+        .metric-target #target-count {
+          grid-area: 1 / 1; position: relative; display: grid; place-items: center;
+          width: 70px; height: 70px; padding-bottom: 13px;
+          color: var(--accent); font-size: 1.125rem;
+        }
+        .workspace > .inspector .metric-target span {
+          grid-area: 1 / 1; margin-top: 22px; font-size: 0.625rem;
+        }
+        .metric-target #target-count::before {
+          content: ""; position: absolute; inset: 0; border-radius: 50%;
+          background: conic-gradient(var(--accent) var(--ablation-completion, 0%), var(--track-bg) 0);
+          mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px));
+        }
+        .workspace > .inspector .map-display-options { margin-top: 7px; padding-top: 0; border: 0; }
+        .workspace > .inspector .map-display-options summary {
+          display: flex; align-items: center; justify-content: space-between;
+          min-height: 24px; list-style: none; color: var(--muted); font-size: .75rem;
+        }
+        .workspace > .inspector .map-display-options summary::-webkit-details-marker { display: none; }
+        .workspace > .inspector :is(.map-display-options, .inspector-section) > summary::after {
+          content: ""; width: 6px; height: 6px; flex: none; margin-right: 3px;
+          border: solid var(--muted); border-width: 0 1.5px 1.5px 0;
+          transform: rotate(-45deg); transition: transform 160ms var(--ease-apple);
+        }
+        .workspace > .inspector :is(.map-display-options, .inspector-section)[open] > summary::after { transform: rotate(45deg); }
+        .workspace > .inspector .map-display-options fieldset {
+          grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; margin-top: 3px;
+        }
+        .workspace > .inspector .map-display-options label {
+          grid-column: span 3; min-height: 28px; padding: 3px 8px; gap: 6px; border-radius: 6px;
+          background: var(--surface);
+        }
+        .workspace > .inspector .map-display-options label:has(:checked) { background: var(--accent-soft); }
+        .workspace > .inspector .map-display-options label:has(:disabled) {
+          grid-column: span 2; min-height: 22px; padding-block: 1px;
+          border-color: transparent; background: var(--canvas); color: var(--muted);
+        }
+        .workspace > .inspector > details[open] ~ .electrode-selector-section { display: none; }
+        .workspace > .inspector > details.inspector-section { border-top: 1px solid var(--line); }
+        .workspace > .inspector > details.inspector-section[open] {
+          max-height: none; min-height: 0; padding-block: 10px 7px;
+        }
+        .workspace > .inspector > details[open]::details-content {
+          display: flex; flex-direction: column; min-height: 0;
+        }
+        .workspace > .inspector .vein-list { margin-top: 7px; }
+        .workspace > .inspector .vein-summary { padding: 6px 2px; gap: 3px 5px; }
+        .workspace > .inspector :is(.vein-side-heading, .planar-summary-group-label) {
+          border-radius: 5px; background: color-mix(in srgb, var(--accent) 5%, var(--surface));
+          padding: 2px 7px; line-height: 1.4;
+        }
+        .workspace > .inspector .pv-summary:has(+ .vein-side-heading) { border-bottom: 0; }
+        .workspace > .inspector .pv-summary .progress-track { display: none; }
+        .workspace > .inspector .endpoint-control { position: relative; }
+        .workspace > .inspector .endpoint-control::after {
+          content: ""; position: absolute; right: 9px; top: calc(50% - 4px);
+          width: 5px; height: 5px; transform: rotate(45deg); pointer-events: none;
+          border: solid var(--muted); border-width: 0 1.5px 1.5px 0;
+        }
+        .workspace > .inspector .endpoint-control select {
+          appearance: none; min-height: 26px; padding: 2px 19px 2px 8px;
+          font-size: 0.6875rem; border: 1px solid var(--line); border-radius: 6px;
+          background: var(--canvas); cursor: pointer;
+        }
+        .workspace > .inspector .endpoint-control select:has(option:checked:not([value="not-assessed"])) {
+          background: var(--accent-soft); color: var(--accent);
+        }
+        .workspace > .inspector .planar-summary-item { grid-template-columns: auto 1fr auto; }
+        .workspace > .inspector .planar-summary-item :is(.vein-summary-name, .vein-summary-count) { color: var(--ink); }
+        .workspace > .inspector .planar-summary-item .endpoint-control { grid-template-columns: auto 1fr; margin: 0; }
+        .workspace > .inspector > .electrode-selector-section { border-radius: 0; border-top: 1px solid var(--line); }
+        .workspace > .inspector #electrode-selector {
+          width: min(100%, 224px); width: min(100cqw, 100cqh, 224px); max-width: 100%;
+          background: var(--canvas); border-radius: 50%;
+        }
+        .workspace > .inspector > .clinical-note {
+          margin: 0; padding: 8px var(--rail-inset); box-shadow: none; border-radius: 0;
+          background: var(--canvas); text-align: start;
+        }
+      }
+      @media (min-width: 951px) and (max-height: 820px) {
+        .workspace > .inspector > .overview-section { padding-block: 9px; }
+        .workspace > .inspector .quality-row { margin-top: 5px; padding-block: 4px; }
+        .metric-target #target-count { width: 62px; height: 62px; }
+        .workspace > .inspector .map-display-options { margin-top: 4px; }
+        .workspace > .inspector .map-display-options summary { min-height: 20px; }
+        .workspace > .inspector .map-display-options label { min-height: 26px; }
+        .workspace > .inspector .map-display-options label:has(:disabled) { min-height: 20px; }
+        .workspace > .inspector .vein-summary { padding-block: 4px; row-gap: 2px; }
+      }
       @media (max-width: 720px) {
         body { overflow-x: clip; }
         .stage, .map-panel { overflow: clip; }
-        .map-guide { display: none; }
       }
       .map-wrap { position: relative; }
       .planar-layer { transition: opacity 180ms ease; }
@@ -3551,7 +3639,7 @@
       }
       #pv-map .planar-zone[aria-hidden="true"] { display: none; }
       #pv-map[data-view="posterior"] [data-pv-side] { display: none; }
-      .map-panel:has(#pv-map[data-view="posterior"]) :is(.layer-key, .map-reading-key) { display: none; }
+      .map-panel:has(#pv-map[data-view="posterior"]) .layer-key { display: none; }
       .planar-zone-header-bg {
         fill: #f3f2f8;
       }
@@ -3709,10 +3797,15 @@
         pointer-events: fill;
       }
       .wall-edge-hit:focus-visible { stroke: var(--ink); stroke-width: 1.5px; }
-      .segment-mode :is(.pv-segment, .svc-sector) { touch-action: none; user-select: none; }
+      :is(.segment-mode, .remove-mode) :is(.pv-segment, .svc-sector) { touch-action: none; user-select: none; }
       .segment-mode :is(.pv-segment, .svc-sector).drag-selected {
         fill: #9667c4;
         stroke: #fff;
+        filter: none;
+      }
+      .map-panel.remove-mode :is(.pv-segment, .svc-sector).drag-selected {
+        fill: #c9362b;
+        stroke: var(--map-stroke);
         filter: none;
       }
       @media (any-hover: hover) {
@@ -3950,10 +4043,6 @@
         .field select,
         .field textarea,
         .endpoint-control select,
-        .legend-swatch {
-          border: 1px solid ButtonText;
-          forced-color-adjust: auto;
-        }
         .button.primary,
         #map-mode-toggle button[aria-pressed="true"],
         .map-view-switch button[aria-pressed="true"] {
@@ -4063,6 +4152,10 @@
           <div class="stage-header">
             <div class="stage-title">
               <h2 id="map-title">肺静脉消融分布</h2>
+              <div class="coverage-key" role="img" aria-label="肺静脉扇区覆盖色阶，第 5 格起达标">
+                <span class="coverage-colorbar" aria-hidden="true" title="从左到右依次为 0 次、最多 0.25 次、不足 1 次、其余低于着色阈值、达到着色阈值、超阈值 1 次、超阈值 2 次及以上"></span>
+                <span class="coverage-below">未达标</span><span class="coverage-met">达标</span>
+              </div>
             </div>
             <div class="case-clock" id="case-clock-bar" title="自动记录首次与末次消融真实时间，也可手动开始或结束计时">
               <span class="case-clock-label" id="case-clock-label">记录时长</span>
@@ -4163,65 +4256,42 @@
               <span class="operation-status-text" id="last-operation">尚无操作记录</span>
               <time class="operation-status-time" id="last-operation-time"></time>
             </div>
-            <footer class="map-guide" aria-label="图谱说明">
-              <p id="protocol-summary">标准四支 · 口部 2 / 前庭 2 · 每次消融 3 次放电</p>
-              <div class="legend" aria-label="消融次数色阶">
-                <span class="legend-item">
-                  <i class="legend-swatch" style="background: #f3f2f5"></i>0 次
-                </span>
-                <span class="legend-item">
-                  <i class="legend-swatch" style="background: var(--purple-1)"></i>未达阈值
-                </span>
-                <span class="legend-item">
-                  <i class="legend-swatch" style="background: var(--purple-2)"></i>达阈值
-                </span>
-                <span class="legend-item">
-                  <i class="legend-swatch" style="background: var(--purple-3)"></i>达标 +1
-                </span>
-                <span class="legend-item">
-                  <i class="legend-swatch" style="background: var(--purple-4)"></i>达标 +2 以上
-                </span>
-              </div>
-              <div class="map-reading-key" aria-label="图谱阅读说明">
-                <span><b class="sector-key-sample">A–J</b>圈外分区 · 内外圈共用</span>
-                <span><b class="count-key-sample">次数</b>圆心为该支消融次数，扇区为累计覆盖次数</span>
-                <span>前壁 2 次达标 · 后壁 1 次达标</span>
-              </div>
-            </footer>
           </div>
         </section>
 
         <aside class="inspector" aria-label="消融记录概览">
-          <section>
-            <div class="summary-kicker">消融概览</div>
+          <section class="overview-section">
+            <div class="overview-heading">
+              <div class="summary-kicker">消融概览</div>
+              <button type="button" id="sidebar-electrodes" aria-haspopup="dialog" aria-controls="quick-dialog">电极 <span id="sidebar-electrode-count">10/10</span> ›</button>
+            </div>
             <div class="quality-row">
-              <div class="quality-metric">
+              <div class="quality-metric metric-applications">
                 <strong id="ablation-count">0</strong>
                 <span>消融次数</span>
               </div>
-              <div class="quality-metric">
-                <strong id="coverage-count">0 / 64</strong>
-                <span>已覆盖位置</span>
-              </div>
-              <div class="quality-metric" title="满足消融次数扇区百分比">
+              <div class="quality-metric metric-target" title="已完成消融的靶区占比。每支肺静脉计 1 个靶区，纳入消融的左房后壁另计 1 个。">
                 <strong id="target-count">0%</strong>
-                <span>扇区达标率</span>
+                <span>消融达标率</span>
               </div>
             </div>
             <details class="map-display-options" open>
               <summary>PVI+解剖位置</summary>
               <fieldset id="optional-structures" aria-label="PVI+解剖位置">
                 <label><input type="checkbox" value="lapw">左房后壁</label>
+                <label><input type="checkbox" value="svcRing">SVC</label>
                 <label><input type="checkbox" value="roof" disabled>顶部线</label>
                 <label><input type="checkbox" value="floor" disabled>底部线</label>
-                <label><input type="checkbox" value="svcRing">SVC</label>
                 <label><input type="checkbox" value="mi" disabled>MI 峡部</label>
               </fieldset>
             </details>
           </section>
 
           <details class="inspector-section">
-            <summary class="section-kicker">PVI 消融与终点</summary>
+            <summary class="section-kicker">
+              <span>PVI 消融与终点</span>
+              <span class="pvi-completed">消融完成 <b id="completed-vein-count">0/4</b></span>
+            </summary>
             <div class="vein-list" id="vein-list">
               <div class="vein-summary"><span class="vein-summary-name">LSPV</span><span class="progress-track" style="--segments: 4"><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span></span><span class="vein-summary-count">0 次</span></div>
               <div class="vein-summary"><span class="vein-summary-name">LIPV</span><span class="progress-track" style="--segments: 4"><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span><span class="progress-segment"></span></span><span class="vein-summary-count">0 次</span></div>
@@ -4404,10 +4474,10 @@
               </label>
               <div class="field">
                 扇区达标阈值
-                <span>前壁等非后壁 2 次 · 后壁 1 次</span>
+                <span>内环全区、外环后壁 1 次 · 外环其余扇区 2 次</span>
               </div>
             </div>
-            <p class="settings-help">前壁等非后壁扇区达标阈值为 2 次，后壁为 1 次，口部与前庭共用此规则。已覆盖但未达阈值显示粉紫色，达到阈值显示达标紫色。达阈值后追加 1 次、2 次使用更深紫色；超过 2 次不再区分，仅用于显示。单根肺静脉判定为消融完成需同时满足：前庭 10 个扇区均达到各自完成阈值，且口部与前庭总消融次数 ≥4；消融完成判定不替代 PVI 电生理终点评估。</p>
+            <p class="settings-help">扇区覆盖达标时显示紫色，每多覆盖 1 次加深一档，最多加深两档。普通肺静脉的前庭 10 个扇区均达标，且口部与前庭合计消融至少 4 次，记为该支消融完成。消融达标率按已完成靶区占总靶区的比例计算。每支肺静脉计 1 个靶区，勾选左房后壁或已有后壁消融记录时，后壁另计 1 个。PVI 电生理终点单独评估。</p>
           </section>
 
           <section class="settings-section">
@@ -4544,6 +4614,8 @@
             <h3>用途边界</h3>
             <p>本工具仅用于记录与整理，不替代发生器或三维系统数据、肺静脉隔离终点评估、医疗器械说明书、机构规范或临床专业判断。</p>
           </section>
+          <!-- 填入中国发明专利申请号后，移除 hidden。 -->
+          <p id="about-patent-application" hidden>中国发明专利申请 · 专利申请，尚未授权</p>
           <p>© 2026 VictoryPVI Community。保留所有权利。</p>
         </div>
       </article>
@@ -4730,9 +4802,7 @@
       const recordHint = document.getElementById("record-hint");
       const removeCursor = document.getElementById("remove-cursor");
       const ablationCountNode = document.getElementById("ablation-count");
-      const coverageCountNode = document.getElementById("coverage-count");
       const targetCountNode = document.getElementById("target-count");
-      const protocolSummary = document.getElementById("protocol-summary");
       const electrodeSelector = document.getElementById("electrode-selector");
       const electrodeSelectionCount = document.getElementById("electrode-selection-count");
       const electrodeSelectorSection = document.getElementById("electrode-selector-section");
@@ -5405,7 +5475,7 @@
             total,
             target,
             planProgress: Math.min(total, target),
-            countLabel: `${total}/${target}`,
+            countLabel: `口部 ${innerCount} 次 · 前庭 ${outerCount} 次`,
             ariaLabel: `${vein.name}累计 ${total} 次消融；总计划 ${target} 次`,
           };
         }
@@ -5417,7 +5487,7 @@
           total,
           target,
           planProgress,
-          countLabel: `口 ${innerCount}/${settings.innerSequenceTarget} · 前 ${outerCount}/${settings.outerSequenceTarget}`,
+          countLabel: `口部 ${innerCount}/${settings.innerSequenceTarget} · 前庭 ${outerCount}/${settings.outerSequenceTarget}`,
           ariaLabel: `${vein.name}口部 ${innerCount}/${settings.innerSequenceTarget}，前庭 ${outerCount}/${settings.outerSequenceTarget}；累计 ${total} 次消融`,
         };
       }
@@ -5427,7 +5497,7 @@
       }
 
       function requiredVeinSectorCount(vein, layerId, sector) {
-        if (isPosteriorSingleApplicationSector(vein, sector)) return 1;
+        if (layerId === "inner" || isPosteriorSingleApplicationSector(vein, sector)) return 1;
         return 2;
       }
 
@@ -5479,14 +5549,16 @@
         const ablationComplete = vein.common
           ? commonVeinCriteriaMet
           : singleVeinCriteriaMet;
-        const completionSummary = vein.common
-          ? `${ablationComplete ? "已完成" : "未完成"} · 全部扇区${coverageComplete ? "已满足" : "未满足"} · 总数 ${totalApplications}/${settings.commonSequenceTarget}`
-          : `${ablationComplete ? "已完成" : "未完成"} · 前庭扇区 ${outerSectorsAtTarget}/${RingSectors.count} · 总数 ${totalApplications}/≥${MIN_SINGLE_VEIN_TOTAL_APPLICATIONS}`;
+        const criteriaSummary = vein.common
+          ? `全部扇区${coverageComplete ? "已满足" : "未满足"} · 总数 ${totalApplications}/${settings.commonSequenceTarget}`
+          : `前庭扇区 ${outerSectorsAtTarget}/${RingSectors.count} · 总数 ${totalApplications}/≥${MIN_SINGLE_VEIN_TOTAL_APPLICATIONS}`;
+        const completionSummary = `${ablationComplete ? "已完成" : "未完成"} · ${criteriaSummary}`;
 
         return {
           hasAblation,
           ablationComplete,
           coverageComplete,
+          criteriaSummary,
           completionSummary,
           innerApplications,
           outerApplications,
@@ -5628,7 +5700,7 @@
           button.setAttribute("aria-pressed", String(button.dataset.editMode === mapEditMode));
         });
         recordHint.textContent = removeMode
-          ? "点击扇区、脊部或解剖网格，将该位置消融次数减 1"
+          ? "点按或沿同一环拖选扇区，松开后覆盖各减 1。脊部和网格可点按去除"
           : mapEditMode === "segment"
             ? "点按或沿同一环拖选扇区，松开记录；点网格边缘补消"
             : "点击扇区指定环形缺口；点击网格边缘指定该格缺口，仅该格计数";
@@ -5648,11 +5720,11 @@
         selectedRidgeId = null;
         updateMapEditMode();
         updateAll();
-        showToast(mapEditMode === "remove" ? "已切换为去除状态" : mapEditMode === "segment" ? "节段模式：点按或沿环拖选扇区" : "已切换为消融状态");
+        showToast(mapEditMode === "remove" ? "去除模式：点按或沿环拖选扇区" : mapEditMode === "segment" ? "节段模式：点按或沿环拖选扇区" : "已切换为消融状态");
       }
 
       function moveRemoveCursor(event) {
-        const overRemovableRegion = event.target.closest?.(
+        const overRemovableRegion = sectorStroke?.pointerId === event.pointerId || event.target.closest?.(
           ".pv-segment, .ridge-segment, .planar-cell, .planar-cell-edge, .wall-edge-hit",
         );
         if (
@@ -6198,6 +6270,7 @@
           mobileTotalUnit,
         );
         document.getElementById("mobile-electrode-count").textContent = `${selectedElectrodes.size}/10`;
+        document.getElementById("sidebar-electrode-count").textContent = `${selectedElectrodes.size}/10`;
         document.getElementById("mobile-electrodes").dataset.empty = String(selectedElectrodes.size === 0);
         document.getElementById("mobile-save-state").textContent = syncRole === "mirror" ? "只读跟随" : saveState.dataset.storage === "memory" ? "仅当前页面" : "本机保存";
         document.querySelector(".mobile-total").dataset.storage = saveState.dataset.storage || "local";
@@ -6452,6 +6525,7 @@
       }
 
       function renderMap() {
+        if (syncRole !== "mirror") restorePosteriorWallSelection();
         svg.replaceChildren();
         highlightDefs = createSvgElement("defs", { "aria-hidden": "true" });
         const anatomyLabels = {
@@ -6485,31 +6559,36 @@
         return 0;
       }
 
-      function removeSectorCoverage(key, sector) {
+      function removeSectorCoverage(key, sector, sectors = [sector]) {
         if (syncWriteBlocked()) return;
         const parsed = parseKey(key);
         if (!parsed.vein || !parsed.layer) return;
-        const keyForSector = sectorKey(key, sector);
-        const currentCount = Number(counts[keyForSector] || 0);
-        if (currentCount <= 0) {
-          showToast("该扇区当前为 0 次，无法继续去除");
+        const batch = sectors.length > 1;
+        const covered = [...new Set(sectors)].filter(n => counts[sectorKey(key, n)] > 0);
+        if (!covered.length) {
+          showToast(batch ? "所选扇区当前均为 0 次" : "该扇区当前为 0 次，无法继续去除");
           return;
         }
 
+        const keyForSector = sectorKey(key, sector);
+        const currentCount = Number(counts[keyForSector] || 0);
         const ringName = `${parsed.vein.name}${parsed.layer.name}`;
-        const nextCount = Math.max(0, currentCount - 1);
-        pushHistory(`${ringName}${sectorLabel(sector)}区消融次数减 ${currentCount - nextCount}`);
-        if (nextCount === 0) {
-          delete counts[keyForSector];
-        } else {
-          counts[keyForSector] = nextCount;
+        pushHistory(batch
+          ? `${ringName} ${covered.map(sectorLabel).join("、")}区批量去除覆盖`
+          : `${ringName}${sectorLabel(sector)}区消融次数减 ${Math.min(1, currentCount)}`);
+        for (const n of covered) {
+          const countKey = sectorKey(key, n);
+          const nextCount = Math.max(0, Number(counts[countKey]) - 1);
+          if (nextCount > 0) counts[countKey] = nextCount;
+          else delete counts[countKey];
         }
         selectedKey = key;
-        selectedSector = sector;
+        selectedSector = batch ? null : sector;
         selectedRidgeId = null;
         saveCounts();
         updateAll();
-        showToast(`${sectorLabel(sector)} 区消融次数已减至 ${nextCount}`);
+        showToast(batch ? `已去除 ${covered.length} 区覆盖，各减 1（最低为 0）` :
+          `${sectorLabel(sector)} 区消融次数已减至 ${counts[keyForSector] || 0}`);
       }
 
       function removeRidgeCoverage(site) {
@@ -6598,16 +6677,16 @@
         counts[partnerKey] = roundQuarter(Number(counts[partnerKey] || 0) + delta * 0.5);
       }
 
-      function applyRingExcluding(key, excludedSector) {
+      function applyRingExcluding(key, excludedSector, sectors = [excludedSector]) {
         if (syncWriteBlocked()) return;
         const parsed = parseKey(key);
         if (!parsed.vein || !parsed.layer) return;
         if (mapEditMode === "remove") {
-          removeSectorCoverage(key, excludedSector);
+          removeSectorCoverage(key, excludedSector, sectors);
           return;
         }
         if (mapEditMode === "segment") {
-          applySegment(key, excludedSector);
+          applySegment(key, excludedSector, sectors);
           return;
         }
         const activeElectrodes = activeElectrodeNumbers();
@@ -6916,43 +6995,24 @@
         return select;
       }
 
-      function updateSummary() {
-        const overviewMetrics = getAblationOverviewMetrics();
-        const {
-          total,
-          covered,
-          totalPositions,
-          targetMetPercentage,
-          activeRidgeSiteCount,
-        } = overviewMetrics;
-        ablationCountNode.textContent = total;
-        coverageCountNode.textContent = `${covered} / ${totalPositions}`;
-        targetCountNode.textContent = `${targetMetPercentage}%`;
-
-        const anatomyLabels = {
-          standard: "标准四支肺静脉",
-          "left-common": "左共同肺静脉",
-          "right-common": "右共同肺静脉",
-          "bilateral-common": "双侧共同肺静脉",
-        };
-        const planCopy = settings.anatomyMode === "standard"
-          ? `口部 ${settings.innerSequenceTarget} / 前庭 ${settings.outerSequenceTarget}`
-          : settings.anatomyMode === "bilateral-common"
-            ? `共干 ${settings.commonSequenceTarget}`
-            : `普通 PV ${settings.innerSequenceTarget}+${settings.outerSequenceTarget} / 共干 ${settings.commonSequenceTarget}`;
-        const ridgeCopy = activeRidgeSiteCount
-          ? " · 脊部记录开启"
-          : settings.ridgeEnabled
-            ? " · 脊部记录开启"
-            : "";
-        protocolSummary.textContent = `${anatomyLabels[settings.anatomyMode]} · ${planCopy} · 每次消融 ${APPLICATIONS_PER_SEQUENCE} 次放电${ridgeCopy}`;
+      function updateSummary(posteriorWall = null) {
+        ablationCountNode.textContent = getAblationOverviewMetrics().total;
 
         veinList.replaceChildren();
-        veins.forEach((vein) => {
+        let completedVeins = 0;
+        veins.forEach((vein, index) => {
+          const side = vein.id[0];
+          if (veins[index - 1]?.id[0] !== side) {
+            veinList.appendChild(createEl("div", { className: "vein-side-heading" },
+              createEl("h3", { text: side === "L" ? "左侧肺静脉" : "右侧肺静脉" }),
+              createEl("span", { text: "PVI 终点" }),
+            ));
+          }
           const progress = getVeinSequenceProgress(vein);
           const ablationStatus = getVeinAblationStatus(vein);
           const visualTarget = Math.max(1, progress.target);
           const ablationComplete = ablationStatus.ablationComplete;
+          if (ablationComplete) completedVeins += 1;
           const ablationInProgress = ablationStatus.hasAblation && !ablationComplete;
           const veinGroup = document.querySelector(`[data-vein="${vein.id}"]`);
           if (veinGroup) {
@@ -6962,7 +7022,7 @@
           veinGroup?.classList.toggle("plan-complete", ablationComplete);
           veinGroup?.classList.toggle("plan-in-progress", ablationInProgress);
           const item = createEl("div", {
-            className: `vein-summary${
+            className: `vein-summary pv-summary${
               ablationComplete
                 ? " plan-complete"
                 : ablationInProgress
@@ -6970,26 +7030,13 @@
                   : ""
             }`,
           });
-          const criteriaNode = createEl(
-            "div",
-            { className: "ablation-criteria" },
-            createEl("span", { text: "消融完成" }),
-            createEl("strong", {
-              className: ablationComplete ? "is-met" : ablationStatus.hasAblation ? "is-pending" : "is-idle",
-              text: ablationStatus.completionSummary,
-            }),
-          );
           const veinTiming = getVeinTiming(vein.id);
           const timingNode = createEl(
             "div",
-            { className: `vein-timing-meta${veinTiming.hasTiming ? "" : " is-empty"}` },
-            createEl("span", { text: "消融时间" }),
-            createEl("strong", {
-              text: veinTiming.hasTiming
-                ? `${veinTiming.rangeText}（用时 ${veinTiming.durationText}）`
-                : "尚无记录",
-            }),
+            { className: "vein-timing-meta" },
+            createEl("span", { text: `消融时间 ${veinTiming.rangeText}` }),
           );
+          if (veinTiming.hasTiming) timingNode.appendChild(createEl("span", { text: `用时 ${veinTiming.durationText || "0秒"}` }));
           const endpointSelect = createEndpointSelectNode(
             ENDPOINT_OPTIONS,
             endpoints[vein.id],
@@ -7014,20 +7061,30 @@
             endpointSelect,
           );
           item.append(
-            createEl("span", { className: "vein-summary-name", text: vein.id }),
+            createEl("div", { className: "vein-identity" },
+              createEl("strong", { className: "vein-summary-name", text: vein.id, attrs: { title: vein.name } }),
+              createEl("span", { className: "vein-state", text: ablationComplete ? "消融完成" : ablationInProgress ? "未完成" : "未记录" }),
+            ),
+            endpointControl,
             createProgressTrackNode(progress.planProgress, visualTarget, {
               valuemax: visualTarget,
               valuenow: Math.min(progress.planProgress, visualTarget),
               ariaLabel: `${progress.ariaLabel}；${ablationStatus.completionSummary}`,
             }),
-            createEl("span", { className: "vein-summary-count", text: progress.countLabel }),
-            criteriaNode,
+            createEl("div", { className: "vein-measures" },
+              createEl("span", { className: "vein-summary-count", text: progress.countLabel, attrs: { title: progress.ariaLabel } }),
+              createEl("span", { text: ablationStatus.criteriaSummary }),
+            ),
             timingNode,
-            endpointControl,
           );
           veinList.appendChild(item);
         });
-
+        const completedTargets = completedVeins + (posteriorWall?.complete ? 1 : 0);
+        const totalTargets = veins.length + (posteriorWall ? 1 : 0);
+        document.getElementById("completed-vein-count").textContent = `${completedTargets}/${totalTargets}`;
+        const completionRate = totalTargets ? Math.round(completedTargets * 100 / totalTargets) : 0;
+        targetCountNode.textContent = `${completionRate}%`;
+        targetCountNode.style.setProperty("--ablation-completion", `${completionRate}%`);
       }
 
       function hideToastPopover() {
@@ -7597,6 +7654,13 @@
           "right-common": "右共同肺静脉",
           "bilateral-common": "双侧共同肺静脉",
         };
+        const anatomyLabel = anatomyLabels[settings.anatomyMode];
+        const planCopy = settings.anatomyMode === "standard"
+          ? `口部 ${settings.innerSequenceTarget} / 前庭 ${settings.outerSequenceTarget}`
+          : settings.anatomyMode === "bilateral-common"
+            ? `共干 ${settings.commonSequenceTarget}`
+            : `普通 PV ${settings.innerSequenceTarget}+${settings.outerSequenceTarget} / 共干 ${settings.commonSequenceTarget}`;
+        const ridgeCopy = overviewMetrics.activeRidgeSiteCount || settings.ridgeEnabled ? " · 脊部记录开启" : "";
         const reportElectrodes = activeElectrodeNumbers();
         const reportTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
           year: "numeric",
@@ -7614,8 +7678,8 @@
           overviewMetrics,
           caseTimingSummary,
           recordedRidges,
-          anatomyLabel: anatomyLabels[settings.anatomyMode],
-          currentProtocol: protocolSummary.textContent || anatomyLabels[settings.anatomyMode],
+          anatomyLabel,
+          currentProtocol: `${anatomyLabel} · ${planCopy} · 每次消融 ${APPLICATIONS_PER_SEQUENCE} 次放电${ridgeCopy}`,
           latestOperation: lastOperation
             ? `${lastOperation.label}${lastOperation.recordedAt ? ` · ${reportTimeFormatter.format(new Date(lastOperation.recordedAt))}` : ""}`
             : "尚无操作记录",
@@ -8081,16 +8145,19 @@
       }
 
       function pdfDrawMapLegend(pdf, y) {
-        const items = [["0 次", 21], ["未达阈值", 21], ["达阈值", 25], ["超阈值 1 次", 31], ["超阈值 2 次及以上", 39]];
-        let x = 10;
-        items.forEach(([label, width], index) => {
-          pdf.fill = PDF_SEGMENT_COLORS[index];
-          pdf.stroke = PDF_COLORS.line;
-          pdf.lineWidth = 0.15;
-          pdf.rect(x, y - 2.1, 2.4, 2.4, "FD");
-          pdfDrawText(pdf, label, x + 3.8, y, { fontSize: 6.8, color: PDF_COLORS.muted });
-          x += width;
+        const x = 10;
+        const unit = 16 * 25.4 / 96; // Seven 16 CSS px bands match the 112 px on-screen legend.
+        const colors = [PDF_SEGMENT_COLORS[0], PDF_COLORS.purpleQuarter, PDF_COLORS.purpleHalf, ...PDF_SEGMENT_COLORS.slice(1)];
+        colors.forEach((color, index) => {
+          pdf.fill = color;
+          pdf.rect(x + index * unit, y - 4, unit, 2, "F");
         });
+        const thresholdX = x + 4 * unit;
+        pdf.stroke = PDF_COLORS.ink;
+        pdf.lineWidth = 0.35;
+        pdf.line(thresholdX, y - 1.6, thresholdX, y + 1.1);
+        pdfDrawText(pdf, "未达标", x + 2 * unit, y + 0.8, { fontSize: 6.8, color: PDF_COLORS.muted, align: "center" });
+        pdfDrawText(pdf, "达标", thresholdX + 1.5 * unit, y + 0.8, { fontSize: 6.8, align: "center" });
         pdfDrawText(pdf, "外圈：前庭 · 内圈：口部", 200, y, { fontSize: 6.8, color: PDF_COLORS.muted, align: "right" });
       }
 
@@ -8108,7 +8175,7 @@
         geometry.placements = mapPlacements(geometry.showWall || showLineSites, showSvc);
         pdfDrawWebAnatomy(pdf, geometry);
         veins.forEach(vein => pdfDrawVein(pdf, vein, posteriorMapGeometry(geometry, vein.id.startsWith("L") ? "left" : "right")));
-        pdfDrawMapText(pdf, "A–J：分区 · 圆心：该支消融次数 · 扇区：累计覆盖次数 · 前壁 2 次 / 后壁 1 次达标", geometry, 490, 624, {
+        pdfDrawMapText(pdf, "A–J：分区 · 圆心：该支消融次数 · 扇区：累计覆盖次数", geometry, 490, 624, {
           fontSizePx: 12, color: PDF_COLORS.muted, align: "center",
         });
         pdfDrawRidges(pdf, geometry);
@@ -8384,6 +8451,7 @@
       document.getElementById("more-settings").onclick = () => { actionsDialog.close(); settingsButton.click(); };
       document.getElementById("more-export").onclick = () => { actionsDialog.close(); exportButton.click(); };
       document.getElementById("mobile-electrodes").onclick = () => openQuickPanel("electrodes");
+      document.getElementById("sidebar-electrodes").onclick = () => openQuickPanel("electrodes");
       document.getElementById("mobile-overview").onclick = () => openQuickPanel("overview");
       document.getElementById("mobile-undo").onclick = () => undoLastAction();
       quickDialog.addEventListener("close", () => { if (!quickDialog.open) restoreQuickPanel(); });
@@ -8510,11 +8578,11 @@
       }
 
       svg.addEventListener("pointerdown", event => {
-        if (!event.isPrimary || event.button !== 0) return;
+        if (sectorStroke || !event.isPrimary || event.button !== 0) return;
         suppressStrokeClick = false;
-        if (mapEditMode !== "segment" || !event.target.matches(sectorSelector) || syncWriteBlocked()) return;
+        if (mapEditMode === "ablate" || !event.target.matches(sectorSelector) || syncWriteBlocked()) return;
         sectorStroke = {pointerId: event.pointerId, key: event.target.dataset.key || "svcRing",
-          x: event.clientX, y: event.clientY, selected: new Map()};
+          mode: mapEditMode, x: event.clientX, y: event.clientY, selected: new Map()};
         addStrokeSector(event.target);
         svg.setPointerCapture(event.pointerId);
         suppressStrokeClick = true;
@@ -8528,13 +8596,13 @@
       svg.addEventListener("pointerup", event => {
         if (sectorStroke?.pointerId !== event.pointerId) return;
         sampleSectorStroke(event);
-        const {key, selected} = sectorStroke;
+        const {key, mode, selected} = sectorStroke;
         const sectors = [...selected.keys()];
         const valid = [...selected.values()].every(path => svg.contains(path));
         cancelSectorStroke();
-        if (!valid || mapEditMode !== "segment" || syncWriteBlocked()) return;
+        if (!valid || mode !== mapEditMode || syncWriteBlocked()) return;
         if (key === "svcRing") recordSvcSector(sectors[0], sectors);
-        else applySegment(key, sectors[0], sectors);
+        else applyRingExcluding(key, sectors[0], sectors);
       });
       for (const type of ["pointercancel", "lostpointercapture"]) svg.addEventListener(type, event => {
         if (sectorStroke?.pointerId === event.pointerId) cancelSectorStroke();
@@ -8734,7 +8802,8 @@
           wallReviews[key] = { result: review.result, evidence: review.evidence,
             recordedAt: typeof review.recordedAt === "string" ? review.recordedAt : null };
         }
-        return { enabled, gapOrientation, configs, events, endpoints: planarEndpoints, svcRing, wallReviews };
+        const posteriorWallPlanned = typeof raw?.posteriorWallPlanned === "boolean" ? raw.posteriorWallPlanned : null;
+        return { enabled, posteriorWallPlanned, gapOrientation, configs, events, endpoints: planarEndpoints, svcRing, wallReviews };
       }
 
       function clonePlanarState(state = planarState) {
@@ -9369,18 +9438,23 @@
       function recordSvcSector(sector, sectors = [sector]) {
         if (syncWriteBlocked()) return;
         const ring = planarState.svcRing;
-        const index = sector - 1;
-        const label = `SVC ${sectorLabel(sector)} 区`;
+        let message;
         if (mapEditMode === "remove") {
-          if (!ring.counts[index]) return showToast(`${label} 当前为 0 次`);
-          pushHistory(`${label} 减少覆盖次数`);
-          ring.counts[index] = Math.max(0, ring.counts[index] - 1);
+          const batch = sectors.length > 1;
+          const label = `SVC ${sectorLabel(sector)} 区`;
+          const covered = [...new Set(sectors)].filter(n => ring.counts[n - 1] > 0);
+          if (!covered.length) return showToast(batch ? "SVC 所选扇区当前均为 0 次" : `${label} 当前为 0 次`);
+          pushHistory(batch ? `SVC ${covered.map(sectorLabel).join("、")} 区批量去除覆盖` : `${label} 减少覆盖次数`);
+          for (const n of covered) ring.counts[n - 1] = Math.max(0, ring.counts[n - 1] - 1);
           ring.lastGap = null;
+          message = batch ? `SVC 已去除 ${covered.length} 区覆盖，各减 1（最低为 0）` :
+            `${label} 累计 ${ring.counts[sector - 1]} 次`;
         } else if (mapEditMode === "segment") {
           pushHistory(`SVC ${sectors.map(n => sectorLabel(n)).join("、")} 区节段消融 +1 次`);
           for (const n of sectors) ring.counts[n - 1] += 1;
           ring.applications += 1;
           ring.lastGap = null;
+          message = `SVC 已记录 1 次节段消融 · 覆盖 ${sectors.length} 区`;
         } else {
           const active = activeElectrodeNumbers();
           if (!active.length) return showToast("请至少开启一个放电电极");
@@ -9388,6 +9462,7 @@
           ring.counts = ring.counts.map((value, i) => value + RingSectors.coverageIncrement(i + 1, sector));
           ring.applications += 1;
           ring.lastGap = sector;
+          message = `SVC 已记录 1 次消融 · ${sectorLabel(sector)} 区为缺口`;
         }
         if (mapEditMode !== "remove") {
           const nowIso = new Date().toISOString();
@@ -9397,8 +9472,7 @@
         }
         saveCounts();
         updateAll();
-        showToast(mapEditMode === "segment" ? `SVC 已记录 1 次节段消融 · 覆盖 ${sectors.length} 区` :
-          mapEditMode === "ablate" ? `SVC 已记录 1 次消融 · ${sectorLabel(sector)} 区为缺口` : `${label} 累计 ${ring.counts[index]} 次`);
+        showToast(message);
       }
 
       function svcSectorGeometry(index) {
@@ -9456,16 +9530,40 @@
       }
       const savedSelections = new Set(savedStructures.split(","));
       const visibleStructures = new Set();
+      const wallOption = structureOptions.querySelector('input[value="lapw"]');
+
+      function setStructureVisibility(input, visible) {
+        input.checked = visible;
+        if (visible) visibleStructures.add(input.value);
+        else visibleStructures.delete(input.value);
+        safeStorageSet(structurePreferenceKey, [...visibleStructures].join(","));
+      }
+
+      function restorePosteriorWallSelection() {
+        planarState.posteriorWallPlanned ??= wallOption.checked;
+        if (wallOption.checked !== planarState.posteriorWallPlanned) {
+          setStructureVisibility(wallOption, planarState.posteriorWallPlanned);
+        }
+      }
+
       for (const input of structureOptions.querySelectorAll("input:enabled")) {
         input.checked = savedSelections.has(input.value);
         if (input.checked) visibleStructures.add(input.value);
         input.addEventListener("change", () => {
-          if (input.checked) visibleStructures.add(input.value);
-          else visibleStructures.delete(input.value);
-          safeStorageSet(structurePreferenceKey, [...visibleStructures].join(","));
+          if (input === wallOption && syncRole !== "mirror") {
+            if (syncWriteBlocked()) {
+              input.checked = visibleStructures.has(input.value);
+              return;
+            }
+            pushHistory(input.checked ? "勾选左房后壁" : "取消勾选左房后壁");
+            planarState.posteriorWallPlanned = input.checked;
+            saveCounts();
+          }
+          setStructureVisibility(input, input.checked);
           if (!input.checked && activePlanarPopoverSiteId === input.value) closePlanarPopover();
           else planarRenderLayer();
           updateMapView();
+          if (input === wallOption) updateSummary();
         });
       }
 
@@ -10275,15 +10373,18 @@
 
       const _baseUpdateSummary = updateSummary;
       updateSummary = function () {
-        _baseUpdateSummary();
-        const recordedSites = recordedStructureSites();
-        if (!recordedSites.length) return;
+        const hasWallTarget = planarState.posteriorWallPlanned || planarState.events.some(event => event.siteId === "lapw");
+        const posteriorWall = hasWallTarget ? computePlanarSiteMetrics("lapw") : null;
+        _baseUpdateSummary(posteriorWall);
+        const sites = recordedStructureSites();
+        if (posteriorWall && !sites.includes(posteriorWall.site)) sites.unshift(posteriorWall.site);
+        if (!sites.length) return;
         const groupLabel = document.createElement("div");
         groupLabel.className = "planar-summary-group-label";
-        groupLabel.textContent = "PVI+解剖位置";
+        groupLabel.textContent = "PVI+ 消融记录";
         veinList.appendChild(groupLabel);
-        recordedSites.forEach((site) => {
-          const m = computePlanarSiteMetrics(site.id);
+        sites.forEach((site) => {
+          const m = site === posteriorWall?.site ? posteriorWall : computePlanarSiteMetrics(site.id);
           const gapText = m.unablatedGaps.map(gapLocation).join("、");
           const card = createEl("div", {
             className: `vein-summary planar-summary-item${m.complete ? " plan-complete" : m.inProgress ? " plan-in-progress" : ""}`,

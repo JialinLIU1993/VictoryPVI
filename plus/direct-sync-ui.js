@@ -54,9 +54,8 @@
       const dialogHtml = `<div class="settings-card">
         <header class="settings-header">
           <div>
-            <p class="dialog-kicker">多端同步</p>
             <h2 id="direct-title" tabindex="-1">双端扫码同步</h2>
-            <p class="settings-header-help">两台设备连接同一 Wi-Fi 或手机热点，分两步互扫二维码即可实时同步</p>
+            <p class="settings-header-help" id="direct-header-help">同一 Wi-Fi 或热点下，两步互扫二维码即可同步</p>
           </div>
           <button class="dialog-close" id="direct-close" type="button" aria-label="关闭双端扫码同步">×</button>
         </header>
@@ -82,8 +81,8 @@
           <p class="direct-loading" id="direct-loading" role="status" hidden>正在处理，请稍候…</p>
           <section id="direct-pairing" class="direct-pairing direct-stage" hidden>
             <h3 id="direct-next"></h3>
-            <p class="settings-help" id="direct-help"></p>
-            <div class="sync-qr-frame"><div class="sync-qr" id="direct-qr"></div><span class="sync-qr-caption" id="direct-caption"></span></div>
+            <p class="settings-help" id="direct-help" hidden></p>
+            <div class="sync-qr-frame"><div class="sync-qr" id="direct-qr"></div></div>
             <button class="button primary" id="direct-scan-answer" type="button">对方已出回码，开始扫描（第 2 步）</button>
             <button class="button" id="direct-cancel-step" type="button"></button>
           </section>
@@ -94,9 +93,9 @@
             <button class="button" id="direct-stop-camera" type="button">返回上一步</button>
           </section>
           <p class="sync-error" id="direct-error" role="alert" hidden></p>
-          <p class="direct-note" id="direct-note">先在主控设备选“本机作为操作端”，再在另一台设备选“本机作为跟随端”。</p>
+          <p class="direct-note" id="direct-note" hidden></p>
         </div>
-        <footer class="settings-footer"><button class="direct-text-button" id="direct-leave" type="button" hidden>结束同步</button><button class="button" id="direct-done" type="button">返回记录</button></footer>
+        <footer class="settings-footer" id="direct-footer"><button class="direct-text-button" id="direct-leave" type="button" hidden>结束同步</button><button class="button" id="direct-done" type="button">返回记录</button></footer>
       </div>`;
       this.dialog.innerHTML = ttPolicy ? ttPolicy.createHTML(dialogHtml) : dialogHtml;
       document.body.append(this.dialog);
@@ -333,27 +332,25 @@
         : '只读同步画面 · 第 1 步扫操作端邀请码，第 2 步出示回码';
 
       const isHostPairing = this.role === 'host';
+      this.get('header-help').hidden = phase !== 'choose';
       this.get('scan-answer').hidden = !isHostPairing;
       this.get('cancel-step').hidden = !pairing;
       this.get('cancel-step').textContent = isHostPairing
         ? (this.peers > 0 ? '取消添加设备' : '返回重选角色')
         : '重新扫描邀请码';
 
-      this.get('caption').textContent = isHostPairing
-        ? '第 1 步 · 操作端邀请码'
-        : '第 2 步 · 跟随端回码（等待操作端扫描）';
       this.get('next').textContent = isHostPairing
-        ? '第 1 步：请用跟随端扫描下方邀请码'
-        : '第 2 步：请用操作端扫描下方回码';
-      this.get('help').textContent = isHostPairing
-        ? '在另一台设备打开“设备同步 → 本机作为跟随端”扫描此码。待对方屏幕出现“回码”后，点击下方按钮进入第 2 步。'
-        : (this.client?.pendingPeer?.pc?.connectionState === 'failed'
-          ? '连接未能建立，请确认双端连接同一 Wi-Fi 或热点后，点击下方“重新扫描邀请码”。'
-          : '请保持此二维码开启。在操作端点击“对方已出回码，开始扫描”，用操作端扫描此码后即自动完成连接。');
+        ? '第 1 步：请用跟随端扫描邀请码'
+        : '第 2 步：请用操作端扫描回码';
+      const mirrorFailed = !isHostPairing && this.client?.pendingPeer?.pc?.connectionState === 'failed';
+      this.get('help').hidden = !mirrorFailed;
+      this.get('help').textContent = mirrorFailed
+        ? '连接失败，请确认同一 Wi-Fi 或热点后重新扫码。'
+        : '';
 
       this.get('camera-title').textContent = this.scanTarget === 'answer'
-        ? '第 2 步：请扫描跟随端屏幕上的回码'
-        : '第 1 步：请扫描操作端屏幕上的邀请码';
+        ? '第 2 步：扫描跟随端回码'
+        : '第 1 步：扫描操作端邀请码';
       this.get('stop-camera').textContent = this.scanTarget === 'answer'
         ? '返回查看邀请码（第 1 步）'
         : '返回上一步';
@@ -372,8 +369,9 @@
       stepTwo.dataset.done = 'false';
       stepTwo.querySelector('span').textContent = '2';
 
-      this.get('leave').hidden = !active || scanning || this.busy;
-      this.get('note').hidden = scanning || this.busy;
+      this.get('footer').hidden = occupied;
+      this.get('leave').hidden = !active || occupied;
+      this.get('note').hidden = !active || occupied;
       this.renderNote();
 
       this.get('done').classList.toggle('primary', connected && !occupied);
@@ -561,8 +559,8 @@
         await video.play();
         if (generation !== this.scanGeneration) return;
         this.get('camera-status').textContent = target === 'answer'
-          ? '请将取景框对准跟随端显示的“第 2 步 · 跟随端回码”，识别后自动完成连接'
-          : '请先在操作端选择“本机作为操作端”，再将取景框对准其“邀请码”二维码';
+          ? '对准跟随端回码，识别后自动连接'
+          : '对准操作端邀请码，识别后自动生成回码';
         const tick = () => {
           if (generation !== this.scanGeneration || !this.stream) return;
           if (video.readyState >= 2 && video.videoWidth && this.context) {
